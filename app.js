@@ -665,8 +665,8 @@
     return `${OQRN_CARD}?${q}`;
   }
 
-  // ---- 作戦盤を画像で保存（線・相手・ボールも入る） ----
-  async function saveBoardImage() {
+  // ---- 作戦盤の画像（線・相手・ボールも入る）。保存にも、カードの写真にも使う ----
+  async function boardCanvas() {
     if (document.fonts?.ready) await document.fonts.ready;
     const W = 1080;
     const H = Math.round(W * (state.mode === "futsal" ? 1.5 : 4 / 3));
@@ -751,6 +751,11 @@
       ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
     }
     ctx.restore();
+    return canvas;
+  }
+
+  async function saveBoardImage() {
+    const canvas = await boardCanvas();
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
     const url = URL.createObjectURL(blob);
     const file = new File([blob], "作戦盤.png", { type: "image/png" });
@@ -775,6 +780,63 @@
     });
     document.body.append(sheet);
   }
+
+  // ---- 作戦盤の画像をカードで送る ----
+  // 画像をおくるんの画像サーバー（無料。しばらく使わないと眠り、時間がたつと画像が消えることがある）に保存し、
+  // その画像を写真にしたお知らせカードをおくるんで開く
+  const IMAGE_API = "https://liff-image.onrender.com";
+
+  async function sendBoardImage() {
+    const button = $("sendBoardImage");
+    if (button.disabled) return;
+    button.disabled = true;
+    const label = button.textContent;
+    const started = Date.now();
+    const timer = setInterval(() => {
+      const sec = Math.floor((Date.now() - started) / 1000);
+      $("imageStatus").textContent = `画像を保存しています… ${sec}秒${sec >= 6 ? "（はじめは30秒ほどかかることがあります）" : ""}`;
+    }, 1000);
+    $("imageStatus").textContent = "画像を作っています…";
+    try {
+      const canvas = await boardCanvas();
+      const response = await fetch(`${IMAGE_API}/api/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageData: canvas.toDataURL("image/jpeg", 0.88) })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !/^https:\/\//.test(data.imageUrl || "")) throw new Error(`upload ${response.status}`);
+      $("imageStatus").textContent = "おくるんを開いています…";
+      location.href = boardImageCardUrl(data.imageUrl);
+    } catch (error) {
+      console.error(error);
+      $("imageStatus").textContent = "画像を保存できませんでした。時間をおいてもう一度お試しください。";
+    } finally {
+      clearInterval(timer);
+      button.disabled = false;
+      button.textContent = label;
+    }
+  }
+
+  function boardImageCardUrl(imageUrl) {
+    const q = new URLSearchParams({
+      headerTitle: state.showOpp || state.strokes.length ? "作戦盤" : "スタメン発表",
+      date: state.when || "",
+      showDate: state.when ? "true" : "false",
+      title: state.opponent ? `vs ${state.opponent}` : state.team || "スタメン",
+      detail: [state.where && `📍 ${state.where}`, state.subs && `控え：${state.subs}`, state.lineupNote].filter(Boolean).join("\n"),
+      showDetail: state.where || state.subs || state.lineupNote ? "true" : "false",
+      imageUrl,
+      bubbleSize: "giga",
+      theme: "custom",
+      customColor: cardColor(),
+      from: "soccer"
+    });
+    return `${OQRN_CARD}?${q}`;
+  }
+
+  // 画像サーバーは眠っていると最初の保存が遅いので、開いた時点で起こしておく
+  fetch(`${IMAGE_API}/health`, { mode: "no-cors", cache: "no-store" }).catch(() => {});
 
   // ---- 操作 ----
   for (const tab of document.querySelectorAll(".tab")) {
@@ -812,6 +874,7 @@
     render();
   });
   $("saveBoard").addEventListener("click", saveBoardImage);
+  $("sendBoardImage").addEventListener("click", sendBoardImage);
 
   // 入力欄（チーム名などは2つのタブで共通。同じクラスの欄をそろえる）
   const shared = { team: ".team", opponent: ".opponent", when: ".when", where: ".where" };
