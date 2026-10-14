@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <main class="wrap">
@@ -46,10 +46,12 @@
     <div class="card formations">
       <div>
         <span class="label">自チーム</span>
+        <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
         <div id="formationChips" class="chips col" role="radiogroup" aria-label="自チームのフォーメーション"></div>
       </div>
       <div>
         <span class="label">相手 <span id="oppHint" class="meta"></span></span>
+        <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
         <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
       </div>
     </div>
@@ -170,6 +172,6 @@
   </div>
 </div>
 
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

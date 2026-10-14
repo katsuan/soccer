@@ -18,6 +18,18 @@
     soccer: { label: "サッカー 11人", list: { "4-4-2": [4, 4, 2], "4-3-3": [4, 3, 3], "4-2-3-1": [4, 2, 3, 1], "3-5-2": [3, 5, 2], "3-4-3": [3, 4, 3] } }
   };
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
+  // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
+  const TEAM_COLORS = ["#6c47ff", "#2563eb", "#e11d48", "#16a34a", "#f97316", "#facc15", "#1f2937", "#ffffff"];
+  const GK_COLOR = "#f5a524";
+  const isLight = (hex) => {
+    const n = parseInt(String(hex).slice(1), 16);
+    return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
+  };
+  const inkOn = (hex) => (isLight(hex) ? "#23302a" : "#ffffff");
+  // GK は見分けやすいオレンジ。自チームがオレンジ系のときは黒
+  const gkColor = () => (["#f97316", GK_COLOR].includes(state.ourColor) ? "#1f2937" : GK_COLOR);
+  // カードの見出しの帯に使う色（白や黄色は帯にすると文字が読めないので、濃い緑にする）
+  const cardColor = () => (isLight(state.ourColor) ? "#2e8b4a" : state.ourColor);
 
   // フォーメーションから位置を作る（GK が一番下、列は後ろから前へ）
   function formationPositions(mode, formation) {
@@ -87,6 +99,8 @@
       pkUs: "",
       pkThem: "",
       oppFormation: "4-4-2",
+      ourColor: "#6c47ff",
+      oppColor: "#ffffff",
       goals: [],
       mvp: "",
       resultNote: ""
@@ -197,6 +211,21 @@
       )
     );
     $("oppHint").textContent = state.showOpp ? "" : "（選ぶと表示）";
+    // チームの色
+    const swatches = (key) =>
+      TEAM_COLORS.map((color) => {
+        const b = chip("", state[key] === color, () => {
+          state[key] = color;
+          if (key === "oppColor") state.showOpp = true;
+          render();
+        });
+        b.classList.add("color");
+        b.style.background = color;
+        b.setAttribute("aria-label", "チームの色");
+        return b;
+      });
+    $("ourColors").replaceChildren(...swatches("ourColor"));
+    $("oppColors").replaceChildren(...swatches("oppColor"));
     board.classList.toggle("is-futsal", state.mode === "futsal");
     renderTokens();
     drawInk();
@@ -285,7 +314,13 @@
     el.className = `token ${extra}`;
     el.dataset.key = keyOf(target);
     el.innerHTML = "<b></b><small></small>";
-    el.querySelector("b").textContent = p.number || "";
+    const number = el.querySelector("b");
+    number.textContent = p.number || "";
+    // 色：自チーム（GK は別の色）・相手
+    const fill = target.kind === "opp" ? state.oppColor : target.index === 0 ? gkColor() : state.ourColor;
+    number.style.background = fill;
+    number.style.color = inkOn(fill);
+    number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
     el.querySelector("small").textContent = p.name || "";
     place(el, p);
     el.classList.toggle("is-selected", selected.has(keyOf(target)));
@@ -575,6 +610,7 @@
       t: state.team,
       o: state.opponent,
       s: state.subs,
+      c: state.ourColor,
       pl: state.players.map((p) => [p.number, p.name, p.x, p.y])
     };
     const q = new URLSearchParams({
@@ -586,6 +622,8 @@
       detail: [state.where && `📍 ${state.where}`, state.lineupNote].filter(Boolean).join("\n"),
       showDetail: state.where || state.lineupNote ? "true" : "false",
       bubbleSize: "mega",
+      theme: "custom",
+      customColor: cardColor(),
       data: encode(data),
       from: "soccer"
     });
@@ -619,6 +657,8 @@
       detail: state.resultNote,
       showDetail: state.resultNote ? "true" : "false",
       bubbleSize: "mega",
+      theme: "custom",
+      customColor: cardColor(),
       data: encode(data),
       from: "soccer"
     });
@@ -701,8 +741,11 @@
         ctx.fillText(text, x, y + 70);
       }
     };
-    if (state.showOpp) (state.opp || opponents()).forEach((p) => drawToken(p, "#ffffff", "", "#23302a"));
-    state.players.forEach((p, i) => drawToken(p, i === 0 ? "#f5a524" : "#6c47ff", p.name));
+    if (state.showOpp) (state.opp || opponents()).forEach((p) => drawToken(p, state.oppColor, "", inkOn(state.oppColor)));
+    state.players.forEach((p, i) => {
+      const fill = i === 0 ? gkColor() : state.ourColor;
+      drawToken(p, fill, p.name, inkOn(fill));
+    });
     if (state.showBall) {
       ctx.font = font(56, 400);
       ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
