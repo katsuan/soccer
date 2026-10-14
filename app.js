@@ -302,12 +302,12 @@
     return b;
   }
 
-  // 相手は選んだフォーメーション（最初は自分たちと同じ）を、上下・左右反対に置く
+  // 相手は選んだフォーメーション（最初は自チームと同じ）を、上下・左右反対に置く
   function opponents() {
     return formationPositions(state.mode, state.oppFormation || state.formation).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
   }
 
-  // 範囲で選んだもの（"p3"＝自分たちの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
+  // 範囲で選んだもの（"p3"＝自チームの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
   const selected = new Set();
   const keyOf = (target) => (target.kind === "ball" ? "ball" : `${target.kind === "player" ? "p" : "o"}${target.index}`);
 
@@ -597,7 +597,7 @@
       ...state.goals.map((g, i) => {
         const row = document.createElement("div");
         row.className = "goal";
-        const side = Object.assign(document.createElement("span"), { className: "side", textContent: g.side === "t" ? "相手" : "自分たち" });
+        const side = Object.assign(document.createElement("span"), { className: "side", textContent: g.side === "t" ? "相手" : "自チーム" });
         const min = Object.assign(document.createElement("input"), { value: g.min || "", placeholder: "分", inputMode: "numeric", maxLength: 4 });
         const name = Object.assign(document.createElement("input"), { value: g.name || "", placeholder: g.side === "t" ? "（任意）" : "名前", maxLength: 12 });
         name.setAttribute("list", "rosterNames");

@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 <main class="wrap">
@@ -27,14 +27,10 @@
 
   <!-- ===== スタメン・作戦盤 ===== -->
   <section id="panelLineup" class="panel">
-    <!-- 上は人数だけ。フォーメーションはピッチの下で、自チームと相手を並べて選ぶ -->
-    <div class="card">
-      <div id="modeChips" class="chips" role="radiogroup" aria-label="人数"></div>
-    </div>
-
-    <!-- 作戦盤の道具（相手・ボール・ペン）はピッチのすぐ上 -->
+    <!-- 作戦盤：人数と道具（相手・ボール・ペン）はピッチのすぐ上。フォーメーションはピッチの下で、自チームと相手を並べて選ぶ -->
     <div class="card tools">
       <span class="label">作戦盤</span>
+      <div id="modeChips" class="chips" role="radiogroup" aria-label="人数"></div>
       <div class="chips">
         <button id="toggleOpp" class="chip" type="button" aria-pressed="false">👥 相手</button>
         <button id="toggleBall" class="chip" type="button" aria-pressed="false">⚽ ボール</button>
@@ -45,7 +41,6 @@
         <button id="inkUndo" class="chip" type="button">↶ 戻す</button>
         <button id="inkClear" class="chip" type="button">全部消す</button>
       </div>
-      <button id="resetPositions" class="link" type="button">位置をフォーメーションに戻す</button>
     </div>
 
     <div class="board-wrap">
@@ -70,6 +65,7 @@
         <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
         <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
       </div>
+      <button id="resetPositions" class="link reset" type="button">位置をフォーメーションに戻す</button>
     </div>
 
 
@@ -103,7 +99,7 @@
       <label>チーム名<input class="team" maxlength="20" placeholder="例：FC おくるん"></label>
       <label>対戦相手<input class="opponent" maxlength="20" placeholder="例：シティFC"></label>
       <div class="score">
-        <label>自分たち<input id="scoreUs" type="number" inputmode="numeric" min="0" max="99" value="0"></label>
+        <label>自チーム<input id="scoreUs" type="number" inputmode="numeric" min="0" max="99" value="0"></label>
         <span>-</span>
         <label>相手<input id="scoreThem" type="number" inputmode="numeric" min="0" max="99" value="0"></label>
       </div>
@@ -140,7 +136,7 @@
       <summary>⚽ 得点・MVP <span id="goalsMeta" class="meta"></span></summary>
       <div id="goals" class="goals"></div>
       <div class="two">
-        <button id="addGoalUs" class="btn ghost small" type="button">＋ 自分たちの得点</button>
+        <button id="addGoalUs" class="btn ghost small" type="button">＋ 自チームの得点</button>
         <button id="addGoalThem" class="btn ghost small" type="button">＋ 相手の得点</button>
       </div>
       <label>MVP<input id="mvp" maxlength="12" list="rosterNames" placeholder="例：山田"></label>
@@ -176,6 +172,6 @@
   </div>
 </div>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
