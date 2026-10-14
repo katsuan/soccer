@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 <main class="wrap">
@@ -36,11 +36,13 @@
 
     <div class="board-wrap">
       <div id="board" class="board">
-        <div class="pitch-lines" aria-hidden="true"><i class="is-border"></i><i class="is-half"></i><i class="is-circle"></i><i class="is-box-top"></i><i class="is-box-bottom"></i></div>
+        <!-- ピッチの線。サッカーは四角いペナルティエリア、フットサルはゴール前が半円（D形）のエリア -->
+        <div class="pitch-lines" aria-hidden="true"><i class="is-border"></i><i class="is-half"></i><i class="is-circle"></i><i class="is-box-top"></i><i class="is-box-bottom"></i><i class="is-d-top"><span></span></i><i class="is-d-bottom"><span></span></i></div>
         <canvas id="ink" class="ink"></canvas>
         <div id="tokens" class="tokens"></div>
+        <div id="marquee" class="marquee" hidden></div>
       </div>
-      <p class="hint" id="boardHint">選手をドラッグで移動、タップで名前・背番号。</p>
+      <p class="hint" id="boardHint">選手をドラッグで移動、タップで名前・背番号。何もない所をなぞると範囲で選べます。</p>
     </div>
 
     <div class="card tools">
@@ -49,6 +51,10 @@
         <button id="toggleOpp" class="chip" type="button" aria-pressed="false">👥 相手</button>
         <button id="toggleBall" class="chip" type="button" aria-pressed="false">⚽ ボール</button>
         <button id="togglePen" class="chip" type="button" aria-pressed="false">✏️ ペン</button>
+      </div>
+      <div id="oppTools" hidden>
+        <span class="label">相手のフォーメーション</span>
+        <div id="oppFormationChips" class="chips" role="radiogroup" aria-label="相手のフォーメーション"></div>
       </div>
       <div id="penTools" class="chips" hidden>
         <div id="penColors" class="chips"></div>
@@ -90,12 +96,33 @@
         <span>-</span>
         <label>相手<input id="scoreThem" type="number" inputmode="numeric" min="0" max="99" value="0"></label>
       </div>
+    </div>
+
+    <!-- 前半・後半・延長・PK（入れたものだけカードに出る） -->
+    <details class="card fold">
+      <summary>⏱️ 前半・後半・延長・PK <span id="periodMeta" class="meta"></span></summary>
+      <p class="hint left">上のスコアは最終スコア（延長を含む）。ここは入れたものだけカードに出ます。同点で PK があれば PK で勝ち負けを決めます。</p>
       <div class="score is-half">
-        <label>前半（任意）<input id="halfUs" type="number" inputmode="numeric" min="0" max="99"></label>
+        <label>前半<input id="halfUs" type="number" inputmode="numeric" min="0" max="99"></label>
         <span>-</span>
         <label>&nbsp;<input id="halfThem" type="number" inputmode="numeric" min="0" max="99"></label>
       </div>
-    </div>
+      <div class="score is-half">
+        <label>後半<input id="secondUs" type="number" inputmode="numeric" min="0" max="99"></label>
+        <span>-</span>
+        <label>&nbsp;<input id="secondThem" type="number" inputmode="numeric" min="0" max="99"></label>
+      </div>
+      <div class="score is-half">
+        <label>延長<input id="extraUs" type="number" inputmode="numeric" min="0" max="99"></label>
+        <span>-</span>
+        <label>&nbsp;<input id="extraThem" type="number" inputmode="numeric" min="0" max="99"></label>
+      </div>
+      <div class="score is-half">
+        <label>PK<input id="pkUs" type="number" inputmode="numeric" min="0" max="99"></label>
+        <span>-</span>
+        <label>&nbsp;<input id="pkThem" type="number" inputmode="numeric" min="0" max="99"></label>
+      </div>
+    </details>
 
     <div class="card">
       <span class="label">得点</span>
@@ -137,6 +164,6 @@
   </div>
 </div>
 
-<script src="app.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

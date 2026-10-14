@@ -80,6 +80,13 @@
       scoreThem: 0,
       halfUs: "",
       halfThem: "",
+      secondUs: "",
+      secondThem: "",
+      extraUs: "",
+      extraThem: "",
+      pkUs: "",
+      pkThem: "",
+      oppFormation: "4-4-2",
       goals: [],
       mvp: "",
       resultNote: ""
@@ -110,6 +117,12 @@
         scoreThem: data.th,
         halfUs: data.hu ?? "",
         halfThem: data.ht ?? "",
+        secondUs: data.su ?? "",
+        secondThem: data.st ?? "",
+        extraUs: data.eu ?? "",
+        extraThem: data.et ?? "",
+        pkUs: data.pu ?? "",
+        pkThem: data.pt ?? "",
         goals: (data.g || []).map((g) => ({ side: g[0], min: g[1], name: g[2] })),
         mvp: data.mvp || ""
       });
@@ -152,7 +165,10 @@
           if (state.mode === key) return;
           state.mode = key;
           state.formation = Object.keys(def.list)[0];
+          state.oppFormation = state.formation;
           state.players = freshPlayers(key, state.formation, state.players);
+          state.opp = opponents();
+          selected.clear();
           state.strokes = [];
           render();
         }, "radio")
@@ -163,6 +179,18 @@
         chip(f, state.formation === f, () => {
           state.formation = f;
           state.players = freshPlayers(state.mode, f, state.players);
+          render();
+        }, "radio")
+      )
+    );
+    // 相手のフォーメーション（相手を出しているときだけ）
+    if (!FORMATIONS[state.mode].list[state.oppFormation]) state.oppFormation = state.formation;
+    $("oppTools").hidden = !state.showOpp;
+    $("oppFormationChips").replaceChildren(
+      ...Object.keys(FORMATIONS[state.mode].list).map((f) =>
+        chip(f, state.oppFormation === f, () => {
+          state.oppFormation = f;
+          state.opp = opponents();
           render();
         }, "radio")
       )
@@ -194,6 +222,11 @@
     $("rosterCount").textContent = people.length ? `${people.length}人` : "なし";
     $("rosterNames").replaceChildren(...people.map((p) => Object.assign(document.createElement("option"), { value: p.name })));
     renderGoals();
+    // 内訳の欄の見出しの右：入っているもの（例：前半・後半・PK）、なければ「なし」
+    const periods = [["前半", "halfUs", "halfThem"], ["後半", "secondUs", "secondThem"], ["延長", "extraUs", "extraThem"], ["PK", "pkUs", "pkThem"]]
+      .filter(([, a, b]) => state[a] !== "" && state[b] !== "")
+      .map(([label]) => label);
+    $("periodMeta").textContent = periods.join("・") || "なし";
     // おくるんへのリンク（押したときに最新を作る）
     $("sendLineup").href = lineupCardUrl();
     $("sendResult").href = resultCardUrl();
@@ -214,22 +247,28 @@
     return b;
   }
 
-  // 相手は同じフォーメーションを上下・左右反対に置く
+  // 相手は選んだフォーメーション（最初は自分たちと同じ）を、上下・左右反対に置く
   function opponents() {
-    return formationPositions(state.mode, state.formation).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
+    return formationPositions(state.mode, state.oppFormation || state.formation).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
   }
+
+  // 範囲で選んだもの（"p3"＝自分たちの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
+  const selected = new Set();
+  const keyOf = (target) => (target.kind === "ball" ? "ball" : `${target.kind === "player" ? "p" : "o"}${target.index}`);
 
   function renderTokens() {
     const list = state.players.map((p, i) => tokenEl(p, i === 0 ? "is-gk" : "", { kind: "player", index: i }));
     if (state.showOpp) {
-      state.opp ||= opponents();
+      if (!Array.isArray(state.opp) || state.opp.length !== formationPositions(state.mode, state.oppFormation).length) state.opp = opponents();
       state.opp.forEach((p, i) => list.push(tokenEl(p, "is-opp", { kind: "opp", index: i })));
     }
     if (state.showBall) {
       const ball = document.createElement("span");
       ball.className = "token is-ball";
+      ball.dataset.key = "ball";
       ball.textContent = "⚽";
       place(ball, state.ball);
+      ball.classList.toggle("is-selected", selected.has("ball"));
       bindDrag(ball, { kind: "ball" });
       list.push(ball);
     }
@@ -239,10 +278,12 @@
   function tokenEl(p, extra, target) {
     const el = document.createElement("span");
     el.className = `token ${extra}`;
+    el.dataset.key = keyOf(target);
     el.innerHTML = "<b></b><small></small>";
     el.querySelector("b").textContent = p.number || "";
     el.querySelector("small").textContent = p.name || "";
     place(el, p);
+    el.classList.toggle("is-selected", selected.has(keyOf(target)));
     bindDrag(el, target);
     return el;
   }
@@ -251,6 +292,11 @@
     el.style.left = `${p.x}%`;
     el.style.top = `${p.y}%`;
   };
+
+  function targetOf(key) {
+    if (key === "ball") return { kind: "ball" };
+    return { kind: key[0] === "p" ? "player" : "opp", index: Number(key.slice(1)) };
+  }
 
   function itemOf(target) {
     if (target.kind === "player") return state.players[target.index];
@@ -284,15 +330,24 @@
       }
       const rect = board.getBoundingClientRect();
       const start = { x: event.clientX, y: event.clientY };
+      const adding = event.ctrlKey || event.metaKey || event.shiftKey;
       let moved = false;
+      // まとめて動かすもの（選ばれたものをつかんだとき）と、それぞれの最初の位置
+      const group = selected.has(keyOf(target)) && selected.size > 1 ? [...selected] : [keyOf(target)];
+      const origin = group.map((key) => ({ key, item: itemOf(targetOf(key)), x: itemOf(targetOf(key))?.x, y: itemOf(targetOf(key))?.y }));
+      const clamp = (v) => Math.round(Math.min(98, Math.max(2, v)));
       const onMove = (e) => {
         if (!moved && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
         moved = true;
         el.classList.add("is-dragging");
-        const item = itemOf(target);
-        item.x = Math.round(Math.min(98, Math.max(2, ((e.clientX - rect.left) / rect.width) * 100)));
-        item.y = Math.round(Math.min(98, Math.max(2, ((e.clientY - rect.top) / rect.height) * 100)));
-        place(el, item);
+        const dx = ((e.clientX - start.x) / rect.width) * 100;
+        const dy = ((e.clientY - start.y) / rect.height) * 100;
+        for (const o of origin) {
+          if (!o.item) continue;
+          o.item.x = clamp(o.x + dx);
+          o.item.y = clamp(o.y + dy);
+        }
+        renderTokensKeepDrag(el, target);
       };
       const onUp = () => {
         el.removeEventListener("pointermove", onMove);
@@ -301,13 +356,68 @@
         el.classList.remove("is-dragging");
         if (moved) swallowClickUntil = Date.now() + 400;
         if (moved) render();
-        else if (target.kind === "player") openPlayer(target.index);
+        else if (adding) {
+          // Ctrl・⌘・Shift を押しながらのタップは、選択に足す・外す
+          const key = keyOf(target);
+          if (selected.has(key)) selected.delete(key);
+          else selected.add(key);
+          render();
+        } else if (target.kind === "player") openPlayer(target.index);
       };
       el.addEventListener("pointermove", onMove);
       el.addEventListener("pointerup", onUp);
       el.addEventListener("pointercancel", onUp);
     });
   }
+
+  // ドラッグ中は、つかんでいる要素はそのまま動かし、ほかの選ばれたものの位置だけ直す（要素を作り直すとつかみが外れる）
+  function renderTokensKeepDrag(el, target) {
+    place(el, itemOf(target));
+    for (const node of tokens.children) {
+      if (node === el || !node.dataset.key) continue;
+      const item = itemOf(targetOf(node.dataset.key));
+      if (item && selected.has(node.dataset.key)) place(node, item);
+    }
+  }
+
+  // 範囲選択：ピッチの何もない所をなぞる。動かさずに離したら選択を外す
+  const marquee = $("marquee");
+  tokens.addEventListener("pointerdown", (event) => {
+    if (drawing || event.target !== tokens) return;
+    event.preventDefault();
+    const rect = board.getBoundingClientRect();
+    const start = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+    const adding = event.ctrlKey || event.metaKey || event.shiftKey;
+    let box = null;
+    const onMove = (e) => {
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      box = { left: Math.min(start.x, x), top: Math.min(start.y, y), width: Math.abs(x - start.x), height: Math.abs(y - start.y) };
+      if (box.width < 6 && box.height < 6) return;
+      Object.assign(marquee.style, { left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px` });
+      marquee.hidden = false;
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      marquee.hidden = true;
+      if (!adding) selected.clear();
+      if (box && (box.width >= 6 || box.height >= 6)) {
+        const inBox = (item) => {
+          const x = (item.x / 100) * rect.width;
+          const y = (item.y / 100) * rect.height;
+          return x >= box.left && x <= box.left + box.width && y >= box.top && y <= box.top + box.height;
+        };
+        state.players.forEach((p, i) => inBox(p) && selected.add(`p${i}`));
+        if (state.showOpp) (state.opp || []).forEach((p, i) => inBox(p) && selected.add(`o${i}`));
+        if (state.showBall && inBox(state.ball)) selected.add("ball");
+        swallowClickUntil = Date.now() + 400;
+      }
+      render();
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  });
 
   // ---- ペン（作戦盤の線。位置は % で持つ） ----
   function drawInk() {
@@ -486,6 +596,12 @@
       th: num(state.scoreThem) || 0,
       hu: num(state.halfUs),
       ht: num(state.halfThem),
+      su: num(state.secondUs),
+      st: num(state.secondThem),
+      eu: num(state.extraUs),
+      et: num(state.extraThem),
+      pu: num(state.pkUs),
+      pt: num(state.pkThem),
       g: state.goals.map((g) => [g.side, g.min, g.name]),
       mvp: state.mvp
     };
@@ -530,14 +646,31 @@
     ctx.lineWidth = 5;
     const rect = (x, y, w, h) => ctx.strokeRect((x / 100) * W, (y / 100) * H, (w / 100) * W, (h / 100) * H);
     rect(5, 4, 90, 92);
-    rect(28, 4, 44, 13);
-    rect(28, 83, 44, 13);
+    if (state.mode === "futsal") {
+      // ゴール前のエリア（D形）：幅70%・奥行き15%。両端が丸い形の半分（おくるんのカードと同じ形）
+      const d = 0.15 * H;
+      const dArea = (top) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0.15 * W - 4, top, 0.7 * W + 8, d);
+        ctx.clip();
+        ctx.beginPath();
+        ctx.roundRect(0.15 * W, top === 0.04 * H ? top - d : top, 0.7 * W, d * 2, d);
+        ctx.stroke();
+        ctx.restore();
+      };
+      dArea(0.04 * H);
+      dArea(0.96 * H - d);
+    } else {
+      rect(28, 4, 44, 13);
+      rect(28, 83, 44, 13);
+    }
     ctx.beginPath();
     ctx.moveTo(0.05 * W, H / 2);
     ctx.lineTo(0.95 * W, H / 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.arc(W / 2, H / 2, W * 0.11, 0, Math.PI * 2);
+    ctx.arc(W / 2, H / 2, W * (state.mode === "futsal" ? 0.09 : 0.11), 0, Math.PI * 2);
     ctx.stroke();
     for (const stroke of state.strokes) drawStroke(ctx, stroke, W, H, 8);
     const drawToken = (p, fill, text, numberColor = "#ffffff") => {
@@ -627,6 +760,7 @@
     state.players = freshPlayers(state.mode, state.formation, state.players);
     state.opp = opponents();
     state.ball = { x: 50, y: 50 };
+    selected.clear();
     render();
   });
   $("saveBoard").addEventListener("click", saveBoardImage);
@@ -643,7 +777,8 @@
       });
     }
   }
-  const single = { subs: "subs", lineupNote: "lineupNote", mvp: "mvp", resultNote: "resultNote", scoreUs: "scoreUs", scoreThem: "scoreThem", halfUs: "halfUs", halfThem: "halfThem" };
+  const single = { subs: "subs", lineupNote: "lineupNote", mvp: "mvp", resultNote: "resultNote", scoreUs: "scoreUs", scoreThem: "scoreThem", halfUs: "halfUs", halfThem: "halfThem",
+    secondUs: "secondUs", secondThem: "secondThem", extraUs: "extraUs", extraThem: "extraThem", pkUs: "pkUs", pkThem: "pkThem" };
   for (const [key, id] of Object.entries(single)) {
     $(id).value = state[key];
     $(id).addEventListener("input", () => {

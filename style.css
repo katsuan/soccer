@@ -55,6 +55,16 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .pitch-lines .is-circle { top: 50%; left: 50%; width: 22%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
 .pitch-lines .is-box-top { top: 4%; left: 28%; width: 44%; height: 13%; }
 .pitch-lines .is-box-bottom { top: 83%; left: 28%; width: 44%; height: 13%; }
+/* フットサル：四角いエリアの代わりに、ゴール前の半円（D形）。円の半分だけを見せる（入れ物ではみ出しを切る） */
+.pitch-lines .is-d-top, .pitch-lines .is-d-bottom { display: none; left: 15%; width: 70%; height: 15%; border: 0; overflow: hidden; }
+.pitch-lines .is-d-top { top: 4%; }
+.pitch-lines .is-d-bottom { top: 81%; }
+.pitch-lines .is-d-top span, .pitch-lines .is-d-bottom span { position: absolute; left: 0; width: 100%; height: 200%; border: 2px solid var(--line); border-radius: 999px; }
+.pitch-lines .is-d-top span { bottom: 0; }
+.pitch-lines .is-d-bottom span { top: 0; }
+.board.is-futsal .pitch-lines .is-box-top, .board.is-futsal .pitch-lines .is-box-bottom { display: none; }
+.board.is-futsal .pitch-lines .is-d-top, .board.is-futsal .pitch-lines .is-d-bottom { display: block; }
+.board.is-futsal .pitch-lines .is-circle { width: 18%; }
 .ink { position: absolute; inset: 0; width: 100%; height: 100%; }
 .tokens { position: absolute; inset: 0; }
 .board.is-drawing .tokens { pointer-events: none; }
@@ -96,3 +106,10 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .sheet-card { display: grid; gap: 10px; width: min(100%, 440px); max-height: 100%; overflow: auto; padding: 18px; border-radius: 20px; background: #fff; }
 .sheet-title { font-weight: 800; }
 .sheet-card img { width: 100%; border-radius: 12px; -webkit-touch-callout: default; }
+
+/* 範囲選択 */
+.marquee { position: absolute; border: 2px dashed #fff; border-radius: 6px; background: rgba(255, 255, 255, 0.15); pointer-events: none; }
+.token.is-selected b { box-shadow: 0 0 0 3px #ffd23f, 0 2px 6px rgba(0, 0, 0, 0.25); }
+.token.is-ball.is-selected { filter: drop-shadow(0 0 4px #ffd23f); }
+.hint.left { text-align: left; }
+#oppTools { display: grid; gap: 6px; }
