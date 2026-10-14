@@ -40,9 +40,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .chip.color { width: 36px; padding: 0; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
 .chip.color[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--ink); }
 
-.fold summary { list-style: none; cursor: pointer; font-weight: 800; }
+/* 見出しは1行：名前 … 中身の要約 › */
+.fold summary { display: flex; align-items: center; gap: 6px; list-style: none; cursor: pointer; font-weight: 800; }
 .fold summary::-webkit-details-marker { display: none; }
-.fold summary::after { content: "›"; float: right; color: var(--ink-soft); transition: transform 0.2s; }
+.fold summary .meta { margin-left: auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.fold summary::after { content: "›"; flex: none; margin-left: auto; color: var(--ink-soft); transition: transform 0.2s; }
+.fold summary .meta + ::after, .fold summary:has(.meta)::after { margin-left: 0; }
 .fold[open] summary::after { transform: rotate(90deg); }
 
 /* ---- ピッチ（作戦盤）。縦向きで、上が攻める向き。位置は % で持つ（送るカードと同じ） ---- */
@@ -112,4 +115,10 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .token.is-selected b { box-shadow: 0 0 0 3px #ffd23f, 0 2px 6px rgba(0, 0, 0, 0.25); }
 .token.is-ball.is-selected { filter: drop-shadow(0 0 4px #ffd23f); }
 .hint.left { text-align: left; }
-#oppTools { display: grid; gap: 6px; }
+
+/* フォーメーション：自チームと相手を左右に並べ、縦に選ぶ */
+.formations { grid-template-columns: 1fr 1fr; align-items: start; }
+.formations > div { display: grid; gap: 6px; }
+.chips.col { flex-direction: column; }
+.chips.col .chip { width: 100%; }
+.fold[open] { gap: 10px; }

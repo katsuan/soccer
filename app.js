@@ -185,16 +185,18 @@
     );
     // 相手のフォーメーション（相手を出しているときだけ）
     if (!FORMATIONS[state.mode].list[state.oppFormation]) state.oppFormation = state.formation;
-    $("oppTools").hidden = !state.showOpp;
+    // 相手のフォーメーションを選んだら、相手も表示する
     $("oppFormationChips").replaceChildren(
       ...Object.keys(FORMATIONS[state.mode].list).map((f) =>
-        chip(f, state.oppFormation === f, () => {
+        chip(f, state.showOpp && state.oppFormation === f, () => {
           state.oppFormation = f;
           state.opp = opponents();
+          state.showOpp = true;
           render();
         }, "radio")
       )
     );
+    $("oppHint").textContent = state.showOpp ? "" : "（選ぶと表示）";
     board.classList.toggle("is-futsal", state.mode === "futsal");
     renderTokens();
     drawInk();
@@ -222,6 +224,9 @@
     $("rosterCount").textContent = people.length ? `${people.length}人` : "なし";
     $("rosterNames").replaceChildren(...people.map((p) => Object.assign(document.createElement("option"), { value: p.name })));
     renderGoals();
+    // 得点・MVP の欄の見出しの右
+    const goalCount = state.goals.length;
+    $("goalsMeta").textContent = [goalCount ? `${goalCount}点` : "", state.mvp ? "MVP あり" : ""].filter(Boolean).join("・") || "なし";
     // 内訳の欄の見出しの右：入っているもの（例：前半・後半・PK）、なければ「なし」
     const periods = [["前半", "halfUs", "halfThem"], ["後半", "secondUs", "secondThem"], ["延長", "extraUs", "extraThem"], ["PK", "pkUs", "pkThem"]]
       .filter(([, a, b]) => state[a] !== "" && state[b] !== "")

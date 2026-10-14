@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
 <main class="wrap">
@@ -27,11 +27,9 @@
 
   <!-- ===== スタメン・作戦盤 ===== -->
   <section id="panelLineup" class="panel">
+    <!-- 上は人数だけ。フォーメーションはピッチの下で、自チームと相手を並べて選ぶ -->
     <div class="card">
-      <div class="row-chips">
-        <div id="modeChips" class="chips" role="radiogroup" aria-label="人数"></div>
-      </div>
-      <div id="formationChips" class="chips" role="radiogroup" aria-label="フォーメーション"></div>
+      <div id="modeChips" class="chips" role="radiogroup" aria-label="人数"></div>
     </div>
 
     <div class="board-wrap">
@@ -45,16 +43,23 @@
       <p class="hint" id="boardHint">選手をドラッグで移動、タップで名前・背番号。何もない所をなぞると範囲で選べます。</p>
     </div>
 
+    <div class="card formations">
+      <div>
+        <span class="label">自チーム</span>
+        <div id="formationChips" class="chips col" role="radiogroup" aria-label="自チームのフォーメーション"></div>
+      </div>
+      <div>
+        <span class="label">相手 <span id="oppHint" class="meta"></span></span>
+        <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
+      </div>
+    </div>
+
     <div class="card tools">
       <span class="label">作戦盤</span>
       <div class="chips">
         <button id="toggleOpp" class="chip" type="button" aria-pressed="false">👥 相手</button>
         <button id="toggleBall" class="chip" type="button" aria-pressed="false">⚽ ボール</button>
         <button id="togglePen" class="chip" type="button" aria-pressed="false">✏️ ペン</button>
-      </div>
-      <div id="oppTools" hidden>
-        <span class="label">相手のフォーメーション</span>
-        <div id="oppFormationChips" class="chips" role="radiogroup" aria-label="相手のフォーメーション"></div>
       </div>
       <div id="penTools" class="chips" hidden>
         <div id="penColors" class="chips"></div>
@@ -100,7 +105,7 @@
 
     <!-- 前半・後半・延長・PK（入れたものだけカードに出る） -->
     <details class="card fold">
-      <summary>⏱️ 前半・後半・延長・PK <span id="periodMeta" class="meta"></span></summary>
+      <summary>⏱️ 前後半・延長・PK <span id="periodMeta" class="meta"></span></summary>
       <p class="hint left">上のスコアは最終スコア（延長を含む）。ここは入れたものだけカードに出ます。同点で PK があれば PK で勝ち負けを決めます。</p>
       <div class="score is-half">
         <label>前半<input id="halfUs" type="number" inputmode="numeric" min="0" max="99"></label>
@@ -124,8 +129,9 @@
       </div>
     </details>
 
-    <div class="card">
-      <span class="label">得点</span>
+    <!-- 得点・MVP（どちらも任意） -->
+    <details class="card fold">
+      <summary>⚽ 得点・MVP <span id="goalsMeta" class="meta"></span></summary>
       <div id="goals" class="goals"></div>
       <div class="two">
         <button id="addGoalUs" class="btn ghost small" type="button">＋ 自分たちの得点</button>
@@ -133,7 +139,7 @@
       </div>
       <label>MVP<input id="mvp" maxlength="12" list="rosterNames" placeholder="例：山田"></label>
       <datalist id="rosterNames"></datalist>
-    </div>
+    </details>
 
     <details class="card fold">
       <summary>📋 試合の情報</summary>
@@ -164,6 +170,6 @@
   </div>
 </div>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
