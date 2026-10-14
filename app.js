@@ -19,7 +19,14 @@
   };
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
   // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
-  const TEAM_COLORS = ["#6c47ff", "#2563eb", "#e11d48", "#16a34a", "#f97316", "#facc15", "#1f2937", "#ffffff"];
+  // おくるんの基本の色の並び（紫・スカイ・リーフ・サンセット・ベリー）。最後に「カスタム」（自由な色）
+  const TEAM_COLORS = [
+    { label: "おくるん", hex: "#6c47ff" },
+    { label: "スカイ", hex: "#3e7bfa" },
+    { label: "リーフ", hex: "#30a46c" },
+    { label: "サンセット", hex: "#f5a524" },
+    { label: "ベリー", hex: "#e5484d" }
+  ];
   const GK_COLOR = "#f5a524";
   const isLight = (hex) => {
     const n = parseInt(String(hex).slice(1), 16);
@@ -27,7 +34,7 @@
   };
   const inkOn = (hex) => (isLight(hex) ? "#23302a" : "#ffffff");
   // GK は見分けやすいオレンジ。自チームがオレンジ系のときは黒
-  const gkColor = () => (["#f97316", GK_COLOR].includes(state.ourColor) ? "#1f2937" : GK_COLOR);
+  const gkColor = () => (["#f97316", GK_COLOR, "#f5a524"].includes(String(state.ourColor).toLowerCase()) ? "#1f2937" : GK_COLOR);
   // カードの見出しの帯に使う色（白や黄色は帯にすると文字が読めないので、濃い緑にする）
   const cardColor = () => (isLight(state.ourColor) ? "#2e8b4a" : state.ourColor);
 
@@ -212,18 +219,32 @@
     );
     $("oppHint").textContent = state.showOpp ? "" : "（選ぶと表示）";
     // チームの色
-    const swatches = (key) =>
-      TEAM_COLORS.map((color) => {
-        const b = chip("", state[key] === color, () => {
-          state[key] = color;
-          if (key === "oppColor") state.showOpp = true;
-          render();
-        });
+    const swatches = (key) => {
+      const pick = (hex) => {
+        state[key] = hex;
+        if (key === "oppColor") state.showOpp = true;
+        render();
+      };
+      const current = String(state[key]).toLowerCase();
+      const isPreset = TEAM_COLORS.some((c) => c.hex === current);
+      const buttons = TEAM_COLORS.map((c) => {
+        const b = chip("", current === c.hex, () => pick(c.hex));
         b.classList.add("color");
-        b.style.background = color;
-        b.setAttribute("aria-label", "チームの色");
+        b.style.background = c.hex;
+        b.setAttribute("aria-label", c.label);
         return b;
       });
+      // カスタム：自由な色（選んでいる間は、その色で丸を塗る）
+      const custom = document.createElement("label");
+      custom.className = "chip color is-custom";
+      custom.setAttribute("aria-label", "カスタム");
+      custom.setAttribute("aria-pressed", String(!isPreset));
+      if (!isPreset) custom.style.background = current;
+      const input = Object.assign(document.createElement("input"), { type: "color", value: /^#[0-9a-f]{6}$/.test(current) ? current : "#ffffff" });
+      input.addEventListener("change", () => pick(input.value));
+      custom.append(input);
+      return [...buttons, custom];
+    };
     $("ourColors").replaceChildren(...swatches("ourColor"));
     $("oppColors").replaceChildren(...swatches("oppColor"));
     board.classList.toggle("is-futsal", state.mode === "futsal");
