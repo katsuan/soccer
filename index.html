@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>⚽ スタメン・作戦盤</title>
+<meta name="description" content="サッカー・フットサルのスタメン発表と作戦盤。選手を並べて、LINE にカードで送れます。試合結果も。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="⚽ スタメン・作戦盤">
+<meta property="og:description" content="選手を並べて、スタメンや試合結果を LINE にカードで送れます。">
+<meta property="og:url" content="https://katsuan.github.io/soccer/">
+<meta name="theme-color" content="#eaf6ee">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<main class="wrap">
+  <header class="top">
+    <h1>⚽ スタメン・作戦盤</h1>
+    <div class="tabs" role="tablist">
+      <button id="tabLineup" class="tab" role="tab" aria-selected="true" data-tab="lineup">⚽ スタメン・作戦盤</button>
+      <button id="tabResult" class="tab" role="tab" aria-selected="false" data-tab="result">🏆 結果</button>
+    </div>
+  </header>
+
+  <!-- ===== スタメン・作戦盤 ===== -->
+  <section id="panelLineup" class="panel">
+    <div class="card">
+      <div class="row-chips">
+        <div id="modeChips" class="chips" role="radiogroup" aria-label="人数"></div>
+      </div>
+      <div id="formationChips" class="chips" role="radiogroup" aria-label="フォーメーション"></div>
+    </div>
+
+    <div class="board-wrap">
+      <div id="board" class="board">
+        <div class="pitch-lines" aria-hidden="true"><i class="is-border"></i><i class="is-half"></i><i class="is-circle"></i><i class="is-box-top"></i><i class="is-box-bottom"></i></div>
+        <canvas id="ink" class="ink"></canvas>
+        <div id="tokens" class="tokens"></div>
+      </div>
+      <p class="hint" id="boardHint">選手をドラッグで移動、タップで名前・背番号。</p>
+    </div>
+
+    <div class="card tools">
+      <span class="label">作戦盤</span>
+      <div class="chips">
+        <button id="toggleOpp" class="chip" type="button" aria-pressed="false">👥 相手</button>
+        <button id="toggleBall" class="chip" type="button" aria-pressed="false">⚽ ボール</button>
+        <button id="togglePen" class="chip" type="button" aria-pressed="false">✏️ ペン</button>
+      </div>
+      <div id="penTools" class="chips" hidden>
+        <div id="penColors" class="chips"></div>
+        <button id="inkUndo" class="chip" type="button">↶ 戻す</button>
+        <button id="inkClear" class="chip" type="button">全部消す</button>
+      </div>
+      <button id="resetPositions" class="link" type="button">位置をフォーメーションに戻す</button>
+    </div>
+
+    <details class="card fold">
+      <summary>📋 試合の情報</summary>
+      <label>チーム名<input class="team" maxlength="20" placeholder="例：FC おくるん"></label>
+      <label>対戦相手<input class="opponent" maxlength="20" placeholder="例：シティFC"></label>
+      <label>日時<input class="when" maxlength="30" placeholder="例：10/18（土）9:00 キックオフ"></label>
+      <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
+      <label>控え<input id="subs" maxlength="80" placeholder="例：佐藤、鈴木、田中"></label>
+      <label>ひとこと<input id="lineupNote" maxlength="40" placeholder="例：集合は8:30です"></label>
+    </details>
+
+    <details class="card fold">
+      <summary>👥 選手名簿 <span id="rosterCount" class="meta"></span></summary>
+      <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
+      <p class="hint">選手をタップしたときに、ここから選べます。この端末に残ります。</p>
+    </details>
+
+    <div class="actions">
+      <a id="sendLineup" class="btn line" href="#">💬 スタメンを LINE で送る（おくるん）</a>
+      <button id="saveBoard" class="btn ghost" type="button">📷 作戦盤を画像で保存</button>
+    </div>
+  </section>
+
+  <!-- ===== 結果 ===== -->
+  <section id="panelResult" class="panel" hidden>
+    <div class="card">
+      <label>チーム名<input class="team" maxlength="20" placeholder="例：FC おくるん"></label>
+      <label>対戦相手<input class="opponent" maxlength="20" placeholder="例：シティFC"></label>
+      <div class="score">
+        <label>自分たち<input id="scoreUs" type="number" inputmode="numeric" min="0" max="99" value="0"></label>
+        <span>-</span>
+        <label>相手<input id="scoreThem" type="number" inputmode="numeric" min="0" max="99" value="0"></label>
+      </div>
+      <div class="score is-half">
+        <label>前半（任意）<input id="halfUs" type="number" inputmode="numeric" min="0" max="99"></label>
+        <span>-</span>
+        <label>&nbsp;<input id="halfThem" type="number" inputmode="numeric" min="0" max="99"></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="label">得点</span>
+      <div id="goals" class="goals"></div>
+      <div class="two">
+        <button id="addGoalUs" class="btn ghost small" type="button">＋ 自分たちの得点</button>
+        <button id="addGoalThem" class="btn ghost small" type="button">＋ 相手の得点</button>
+      </div>
+      <label>MVP<input id="mvp" maxlength="12" list="rosterNames" placeholder="例：山田"></label>
+      <datalist id="rosterNames"></datalist>
+    </div>
+
+    <details class="card fold">
+      <summary>📋 試合の情報</summary>
+      <label>日時<input class="when" maxlength="30" placeholder="例：10/18（土）"></label>
+      <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
+      <label>ひとこと<input id="resultNote" maxlength="60" placeholder="例：最後まで走りきりました！"></label>
+    </details>
+
+    <div class="actions">
+      <a id="sendResult" class="btn line" href="#">💬 結果を LINE で送る（おくるん）</a>
+    </div>
+  </section>
+
+  <p class="foot">送るカードは <a href="https://katsuan.github.io/line-share/">おくるん</a> で作ります。</p>
+</main>
+
+<!-- 選手をタップしたとき -->
+<div id="playerSheet" class="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="playerSheetTitle">
+    <p id="playerSheetTitle" class="sheet-title">選手</p>
+    <div class="two">
+      <label>背番号<input id="playerNumber" inputmode="numeric" maxlength="3"></label>
+      <label>名前<input id="playerName" maxlength="8"></label>
+    </div>
+    <div id="rosterChips" class="chips"></div>
+    <button id="playerDone" class="btn" type="button">決定</button>
+    <button id="playerCancel" class="link" type="button">やめる</button>
+  </div>
+</div>
+
+<script src="app.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+/* スタメン・作戦盤。色・サイズは :root でまとめて変える */
+:root {
+  --accent: #6c47ff;
+  --pitch: #2e8b4a;
+  --line: rgba(255, 255, 255, 0.67);
+  --ink: #23302a;
+  --ink-soft: #5c6b62;
+  --border: #dbe7df;
+  --line-green: #06c755;
+  --card: #ffffff;
+  --shadow: 0 8px 24px rgba(20, 60, 40, 0.1);
+  --radius: 18px;
+  --max-w: 480px;
+  --font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { min-height: 100vh; font-family: var(--font); font-size: 16px; line-height: 1.6; color: var(--ink); background: linear-gradient(180deg, #f4fbf6, #e6f3ea); -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+.wrap { max-width: var(--max-w); margin: 0 auto; padding: 16px 16px 48px; display: grid; gap: 12px; }
+.top { display: grid; gap: 10px; }
+h1 { font-size: 22px; font-weight: 800; text-align: center; }
+
+.tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: #dcebe1; }
+.tab { min-height: 40px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 14px; font-weight: 800; color: var(--ink-soft); cursor: pointer; }
+.tab[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
+
+.panel { display: grid; gap: 12px; }
+.card { display: grid; gap: 10px; padding: 14px; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+.label, label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
+label { display: grid; gap: 4px; }
+input, textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: 16px; }
+input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+.hint { font-size: 12px; color: var(--ink-soft); text-align: center; }
+.meta { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { min-height: 36px; padding: 0 12px; border: 2px solid var(--border); border-radius: 999px; background: #fff; font: inherit; font-size: 13px; font-weight: 800; color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"], .chip[aria-checked="true"] { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
+.chip.color { width: 36px; padding: 0; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+.chip.color[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--ink); }
+
+.fold summary { list-style: none; cursor: pointer; font-weight: 800; }
+.fold summary::-webkit-details-marker { display: none; }
+.fold summary::after { content: "›"; float: right; color: var(--ink-soft); transition: transform 0.2s; }
+.fold[open] summary::after { transform: rotate(90deg); }
+
+/* ---- ピッチ（作戦盤）。縦向きで、上が攻める向き。位置は % で持つ（送るカードと同じ） ---- */
+.board-wrap { display: grid; gap: 6px; }
+.board { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 14px; background: var(--pitch); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+.board.is-futsal { aspect-ratio: 2 / 3; }
+.pitch-lines i { position: absolute; border: 2px solid var(--line); }
+.pitch-lines .is-border { top: 4%; left: 5%; width: 90%; height: 92%; border-radius: 4px; }
+.pitch-lines .is-half { top: 50%; left: 5%; width: 90%; height: 0; border-width: 1px; }
+.pitch-lines .is-circle { top: 50%; left: 50%; width: 22%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
+.pitch-lines .is-box-top { top: 4%; left: 28%; width: 44%; height: 13%; }
+.pitch-lines .is-box-bottom { top: 83%; left: 28%; width: 44%; height: 13%; }
+.ink { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tokens { position: absolute; inset: 0; }
+.board.is-drawing .tokens { pointer-events: none; }
+
+.token { position: absolute; display: grid; justify-items: center; gap: 1px; width: 64px; margin-left: -32px; margin-top: -16px; cursor: grab; touch-action: none; }
+.token b { display: grid; place-items: center; width: 30px; height: 30px; border: 2px solid #fff; border-radius: 50%; background: var(--accent); color: #fff; font-size: 13px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+.token small { max-width: 64px; overflow: hidden; color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
+.token.is-gk b { background: #f5a524; }
+.token.is-opp b { background: #fff; color: #23302a; border-color: #23302a; }
+.token.is-ball { width: 28px; margin-left: -14px; margin-top: -14px; font-size: 22px; line-height: 1; }
+.token.is-dragging { cursor: grabbing; z-index: 2; }
+
+.tools .link { justify-self: start; }
+.link { border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+.actions { display: grid; gap: 8px; }
+.btn { display: block; width: 100%; min-height: 52px; padding: 12px; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 800; text-align: center; text-decoration: none; cursor: pointer; }
+.btn.line { background: var(--line-green); box-shadow: 0 6px 16px rgba(6, 199, 85, 0.25); }
+.btn.ghost { background: #fff; color: var(--ink); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); }
+.btn.small { min-height: 42px; font-size: 14px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; }
+.score span { padding-bottom: 10px; font-size: 22px; font-weight: 800; }
+.score input { font-size: 22px; font-weight: 800; text-align: center; }
+.score.is-half input { font-size: 16px; }
+
+.goals { display: grid; gap: 6px; }
+.goal { display: grid; grid-template-columns: auto 64px 1fr auto; align-items: center; gap: 6px; }
+.goal .side { font-size: 12px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
+.goal input { padding: 8px; font-size: 15px; }
+.goal .remove { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink-soft); cursor: pointer; }
+
+.foot { font-size: 12px; color: var(--ink-soft); text-align: center; }
+.foot a { color: inherit; }
+
+/* ---- 下から出るシート（選手の入力・画像） ---- */
+.sheet { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; padding: 12px; background: rgba(15, 30, 20, 0.45); }
+.sheet-card { display: grid; gap: 10px; width: min(100%, 440px); max-height: 100%; overflow: auto; padding: 18px; border-radius: 20px; background: #fff; }
+.sheet-title { font-weight: 800; }
+.sheet-card img { width: 100%; border-radius: 12px; -webkit-touch-callout: default; }
