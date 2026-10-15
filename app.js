@@ -37,12 +37,11 @@
   const courtDef = (id) => FORMATION_GROUPS.find((g) => g.id === id) || FORMATION_GROUPS[0];
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
   // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
-  // おくるんの基本の色の並び（紫・スカイ・リーフ・サンセット・ベリー）。最後に「カスタム」（自由な色）
+  // 最後に「カスタム」（自由な色）
+  // ユニフォームの色は3色にしぼる（紫・青・赤）。ほかの色はカスタムで
   const TEAM_COLORS = [
     { label: "おくるん", hex: "#6c47ff" },
     { label: "スカイ", hex: "#3e7bfa" },
-    { label: "リーフ", hex: "#30a46c" },
-    { label: "サンセット", hex: "#f5a524" },
     { label: "ベリー", hex: "#e5484d" }
   ];
   const isLight = (hex) => {
