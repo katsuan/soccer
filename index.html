@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=21">
+<link rel="stylesheet" href="style.css?v=22">
 </head>
 <body>
 <main class="wrap">
@@ -133,33 +133,36 @@
         <span>-</span>
         <input id="scoreThem" type="number" inputmode="numeric" min="0" max="99" value="0" aria-label="相手の得点">
       </div>
+      <!-- 得点の内訳（前半・後半・延長・PK）。スコアのカードの中でたたむ。入れたものだけカードに出る -->
+      <details class="fold inner">
+        <summary>⏱️ 得点の内訳（前後半・延長・PK） <span id="periodMeta" class="meta"></span></summary>
+        <p class="hint left">上のスコアは最終スコア（延長を含む）。ここは入れたものだけカードに出ます。同点で PK があれば PK で勝ち負けを決めます。</p>
+        <div class="period-row">
+          <span class="label">前半</span>
+          <input id="halfUs" type="number" inputmode="numeric" min="0" max="99" aria-label="前半の自チームの得点">
+          <span>-</span>
+          <input id="halfThem" type="number" inputmode="numeric" min="0" max="99" aria-label="前半の相手の得点">
+        </div>
+        <div class="period-row">
+          <span class="label">後半</span>
+          <input id="secondUs" type="number" inputmode="numeric" min="0" max="99" aria-label="後半の自チームの得点">
+          <span>-</span>
+          <input id="secondThem" type="number" inputmode="numeric" min="0" max="99" aria-label="後半の相手の得点">
+        </div>
+        <div class="period-row">
+          <span class="label">延長</span>
+          <input id="extraUs" type="number" inputmode="numeric" min="0" max="99" aria-label="延長の自チームの得点">
+          <span>-</span>
+          <input id="extraThem" type="number" inputmode="numeric" min="0" max="99" aria-label="延長の相手の得点">
+        </div>
+        <div class="period-row">
+          <span class="label">PK</span>
+          <input id="pkUs" type="number" inputmode="numeric" min="0" max="99" aria-label="PKの自チームの得点">
+          <span>-</span>
+          <input id="pkThem" type="number" inputmode="numeric" min="0" max="99" aria-label="PKの相手の得点">
+        </div>
+      </details>
     </div>
-
-    <!-- 前半・後半・延長・PK（入れたものだけカードに出る） -->
-    <details class="card fold">
-      <summary>⏱️ 前後半・延長・PK <span id="periodMeta" class="meta"></span></summary>
-      <p class="hint left">上のスコアは最終スコア（延長を含む）。ここは入れたものだけカードに出ます。同点で PK があれば PK で勝ち負けを決めます。</p>
-      <div class="score is-half">
-        <label>前半<input id="halfUs" type="number" inputmode="numeric" min="0" max="99"></label>
-        <span>-</span>
-        <label>&nbsp;<input id="halfThem" type="number" inputmode="numeric" min="0" max="99"></label>
-      </div>
-      <div class="score is-half">
-        <label>後半<input id="secondUs" type="number" inputmode="numeric" min="0" max="99"></label>
-        <span>-</span>
-        <label>&nbsp;<input id="secondThem" type="number" inputmode="numeric" min="0" max="99"></label>
-      </div>
-      <div class="score is-half">
-        <label>延長<input id="extraUs" type="number" inputmode="numeric" min="0" max="99"></label>
-        <span>-</span>
-        <label>&nbsp;<input id="extraThem" type="number" inputmode="numeric" min="0" max="99"></label>
-      </div>
-      <div class="score is-half">
-        <label>PK<input id="pkUs" type="number" inputmode="numeric" min="0" max="99"></label>
-        <span>-</span>
-        <label>&nbsp;<input id="pkThem" type="number" inputmode="numeric" min="0" max="99"></label>
-      </div>
-    </details>
 
     <!-- 得点・MVP（どちらも任意） -->
     <details class="card fold">

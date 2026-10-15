@@ -201,3 +201,11 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .score .team, .score .opponent { font-size: 16px; font-weight: 400; text-align: left; }
 .score { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
 .score .label { padding-bottom: 0; font-size: 13px; }
+
+/* スコアのカードの中でたたむ「得点の内訳」 */
+.fold.inner { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+.fold.inner summary { font-size: 14px; }
+.fold.inner:not([open]) { gap: 0; }
+.period-row { display: grid; grid-template-columns: 3em minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.period-row span:not(.label) { font-size: 18px; font-weight: 800; }
+.period-row input { padding: 8px; font-size: 16px; font-weight: 800; text-align: center; }
