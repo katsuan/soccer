@@ -2,8 +2,7 @@
 """さくせん盤（SAQSEN）のアイコンを作る。
 
 おくるん（OQRN）のアイコンと同じ角の丸い四角に、ピッチの緑のグラデーション。
-中は、白い S 字の作戦の線（パスの通り道）と、その両端の選手2人。後ろにうっすらピッチの線（ハーフウェーラインとセンターサークル）。
-S 字は「さくせん（SAQSEN）」の S も兼ねる。作戦盤の線と同じく矢印は付けない。
+中は、ロゴ（logo.svg）と同じ Jua の白い「S」。後ろにうっすらピッチの線（ハーフウェーラインとセンターサークル）。
 センターサークルの右下にサッカーボールを置き、サークル（輪）＋ボール（しっぽ）で Q にも見せる（SAQSEN の Q）。
 
   icon.svg             … ファビコン
@@ -27,10 +26,9 @@ WHITE = (255, 255, 255)
 
 # 形（100 × 100 の座標）
 RADIUS = 23  # 角の丸み（おくるんと同じ）
-S_PATH = ((31, 72), (27, 44), (73, 56), (69, 28))  # S 字（3次ベジェ）：左下の選手から右上の選手へ
-S_WIDTH = 7
-PLAYER_R = 7.5
+S_HEIGHT = 56  # S（ロゴと同じ Jua の字形）の高さ。アイコンの真ん中に置く
 FAINT = 0.32  # ピッチの線の濃さ
+FONT_PATH = Path.home() / "Library" / "Fonts" / "Jua.ttf"
 CIRCLE = (50, 50, 13)  # センターサークル（中心 x, y, 半径）
 CIRCLE_ALPHA = 0.55  # サークルはハーフウェーラインより濃く（ボールと合わせて Q に見せる）
 BALL = (61, 61, 7)  # ボール：サークルの右下（45°）のふちに重ねる＝Q のしっぽ
@@ -52,8 +50,28 @@ def ball_patches(ball=BALL):
     return [pentagon(cx, cy, r * 0.4), *outer]
 
 
+def s_glyph():
+    """ロゴと同じ Jua の「S」を、高さ S_HEIGHT でアイコンの真ん中に置く。SVG のパスと、PIL で描くための位置を返す"""
+    from fontTools.pens.boundsPen import BoundsPen
+    from fontTools.pens.svgPathPen import SVGPathPen
+    from fontTools.pens.transformPen import TransformPen
+    from fontTools.ttLib import TTFont
+
+    font = TTFont(str(FONT_PATH))
+    glyphs = font.getGlyphSet()
+    name = font.getBestCmap()[ord("S")]
+    pen = BoundsPen(glyphs)
+    glyphs[name].draw(pen)
+    x_min, y_min, x_max, y_max = pen.bounds
+    k = S_HEIGHT / (y_max - y_min)
+    ox = 50 - (x_min + x_max) / 2 * k  # フォントの原点が来る x
+    top = 50 - S_HEIGHT / 2
+    path = SVGPathPen(glyphs)
+    glyphs[name].draw(TransformPen(path, (k, 0, 0, -k, ox, top + y_max * k)))
+    return dict(d=path.getCommands(), origin=ox, baseline=top + y_max * k, em=font["head"].unitsPerEm * k)
+
+
 def svg():
-    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = S_PATH
     faint = f'stroke="#ffffff" stroke-opacity="{FAINT}" stroke-width="3" fill="none"'
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
@@ -61,24 +79,14 @@ def svg():
         f'<stop offset="1" stop-color="{hex_(PITCH_DARK)}"/></linearGradient></defs>'
         f'<rect width="100" height="100" rx="{RADIUS}" fill="url(#g)"/>'
         f'<path d="M14 50H86" {faint}/><circle cx="{CIRCLE[0]}" cy="{CIRCLE[1]}" r="{CIRCLE[2]}" stroke="#ffffff" stroke-opacity="{CIRCLE_ALPHA}" stroke-width="3.5" fill="none"/>'
-        f'<path d="M{x0} {y0}C{x1} {y1} {x2} {y2} {x3} {y3}" stroke="#ffffff" stroke-width="{S_WIDTH}" stroke-linecap="round" fill="none"/>'
-        f'<circle cx="{x0}" cy="{y0}" r="{PLAYER_R}" fill="#ffffff"/><circle cx="{x3}" cy="{y3}" r="{PLAYER_R}" fill="#ffffff"/>'
+        f'<path d="{s_glyph()["d"]}" fill="#ffffff"/>'
+        f'<circle cx="{BALL[0]}" cy="{BALL[1]}" r="{BALL[2] + 1.6}" fill="{hex_(PITCH_DARK)}"/>'
         f'<clipPath id="b"><circle cx="{BALL[0]}" cy="{BALL[1]}" r="{BALL[2]}"/></clipPath>'
         f'<circle cx="{BALL[0]}" cy="{BALL[1]}" r="{BALL[2]}" fill="#ffffff"/>'
         f'<g clip-path="url(#b)" fill="{hex_(BALL_INK)}">'
         + "".join('<polygon points="' + " ".join(f"{x:.2f},{y:.2f}" for x, y in poly) + '"/>' for poly in ball_patches())
         + "</g></svg>"
     )
-
-
-def cubic(points, n=200):
-    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = points
-    out = []
-    for i in range(n + 1):
-        t = i / n
-        a, b, c, d = (1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t * t, t ** 3
-        out.append((a * x0 + b * x1 + c * x2 + d * x3, a * y0 + b * y1 + c * y2 + d * y3))
-    return out
 
 
 def png(size, rounded=True):
@@ -105,16 +113,15 @@ def png(size, rounded=True):
     cx, cy, r = CIRCLE
     d.ellipse((s(cx - r) - s(1.75), s(cy - r) - s(1.75), s(cx + r) + s(1.75), s(cy + r) + s(1.75)), outline=(255, 255, 255, round(255 * CIRCLE_ALPHA)), width=round(s(3.5)))
     img = Image.alpha_composite(img, lines)
-    # S 字の線（丸い端）と選手2人
+    # S（ロゴと同じ字形）
+    from PIL import ImageFont
+
     d = ImageDraw.Draw(img)
-    # 線は丸を細かく並べて描く（太い線でもふちがなめらか）
-    half = s(S_WIDTH) / 2
-    for x, y in cubic(S_PATH, n=800):
-        d.ellipse((s(x) - half, s(y) - half, s(x) + half, s(y) + half), fill=WHITE)
-    for x, y in (S_PATH[0], S_PATH[3]):
-        d.ellipse((s(x - PLAYER_R), s(y - PLAYER_R), s(x + PLAYER_R), s(y + PLAYER_R)), fill=WHITE)
-    # サークルの右下のボール（Q のしっぽ）
+    g = s_glyph()
+    d.text((s(g["origin"]), s(g["baseline"])), "S", font=ImageFont.truetype(str(FONT_PATH), round(s(g["em"]))), fill=WHITE, anchor="ls")
+    # サークルの右下のボール（Q のしっぽ）。S と重なっても見分けられるよう、まわりを濃い緑で囲む
     bx, by, br = BALL
+    d.ellipse((s(bx - br - 1.6), s(by - br - 1.6), s(bx + br + 1.6), s(by + br + 1.6)), fill=PITCH_DARK)
     d.ellipse((s(bx - br), s(by - br), s(bx + br), s(by + br)), fill=WHITE)
     big_ = img.size[0]
     pattern = Image.new("RGBA", (big_, big_), (0, 0, 0, 0))
@@ -128,9 +135,6 @@ def png(size, rounded=True):
 
 
 # ---- 横長のロゴ「SAQSEN」（盤の上の文字。Q＝センターサークル＋ボール） ----
-
-FONT_PATH = Path.home() / "Library" / "Fonts" / "Jua.ttf"
-
 
 def _num(v):
     return f"{v:.1f}".rstrip("0").rstrip(".")
