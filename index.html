@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 <main class="wrap">
@@ -59,6 +59,18 @@
       <p class="hint" id="boardHint"></p>
       <button id="resetPositions" class="link reset" type="button">位置をフォーメーションに戻す</button>
     </div>
+
+    <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
+    <details id="tacticsFold" class="card fold">
+      <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
+      <div class="save-row">
+        <input id="tacticName" maxlength="20" placeholder="例：ビルドアップ、コーナーキック" list="tacticPresets">
+        <button id="saveTactic" class="btn small" type="button">保存</button>
+      </div>
+      <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
+      <ul id="tacticList" class="tactic-list"></ul>
+      <p class="hint left">選手の位置・相手・ボール・線を保存します。開くと今の作戦盤に呼び出します（「戻す」で元に戻せます）。チームの色はそのままです。この端末に残ります。</p>
+    </details>
 
     <details class="card fold">
       <summary>🎨 チームの色・相手の並び <span id="colorMeta" class="meta"></span></summary>
@@ -187,6 +199,6 @@
   </div>
 </div>
 
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

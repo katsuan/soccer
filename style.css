@@ -161,3 +161,15 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .stepper button:disabled { opacity: 0.3; cursor: default; }
 .stepper span { min-width: 34px; font-size: 14px; font-weight: 800; text-align: center; }
 .board-card .reset { justify-self: center; }
+
+/* 保存した作戦 */
+.save-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.save-row .btn { width: auto; min-height: 46px; padding: 0 18px; }
+.tactic-list { display: grid; gap: 6px; list-style: none; }
+.tactic { display: grid; gap: 6px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 14px; }
+.tactic-open { display: grid; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.tactic-open b { overflow: hidden; font-size: 15px; white-space: nowrap; text-overflow: ellipsis; }
+.tactic-open small { font-size: 12px; color: var(--ink-soft); }
+.tactic-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.tactic-actions .is-main { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
+.tactic-actions button { min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
