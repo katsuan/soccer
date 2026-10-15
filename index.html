@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 <main class="wrap">
@@ -27,23 +27,13 @@
 
   <!-- ===== スタメン・作戦盤 ===== -->
   <section id="panelLineup" class="panel">
-    <!-- 作戦盤：人数と道具（相手・ボール・ペン）はピッチのすぐ上。フォーメーションはピッチの下で、自チームと相手を並べて選ぶ -->
-    <div class="card tools">
-      <span class="label">作戦盤</span>
-      <div id="modeChips" class="chips" role="radiogroup" aria-label="人数"></div>
-      <div class="chips">
-        <button id="toggleOpp" class="chip" type="button" aria-pressed="false">👥 相手</button>
-        <button id="toggleBall" class="chip" type="button" aria-pressed="false">⚽ ボール</button>
-        <button id="togglePen" class="chip" type="button" aria-pressed="false">✏️ ペン</button>
+    <!-- 作戦盤：ピッチと、よく使う操作（相手・ボール・ペン・選手・戻す）をひとまとめに。人数とフォーメーションは右上で選ぶ -->
+    <div class="card board-card">
+      <div class="board-head">
+        <span class="label">作戦盤</span>
+        <button id="resetPositions" class="link" type="button">並べ直す</button>
+        <label class="select"><span class="sr">人数・フォーメーション</span><select id="formationSelect"></select></label>
       </div>
-      <div id="penTools" class="chips" hidden>
-        <div id="penColors" class="chips"></div>
-        <button id="inkUndo" class="chip" type="button">↶ 戻す</button>
-        <button id="inkClear" class="chip" type="button">全部消す</button>
-      </div>
-    </div>
-
-    <div class="board-wrap">
       <div id="board" class="board">
         <!-- ピッチの線。サッカーは四角いペナルティエリア、フットサルはゴール前が半円（D形）のエリア -->
         <div class="pitch-lines" aria-hidden="true"><i class="is-border"></i><i class="is-half"></i><i class="is-circle"></i><i class="is-box-top"></i><i class="is-box-bottom"></i><i class="is-d-top"><span></span></i><i class="is-d-bottom"><span></span></i></div>
@@ -51,26 +41,37 @@
         <div id="tokens" class="tokens"></div>
         <div id="marquee" class="marquee" hidden></div>
       </div>
-      <p class="hint" id="boardHint">選手をドラッグで移動、タップで名前・背番号。何もない所をなぞると範囲で選べます。</p>
-    </div>
-
-    <div class="card formations">
-      <div>
-        <span class="label">自チーム</span>
-        <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
-        <div id="formationChips" class="chips col" role="radiogroup" aria-label="自チームのフォーメーション"></div>
+      <div id="penTools" class="chips pen-tools" hidden>
+        <div id="penColors" class="chips"></div>
+        <button id="inkClear" class="link" type="button">線を全部消す</button>
       </div>
-      <div>
-        <span class="label">相手 <span id="oppHint" class="meta"></span></span>
-        <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
-        <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
+      <div class="toolbar">
+        <button id="toggleOpp" class="tool" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="17" cy="8.5" r="2.6"/><path d="M16 14.2c2.6-.2 4.2 1.5 4.6 4.8"/></svg><span>相手</span></button>
+        <button id="toggleBall" class="tool" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" fill="currentColor"/></svg><span>ボール</span></button>
+        <button id="togglePen" class="tool" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M15.5 4.5l4 4L9 19l-5 1 1-5z"/><path d="M13.5 6.5l4 4"/></svg><span>ペン</span></button>
+        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.5"/><path d="M3.5 20c.5-3.6 3-5.8 6.5-5.8 1.2 0 2.3.3 3.2.8"/><path d="M18.5 12.5l2 2-5 5-2.6.6.6-2.6z"/></svg><span>選手</span></button>
+        <button id="undo" class="tool" type="button"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg><span>戻す</span></button>
       </div>
-      <button id="resetPositions" class="link reset" type="button">位置をフォーメーションに戻す</button>
+      <p class="hint" id="boardHint"></p>
     </div>
-
 
     <details class="card fold">
-      <summary>📋 試合の情報</summary>
+      <summary>🎨 チームの色・相手の並び <span id="colorMeta" class="meta"></span></summary>
+      <div class="formations">
+        <div>
+          <span class="label">自チーム</span>
+          <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
+        </div>
+        <div>
+          <span class="label">相手 <span id="oppHint" class="meta"></span></span>
+          <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
+          <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="card fold">
+      <summary>📋 試合の情報 <span id="infoMeta" class="meta"></span></summary>
       <label>チーム名<input class="team" maxlength="20" placeholder="例：FC おくるん"></label>
       <label>対戦相手<input class="opponent" maxlength="20" placeholder="例：シティFC"></label>
       <label>日時<input class="when" maxlength="30" placeholder="例：10/18（土）9:00 キックオフ"></label>
@@ -82,14 +83,11 @@
     <details class="card fold">
       <summary>👥 選手名簿 <span id="rosterCount" class="meta"></span></summary>
       <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
-      <p class="hint">選手をタップしたときに、ここから選べます。この端末に残ります。</p>
+      <p class="hint">「選手」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
     </details>
 
     <div class="actions">
-      <a id="sendLineup" class="btn line" href="#">💬 スタメンをカードで送る（おくるん）</a>
-      <button id="sendBoardImage" class="btn line" type="button">🖼️ 作戦盤の画像をカードで送る（おくるん）</button>
-      <p id="imageStatus" class="hint" aria-live="polite">画像のカードには、相手・ボール・線も入ります。画像は時間がたつと消えることがあります。</p>
-      <button id="saveBoard" class="btn ghost" type="button">📷 作戦盤を画像で保存</button>
+      <button id="shareLineup" class="btn line" type="button">💬 LINE で共有</button>
     </div>
   </section>
 
@@ -151,7 +149,7 @@
     </details>
 
     <div class="actions">
-      <a id="sendResult" class="btn line" href="#">💬 結果を LINE で送る（おくるん）</a>
+      <a id="sendResult" class="btn line" href="#">💬 LINE で共有</a>
     </div>
   </section>
 
@@ -172,6 +170,18 @@
   </div>
 </div>
 
-<script src="app.js?v=8"></script>
+<!-- LINE で共有：カードか画像かを選ぶ -->
+<div id="shareSheet" class="sheet" hidden>
+  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="shareSheetTitle">
+    <p id="shareSheetTitle" class="sheet-title">LINE で共有</p>
+    <a id="sendLineup" class="choice" href="#"><b>💬 カードで送る</b><small>選手の位置が入ります。カードのピッチをタップすると、この作戦盤が開きます。</small></a>
+    <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 画像で送る</b><small>相手・ボール・線も入ります。画像は時間がたつと消えることがあります。</small></button>
+    <p id="imageStatus" class="hint" aria-live="polite"></p>
+    <button id="saveBoard" class="link" type="button">📷 画像で保存する</button>
+    <button id="shareCancel" class="link" type="button">やめる</button>
+  </div>
+</div>
+
+<script src="app.js?v=9"></script>
 </body>
 </html>

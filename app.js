@@ -115,6 +115,22 @@
     load(STORE_KEY, {})
   );
   let drawing = false; // ペンで描くモード（作戦盤の線）
+  let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
+
+  // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
+  const BOARD_KEYS = ["mode", "formation", "oppFormation", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
+  const undoStack = [];
+  function remember() {
+    undoStack.push(JSON.stringify(Object.fromEntries(BOARD_KEYS.map((k) => [k, state[k]]))));
+    if (undoStack.length > 50) undoStack.shift();
+  }
+  function undo() {
+    const last = undoStack.pop();
+    if (!last) return;
+    Object.assign(state, JSON.parse(last));
+    selected.clear();
+    render();
+  }
   let roster = load(ROSTER_KEY, "");
 
   // おくるんの「配置・結果を直す」から戻ってきたとき
@@ -179,37 +195,23 @@
     for (const tab of document.querySelectorAll(".tab")) tab.setAttribute("aria-selected", String(tab.dataset.tab === state.tab));
     $("panelLineup").hidden = state.tab !== "lineup";
     $("panelResult").hidden = state.tab !== "result";
-    // 人数・フォーメーション
-    $("modeChips").replaceChildren(
-      ...Object.entries(FORMATIONS).map(([key, def]) =>
-        chip(def.label, state.mode === key, () => {
-          if (state.mode === key) return;
-          state.mode = key;
-          state.formation = Object.keys(def.list)[0];
-          state.oppFormation = state.formation;
-          state.players = freshPlayers(key, state.formation, state.players);
-          state.opp = opponents();
-          selected.clear();
-          state.strokes = [];
-          render();
-        }, "radio")
-      )
+    // 人数・フォーメーション（右上の選択1つ。サッカー・フットサルの中から選ぶ）
+    const select = $("formationSelect");
+    select.replaceChildren(
+      ...Object.entries(FORMATIONS).map(([mode, def]) => {
+        const group = Object.assign(document.createElement("optgroup"), { label: def.label });
+        group.append(...Object.keys(def.list).map((f) => Object.assign(document.createElement("option"), { value: `${mode}:${f}`, textContent: f })));
+        return group;
+      })
     );
-    $("formationChips").replaceChildren(
-      ...Object.keys(FORMATIONS[state.mode].list).map((f) =>
-        chip(f, state.formation === f, () => {
-          state.formation = f;
-          state.players = freshPlayers(state.mode, f, state.players);
-          render();
-        }, "radio")
-      )
-    );
+    select.value = `${state.mode}:${state.formation}`;
     // 相手のフォーメーション（相手を出しているときだけ）
     if (!FORMATIONS[state.mode].list[state.oppFormation]) state.oppFormation = state.formation;
     // 相手のフォーメーションを選んだら、相手も表示する
     $("oppFormationChips").replaceChildren(
       ...Object.keys(FORMATIONS[state.mode].list).map((f) =>
         chip(f, state.showOpp && state.oppFormation === f, () => {
+          remember();
           state.oppFormation = f;
           state.opp = opponents();
           state.showOpp = true;
@@ -221,6 +223,7 @@
     // チームの色
     const swatches = (key) => {
       const pick = (hex) => {
+        remember();
         state[key] = hex;
         if (key === "oppColor") state.showOpp = true;
         render();
@@ -254,9 +257,19 @@
     $("toggleOpp").setAttribute("aria-pressed", String(state.showOpp));
     $("toggleBall").setAttribute("aria-pressed", String(state.showBall));
     $("togglePen").setAttribute("aria-pressed", String(drawing));
+    $("toggleEdit").setAttribute("aria-pressed", String(editMode));
+    $("undo").disabled = !undoStack.length;
     $("penTools").hidden = !drawing;
     board.classList.toggle("is-drawing", drawing);
-    $("boardHint").textContent = drawing ? "指でなぞって線を描けます（終わりに矢印が付きます）。" : "選手をドラッグで移動、タップで名前・背番号。";
+    board.classList.toggle("is-editing", editMode);
+    $("boardHint").textContent = drawing
+      ? "指でなぞって線を描けます。"
+      : editMode
+        ? "選手をタップすると、名前・背番号を変えられます。"
+        : "ドラッグで移動。タップや、何もない所をなぞって選ぶと、まとめて動かせます。";
+    // たたんだ欄の見出しの右
+    $("colorMeta").textContent = state.showOpp ? `相手 ${state.oppFormation}` : "";
+    $("infoMeta").textContent = [state.team, state.opponent && `vs ${state.opponent}`].filter(Boolean).join(" ") || "なし";
     $("penColors").replaceChildren(
       ...PEN_COLORS.map((color) => {
         const b = chip("", state.penColor === color, () => {
@@ -399,6 +412,7 @@
       const clamp = (v) => Math.round(Math.min(98, Math.max(2, v)));
       const onMove = (e) => {
         if (!moved && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
+        if (!moved) remember();
         moved = true;
         el.classList.add("is-dragging");
         const dx = ((e.clientX - start.x) / rect.width) * 100;
@@ -417,13 +431,15 @@
         el.classList.remove("is-dragging");
         if (moved) swallowClickUntil = Date.now() + 400;
         if (moved) render();
-        else if (adding) {
-          // Ctrl・⌘・Shift を押しながらのタップは、選択に足す・外す
+        else if (editMode && !adding) {
+          if (target.kind === "player") openPlayer(target.index);
+        } else {
+          // タップは選ぶ・外す（選んだものはまとめて動く）
           const key = keyOf(target);
           if (selected.has(key)) selected.delete(key);
           else selected.add(key);
           render();
-        } else if (target.kind === "player") openPlayer(target.index);
+        }
       };
       el.addEventListener("pointermove", onMove);
       el.addEventListener("pointerup", onUp);
@@ -502,17 +518,6 @@
     ctx.beginPath();
     pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
     ctx.stroke();
-    // 終わりに矢印
-    const [x2, y2] = pts[pts.length - 1];
-    const [x1, y1] = pts[Math.max(0, pts.length - 6)];
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    const size = width * 4;
-    ctx.beginPath();
-    ctx.moveTo(x2, y2);
-    ctx.lineTo(x2 - size * Math.cos(angle - 0.45), y2 - size * Math.sin(angle - 0.45));
-    ctx.lineTo(x2 - size * Math.cos(angle + 0.45), y2 - size * Math.sin(angle + 0.45));
-    ctx.closePath();
-    ctx.fill();
   }
 
   ink.addEventListener("pointerdown", (event) => {
@@ -525,6 +530,7 @@
     }
     const rect = board.getBoundingClientRect();
     const point = (e) => [Math.round(((e.clientX - rect.left) / rect.width) * 1000) / 10, Math.round(((e.clientY - rect.top) / rect.height) * 1000) / 10];
+    remember();
     const stroke = { color: state.penColor, points: [point(event)] };
     state.strokes.push(stroke);
     const onMove = (e) => {
@@ -534,7 +540,10 @@
     const onUp = () => {
       ink.removeEventListener("pointermove", onMove);
       ink.removeEventListener("pointerup", onUp);
-      if (stroke.points.length < 2) state.strokes.pop();
+      if (stroke.points.length < 2) {
+        state.strokes.pop();
+        undoStack.pop();
+      }
       swallowClickUntil = Date.now() + 400;
       render();
     };
@@ -580,6 +589,7 @@
   $("playerDone").addEventListener("click", () => {
     // 入力中に人数を変えたときなど、もういない選手には書かない
     if (state.players[editing]) {
+      remember();
       state.players[editing].number = $("playerNumber").value.trim().slice(0, 3);
       state.players[editing].name = $("playerName").value.trim().slice(0, 8);
     }
@@ -811,7 +821,6 @@
     const button = $("sendBoardImage");
     if (button.disabled) return;
     button.disabled = true;
-    const label = button.textContent;
     const started = Date.now();
     const timer = setInterval(() => {
       const sec = Math.floor((Date.now() - started) / 1000);
@@ -835,7 +844,6 @@
     } finally {
       clearInterval(timer);
       button.disabled = false;
-      button.textContent = label;
     }
   }
 
@@ -866,35 +874,73 @@
       render();
     });
   }
+  $("formationSelect").addEventListener("change", (event) => {
+    const [mode, formation] = event.target.value.split(":");
+    remember();
+    if (mode !== state.mode) {
+      // 人数が変わるときは、相手・線も新しくする
+      state.mode = mode;
+      state.oppFormation = formation;
+      state.strokes = [];
+    }
+    state.formation = formation;
+    state.players = freshPlayers(mode, formation, state.players);
+    state.opp = opponents();
+    selected.clear();
+    render();
+  });
   $("toggleOpp").addEventListener("click", () => {
+    remember();
     state.showOpp = !state.showOpp;
     if (state.showOpp) state.opp = opponents();
     render();
   });
   $("toggleBall").addEventListener("click", () => {
+    remember();
     state.showBall = !state.showBall;
     render();
   });
   $("togglePen").addEventListener("click", () => {
     drawing = !drawing;
+    if (drawing) editMode = false;
     render();
   });
-  $("inkUndo").addEventListener("click", () => {
-    state.strokes.pop();
+  $("toggleEdit").addEventListener("click", () => {
+    editMode = !editMode;
+    if (editMode) drawing = false;
+    selected.clear();
     render();
   });
+  $("undo").addEventListener("click", undo);
   $("inkClear").addEventListener("click", () => {
+    if (!state.strokes.length) return;
+    remember();
     state.strokes = [];
     render();
   });
   $("resetPositions").addEventListener("click", () => {
+    remember();
     state.players = freshPlayers(state.mode, state.formation, state.players);
     state.opp = opponents();
     state.ball = { x: 50, y: 50 };
     selected.clear();
     render();
   });
-  $("saveBoard").addEventListener("click", saveBoardImage);
+  // LINE で共有：カードか画像かを選ぶシート
+  const shareSheet = $("shareSheet");
+  $("shareLineup").addEventListener("click", () => {
+    $("sendLineup").href = lineupCardUrl();
+    $("imageStatus").textContent = "";
+    shareSheet.hidden = false;
+  });
+  $("shareCancel").addEventListener("click", () => (shareSheet.hidden = true));
+  shareSheet.addEventListener("click", (e) => {
+    if (e.target === shareSheet && !$("sendBoardImage").disabled) shareSheet.hidden = true;
+  });
+  $("saveBoard").addEventListener("click", () => {
+    shareSheet.hidden = true;
+    saveBoardImage();
+  });
   $("sendBoardImage").addEventListener("click", sendBoardImage);
 
   // 入力欄（チーム名などは2つのタブで共通。同じクラスの欄をそろえる）

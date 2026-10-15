@@ -49,7 +49,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .fold[open] summary::after { transform: rotate(90deg); }
 
 /* ---- ピッチ（作戦盤）。縦向きで、上が攻める向き。位置は % で持つ（送るカードと同じ） ---- */
-.board-wrap { display: grid; gap: 6px; }
 .board { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 14px; background: var(--pitch); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
 .board.is-futsal { aspect-ratio: 2 / 3; }
 .pitch-lines i { position: absolute; border: 2px solid var(--line); }
@@ -131,3 +130,27 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 /* フォーメーションの欄の下の「位置を戻す」は、左右の列をまたいで置く */
 .formations .reset { grid-column: 1 / -1; justify-self: start; }
+
+/* 作戦盤のカード：見出し（人数・フォーメーション）・ピッチ・操作をひとまとめに */
+.board-card { gap: 10px; }
+.board-head { display: flex; align-items: center; gap: 10px; }
+.board-head .label { margin-right: auto; font-size: 16px; color: var(--ink); }
+.select { position: relative; display: block; }
+.select select { appearance: none; -webkit-appearance: none; min-height: 36px; padding: 0 28px 0 12px; border: 2px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+.select::after { content: "▾"; position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-soft); pointer-events: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.toolbar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.tool { display: grid; justify-items: center; gap: 2px; min-height: 56px; padding: 6px 0 4px; border: 2px solid transparent; border-radius: 14px; background: #eaf4ed; color: var(--ink); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.tool svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tool[aria-pressed="true"] { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
+.tool:disabled { opacity: 0.4; cursor: default; }
+.pen-tools { align-items: center; justify-content: space-between; }
+.board.is-editing .token b { outline: 2px dashed rgba(255, 255, 255, 0.85); outline-offset: 2px; }
+
+/* LINE で共有：送り方を選ぶ */
+.choice { display: grid; gap: 2px; width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 16px; background: #fff; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.choice b { font-size: 16px; }
+.choice small { font-size: 12px; color: var(--ink-soft); }
+.choice:disabled { opacity: 0.6; cursor: progress; }
+.sheet-card .link { justify-self: center; }
+.fold:not([open]) { gap: 0; }
