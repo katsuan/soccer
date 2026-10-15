@@ -31,8 +31,6 @@
     const front = Math.max(1, Math.floor(n * 0.2));
     return `${back}-${n - back - front}-${front}`;
   }
-  // サッカーボールの絵（作戦盤の上と、画像に使う）
-  const BALL_SVG = '<svg class="ball-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#1f2937" stroke-width="1.6"/><path d="M12 7.6l4.2 3-1.6 4.9H9.4l-1.6-4.9z" fill="#1f2937" stroke="#1f2937" stroke-width="1"/><path d="M12 7.6V2.3M16.2 10.6l5-1.6M14.6 15.5l3.1 4.2M9.4 15.5l-3.1 4.2M7.8 10.6l-5-1.6" fill="none" stroke="#1f2937" stroke-width="1.5"/></svg>';
   const presetGroup = (mode, f) => FORMATION_GROUPS.find((g) => g.mode === mode && g.list.includes(f));
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
   // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
@@ -373,7 +371,7 @@
       const ball = document.createElement("span");
       ball.className = "token is-ball";
       ball.dataset.key = "ball";
-      ball.innerHTML = BALL_SVG;
+      ball.textContent = "⚽";
       place(ball, state.ball);
       ball.classList.toggle("is-selected", selected.has("ball"));
       bindDrag(ball, { kind: "ball" });
@@ -910,10 +908,8 @@
       drawToken(p, fill, p.name, inkOn(fill));
     });
     if (state.showBall) {
-      const img = new Image();
-      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(BALL_SVG.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" '))}`;
-      await img.decode().catch(() => {});
-      ctx.drawImage(img, (state.ball.x / 100) * W - 32, (state.ball.y / 100) * H - 32, 64, 64);
+      ctx.font = font(56, 400);
+      ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
     }
     ctx.restore();
     return canvas;
