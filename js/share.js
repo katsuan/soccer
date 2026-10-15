@@ -1,0 +1,285 @@
+// さくせん盤：おくるんへのリンク・作戦盤の画像（保存・カードの写真）
+// ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
+"use strict";
+
+// ---- おくるんへのリンク ----
+// スタメン（選手の位置）の中身。おくるんのカードにも、作戦盤を開くリンクにも使う
+const lineupData = () => ({
+  m: state.mode,
+  f: state.formation,
+  t: state.team,
+  o: state.opponent,
+  s: state.subs,
+  c: state.ourColor,
+  pl: state.players.map((p) => [p.number, p.name, p.x, p.y])
+});
+
+// 画像をタップしたときに開く、同じ作戦盤へのリンク。相手・ボール・線も入れる。位置は整数に丸める（短くするため）。
+// 1000 文字に収まらないときは、選手の名前 → 線（新しいものから1本ずつ）→ ボール → 相手の順に外し、
+// それでも長ければこのページを開くだけ
+function boardLinkUrl() {
+  const r = (v) => Math.round(v);
+  const players = (withNames) => ({ ...lineupData(), pl: state.players.map((p) => [p.number, withNames ? p.name : "", r(p.x), r(p.y)]) });
+  // 相手の背番号は、1・2・3… の順のままなら省く（[x, y] だけ）
+  const opp = state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [r(p.x), r(p.y)] : [p.number, r(p.x), r(p.y)])), of: state.oppFormation, oc: state.oppColor } : {};
+  const ball = state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {};
+  // 線は点を間引いて短くする（1本につき最大 8 点。線の形は残る）
+  // 線は、入る範囲でできるだけ多くの点を残す（1本 24 点 → 16 → 12 → 8 → 5 と減らして試す）。
+  // 開いた側では点を曲線でつなぐので、点が少なくてもなめらかに見える
+  const linesAt = (max) => state.strokes.map((k) => [k.color, simplifyPoints(k.points, max).flatMap(([x, y]) => [r(x), r(y)])]);
+  const withLines = (max, n = state.strokes.length) => (n ? { k: linesAt(max).slice(0, n) } : {});
+  const BUDGETS = [24, 16, 12, 8, 5];
+  const candidates = [
+    ...BUDGETS.slice(0, 4).map((max) => ({ ...players(true), ...opp, ...ball, ...withLines(max) })),
+    ...BUDGETS.map((max) => ({ ...players(false), ...opp, ...ball, ...withLines(max) })),
+    ...state.strokes.map((_, n) => ({ ...players(false), ...opp, ...ball, ...withLines(5, state.strokes.length - n) })),
+    { ...players(false), ...opp, ...ball },
+    { ...players(false), ...opp },
+    players(false)
+  ];
+  for (const data of candidates) {
+    const url = `${EDITOR_URL}?tab=lineup&data=${encode(data)}`;
+    if (url.length <= LINK_MAX) return url;
+  }
+  return EDITOR_URL;
+}
+
+function lineupCardUrl() {
+  const data = lineupData();
+  const q = new URLSearchParams({
+    kind: "lineup",
+    headerTitle: "スタメン発表",
+    date: whenText(),
+    showDate: whenText() ? "true" : "false",
+    title: state.opponent ? `vs ${state.opponent}` : state.team || "スタメン",
+    detail: [state.where && `📍 ${state.where}`, state.lineupNote].filter(Boolean).join("\n"),
+    showDetail: state.where || state.lineupNote ? "true" : "false",
+    bubbleSize: "mega",
+    theme: "custom",
+    customColor: cardColor(),
+    data: encode(data),
+    from: "soccer"
+  });
+  return OQRN.cardUrl(q);
+}
+
+function resultCardUrl() {
+  const num = (v) => (v === "" || v === null || v === undefined ? "" : Number(v) || 0);
+  const data = {
+    t: state.team,
+    o: state.opponent,
+    us: num(state.scoreUs) || 0,
+    th: num(state.scoreThem) || 0,
+    hu: num(state.halfUs),
+    ht: num(state.halfThem),
+    su: num(state.secondUs),
+    st: num(state.secondThem),
+    eu: num(state.extraUs),
+    et: num(state.extraThem),
+    pu: num(state.pkUs),
+    pt: num(state.pkThem),
+    g: state.goals.map((g) => [g.side, g.min, g.name]),
+    mvp: state.mvp
+  };
+  const q = new URLSearchParams({
+    kind: "match",
+    headerTitle: "試合結果",
+    date: whenText(),
+    showDate: whenText() ? "true" : "false",
+    title: [state.where].filter(Boolean).join(" ") || "試合結果",
+    detail: state.resultNote,
+    showDetail: state.resultNote ? "true" : "false",
+    bubbleSize: "mega",
+    theme: "custom",
+    customColor: cardColor(),
+    data: encode(data),
+    from: "soccer"
+  });
+  return OQRN.cardUrl(q);
+}
+
+// ---- 作戦盤の画像（線・相手・ボールも入る）。保存にも、カードの写真にも使う ----
+async function boardCanvas() {
+  if (document.fonts?.ready) await document.fonts.ready;
+  const W = 1080;
+  const H = Math.round(W * 4 / 3); // 作戦盤と同じ縦横の比（サッカー・フットサルとも同じ大きさ）
+  // 上の見出しは、チーム名・対戦相手・日時を入れたときだけ（入れていなければピッチだけの画像）
+  const title = [state.team || "", state.opponent ? `vs ${state.opponent}` : ""].filter(Boolean).join(" ");
+  const head = title ? 120 : whenText() ? 76 : 0;
+  const canvas = Object.assign(document.createElement("canvas"), { width: W, height: H + head });
+  const ctx = canvas.getContext("2d");
+  const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, W, H + head);
+  ctx.textAlign = "center";
+  if (head) {
+    if (title) {
+      ctx.fillStyle = "#23302a";
+      ctx.font = font(44);
+      ctx.fillText(title, W / 2, 60);
+    }
+    ctx.font = font(28, 700);
+    ctx.fillStyle = "#5c6b62";
+    const vs = state.showOpp && oppTotal() !== state.players.length ? ` 対 ${oppTotal()}人` : "";
+    const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${vs}${state.formation ? `・${state.formation}` : ""}`;
+    ctx.fillText(`${count}${whenText() ? `・${whenText()}` : ""}`, W / 2, title ? 100 : 48);
+  }
+  ctx.save();
+  ctx.translate(0, head);
+  ctx.fillStyle = "#2e8b4a";
+  ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = "rgba(255,255,255,0.67)";
+  ctx.lineWidth = 5;
+  const rect = (x, y, w, h) => ctx.strokeRect((x / 100) * W, (y / 100) * H, (w / 100) * W, (h / 100) * H);
+  rect(5, 4, 90, 92);
+  if (state.mode === "futsal") {
+    // ゴール前のエリア（D形）：幅70%・奥行き15%。両端が丸い形の半分（おくるんのカードと同じ形）
+    const d = 0.15 * H;
+    const dArea = (top) => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0.15 * W - 4, top, 0.7 * W + 8, d);
+      ctx.clip();
+      ctx.beginPath();
+      ctx.roundRect(0.15 * W, top === 0.04 * H ? top - d : top, 0.7 * W, d * 2, d);
+      ctx.stroke();
+      ctx.restore();
+    };
+    dArea(0.04 * H);
+    dArea(0.96 * H - d);
+  } else {
+    rect(28, 4, 44, 13);
+    rect(28, 83, 44, 13);
+  }
+  ctx.beginPath();
+  ctx.moveTo(0.05 * W, H / 2);
+  ctx.lineTo(0.95 * W, H / 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(W / 2, H / 2, W * (state.mode === "futsal" ? 0.09 : 0.11), 0, Math.PI * 2);
+  ctx.stroke();
+  for (const stroke of state.strokes) drawStroke(ctx, stroke, W, H, 8);
+  const drawToken = (p, fill, text, numberColor = "#ffffff", keeper = false) => {
+    const x = (p.x / 100) * W;
+    const y = (p.y / 100) * H;
+    ctx.beginPath();
+    ctx.arc(x, y, 34, 0, Math.PI * 2);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = numberColor === "#ffffff" ? "#ffffff" : "#23302a";
+    ctx.stroke();
+    ctx.fillStyle = numberColor;
+    ctx.font = font(30);
+    ctx.textAlign = "center";
+    ctx.fillText(p.number || "", x, y + 11);
+    if (keeper) {
+      // 緑のピッチでも見えるよう、白い丸の上に 🧤
+      ctx.beginPath();
+      ctx.arc(x + 30, y + 28, 20, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.font = font(24, 400);
+      ctx.fillText("🧤", x + 30, y + 36);
+    }
+    if (text) {
+      ctx.font = font(26);
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = "rgba(0,0,0,0.45)";
+      ctx.strokeText(text, x, y + 74);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(text, x, y + 74);
+    }
+  };
+  if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
+  state.players.forEach((p, i) => drawToken(p, state.ourColor, p.name, inkOn(state.ourColor), i === 0));
+  if (state.showBall) {
+    ctx.font = font(56, 400);
+    ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
+  }
+  ctx.restore();
+  return canvas;
+}
+
+async function saveBoardImage() {
+  const canvas = await boardCanvas();
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  const url = URL.createObjectURL(blob);
+  const file = new File([blob], "作戦盤.png", { type: "image/png" });
+  const sheet = document.createElement("div");
+  sheet.className = "sheet";
+  sheet.innerHTML = '<div class="sheet-card"><img alt="作戦盤の画像"><p class="hint">画像を長押しすると保存できます。</p><div class="actions"></div><button class="link" type="button">閉じる</button></div>';
+  sheet.querySelector("img").src = url;
+  const actions = sheet.querySelector(".actions");
+  if (navigator.canShare?.({ files: [file] })) {
+    const share = Object.assign(document.createElement("button"), { type: "button", className: "btn", textContent: "📤 共有・保存" });
+    share.onclick = () => navigator.share({ files: [file] }).catch(() => {});
+    actions.append(share);
+  }
+  actions.append(Object.assign(document.createElement("a"), { className: "btn ghost", href: url, download: file.name, textContent: "⬇️ ダウンロード" }));
+  const close = () => {
+    sheet.remove();
+    URL.revokeObjectURL(url);
+  };
+  sheet.querySelector(".link").onclick = close;
+  sheet.addEventListener("click", (e) => {
+    if (e.target === sheet) close();
+  });
+  document.body.append(sheet);
+}
+
+// ---- 作戦盤の画像をカードで送る ----
+// 画像をおくるんの画像サーバー（無料。しばらく使わないと眠り、時間がたつと画像が消えることがある）に保存し、
+// その画像を写真にしたお知らせカードをおくるんで開く
+const IMAGE_API = "https://liff-image.onrender.com";
+
+async function sendBoardImage() {
+  const button = $("sendBoardImage");
+  if (button.disabled) return;
+  button.disabled = true;
+  const started = Date.now();
+  const timer = setInterval(() => {
+    const sec = Math.floor((Date.now() - started) / 1000);
+    $("imageStatus").textContent = `画像を保存しています… ${sec}秒${sec >= 6 ? "（はじめは30秒ほどかかることがあります）" : ""}`;
+  }, 1000);
+  $("imageStatus").textContent = "画像を作っています…";
+  try {
+    const canvas = await boardCanvas();
+    const response = await fetch(`${IMAGE_API}/api/upload`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ imageData: canvas.toDataURL("image/jpeg", 0.88) })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !/^https:\/\//.test(data.imageUrl || "")) throw new Error(`upload ${response.status}`);
+    $("imageStatus").textContent = "おくるんを開いています…";
+    location.href = boardImageCardUrl(data.imageUrl);
+  } catch (error) {
+    console.error(error);
+    $("imageStatus").textContent = "画像を保存できませんでした。時間をおいてもう一度お試しください。";
+  } finally {
+    clearInterval(timer);
+    button.disabled = false;
+  }
+}
+
+function boardImageCardUrl(imageUrl) {
+  const q = new URLSearchParams({
+    headerTitle: state.showOpp || state.strokes.length ? "作戦盤" : "スタメン発表",
+    date: whenText(),
+    showDate: whenText() ? "true" : "false",
+    title: state.opponent ? `vs ${state.opponent}` : state.team || "スタメン",
+    detail: [state.where && `📍 ${state.where}`, state.subs && `控え：${state.subs}`, state.lineupNote].filter(Boolean).join("\n"),
+    showDetail: state.where || state.subs || state.lineupNote ? "true" : "false",
+    imageUrl,
+    imageActionUrl: boardLinkUrl(),
+    bubbleSize: "giga",
+    theme: "custom",
+    customColor: cardColor(),
+    from: "soccer"
+  });
+  return OQRN.cardUrl(q);
+}
+
+// 画像サーバーは眠っていると最初の保存が遅いので、開いた時点で起こしておく
+fetch(`${IMAGE_API}/health`, { mode: "no-cors", cache: "no-store" }).catch(() => {});
