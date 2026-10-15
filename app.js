@@ -67,7 +67,9 @@
     const front = 33;
     lines.forEach((count, i) => {
       const y = lines.length === 1 ? 56 : Math.round(back - ((back - front) * i) / (lines.length - 1));
-      const [left, right] = mode === "futsal" ? [24, 76] : [14, 86];
+      // 横の広がりは人数で変える（2人は中央寄り、4人以上はサイドいっぱい）
+      const half = Math.min(mode === "futsal" ? 26 : 36, { 2: 16, 3: 26 }[count] ?? 36);
+      const [left, right] = [50 - half, 50 + half];
       for (let j = 0; j < count; j += 1) {
         spots.push({ x: count === 1 ? 50 : Math.round(left + ((right - left) * j) / (count - 1)), y });
       }
