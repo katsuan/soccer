@@ -60,11 +60,13 @@
   function formationPositions(mode, formation) {
     const parsed = parseFormation(formation);
     const lines = parsed.length ? parsed : parseFormation(mode === "futsal" ? "1-2-1" : "4-4-2");
-    const spots = [{ x: 50, y: 88 }];
-    const back = 70;
-    const front = mode === "futsal" ? 26 : 18;
+    // 上から 相手GK → 相手DF → 自チームFW → 相手MF → 自チームMF → 相手FW → 自チームDF → 自チームGK の順に、
+    // 相手と互い違いに並ぶ高さ（相手は上下反対に置く）。FW を前に出しすぎないので、並べ直しが少なくて済む
+    const spots = [{ x: 50, y: 90 }];
+    const back = 79;
+    const front = 33;
     lines.forEach((count, i) => {
-      const y = lines.length === 1 ? 44 : Math.round(back - ((back - front) * i) / (lines.length - 1));
+      const y = lines.length === 1 ? 56 : Math.round(back - ((back - front) * i) / (lines.length - 1));
       const [left, right] = mode === "futsal" ? [24, 76] : [14, 86];
       for (let j = 0; j < count; j += 1) {
         spots.push({ x: count === 1 ? 50 : Math.round(left + ((right - left) * j) / (count - 1)), y });
