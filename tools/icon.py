@@ -170,20 +170,35 @@ def logo_svg():
     s_w = h * 0.17  # 線の太さ（字の線に近づける）
     s_dot = h * 0.14  # 選手の丸
     line_s = []  # 線の S の SVG
-    paths, x, q = [], 0.0, None
+    # ボール：Q（サークル）の右下（45°）のふち
+    br = h * 0.24
+    paths, x, q, ball = [], 0.0, None, None
     for char in "SAQSEN":
         if char == "Q":
             q = (x + r + w / 2, h / 2)
+            ball = (q[0] + (r + w * 0.15) * 0.7071, q[1] + (r + w * 0.15) * 0.7071)
             x += 2 * r + w + gap
             continue
         if char == "S":
+            # Q のすぐ後ろの S は、左下の端（選手）をボールに重ねる（ボールから作戦の線が出る）
+            after_q = ball is not None and not line_s[1:]
+            if after_q:
+                x = ball[0] - (S_PATHS[-1][-1][0] - sx0) * k
             to = lambda pt: (x + (pt[0] - sx0) * k, (pt[1] - sy0) * k)  # noqa: E731
-            ax, ay = to(S_PATHS[0][0])
-            dx, dy = to(S_PATHS[-1][-1])
-            d_ = f"M{_num(ax)} {_num(ay)}" + "".join("C" + " ".join(f"{_num(v)}" for pt in seg[1:] for v in to(pt)) for seg in S_PATHS)
+            segs = [[to(pt) for pt in seg] for seg in S_PATHS]
+            if after_q:
+                # 終わりの点をボールの中心へ。最後の制御点も同じだけ動かして、線の向きを保つ
+                ex, ey = segs[-1][3]
+                ddx, ddy = ball[0] - ex, ball[1] - ey
+                segs[-1][2] = (segs[-1][2][0] + ddx, segs[-1][2][1] + ddy)
+                segs[-1][3] = ball
+            ax, ay = segs[0][0]
+            dx, dy = segs[-1][3]
+            d_ = f"M{_num(ax)} {_num(ay)}" + "".join("C" + " ".join(f"{_num(v)}" for pt in seg[1:] for v in pt) for seg in segs)
             line_s.append(
                 f'<path d="{d_}" stroke="#ffffff" stroke-width="{_num(s_w)}" stroke-linecap="round" fill="none"/>'
-                f'<circle cx="{_num(ax)}" cy="{_num(ay)}" r="{_num(s_dot)}" fill="#ffffff"/><circle cx="{_num(dx)}" cy="{_num(dy)}" r="{_num(s_dot)}" fill="#ffffff"/>'
+                f'<circle cx="{_num(ax)}" cy="{_num(ay)}" r="{_num(s_dot)}" fill="#ffffff"/>'
+                + ("" if after_q else f'<circle cx="{_num(dx)}" cy="{_num(dy)}" r="{_num(s_dot)}" fill="#ffffff"/>')
             )
             x += (sx1 - sx0) * k + gap
             continue
@@ -195,9 +210,7 @@ def logo_svg():
         x = origin + b[2] + gap
     right = x - gap
     qx, qy = q
-    # ボール：サークルの右下（45°）のふち
-    br = h * 0.24
-    bx, by = qx + (r + w * 0.15) * 0.7071, qy + (r + w * 0.15) * 0.7071
+    bx, by = ball
     # 盤（ピッチ）：Q がちょうど真ん中（ハーフウェーライン上）に来るよう左右の幅をそろえる
     half = max(qx, right - qx) + h * 0.95
     pad_y = h * 0.62
