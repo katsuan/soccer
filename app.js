@@ -447,11 +447,13 @@
   function renderTokens() {
     const before = animateTokens ? new Map([...tokens.children].map((n) => [n.dataset.key, { left: n.style.left, top: n.style.top }])) : null;
     animateTokens = false;
-    const list = state.players.map((p, i) => tokenEl(p, "", { kind: "player", index: i }));
+    // 重なり：相手 → 自チーム → ボールの順に置く（自チームが相手より上、ボールが一番上）
+    const list = [];
     if (state.showOpp) {
       if (!Array.isArray(state.opp) || (state.oppFormation && state.opp.length !== fieldCount(state.oppFormation) + 1)) state.opp = opponents();
       state.opp.forEach((p, i) => list.push(tokenEl(p, "is-opp", { kind: "opp", index: i })));
     }
+    state.players.forEach((p, i) => list.push(tokenEl(p, "", { kind: "player", index: i })));
     if (state.showBall) {
       const ball = document.createElement("span");
       ball.className = "token is-ball";
