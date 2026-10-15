@@ -5,7 +5,7 @@
 //   lineup: { m: "futsal"|"soccer"（ピッチの描き方）, f（決まった並びでなければ ""）, t, o, s, c, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
 //   match:  { t, o, us, th, hu, ht, g: [["u"|"t", 分, 名前], ...], mvp }
 // おくるんの「配置・結果を直す」からは ?tab=lineup|result&data=… で戻ってくる。
-// 作戦盤の画像カードの画像をタップすると ?tab=lineup&data=… で開く。lineup に op（相手 [[背番号, x, y]]）・of・oc・b（ボール [x, y]）・k（線 [[色, [x, y, x, y, …]]]）も入る。
+// 作戦盤の画像カードの画像をタップすると ?tab=lineup&data=… で開く。lineup に op（相手 [[背番号, x, y]]。背番号が順番どおりなら [x, y]）・of・oc・b（ボール [x, y]）・k（線 [[色, [x, y, x, y, …]]]）も入る。
 (function () {
   "use strict";
   const OQRN_CARD = "https://liff.line.me/2009927876-DioOJd0z/card/";
@@ -188,7 +188,11 @@
       if (hex(data.c)) state.ourColor = hex(data.c);
       // 画像のリンクからは、相手・ボール・線も戻す（スタメンのカードからは選手だけ）
       if (Array.isArray(data.op)) {
-        state.opp = data.op.slice(0, MAX_PLAYERS).map((p) => ({ number: String(p[0] ?? ""), name: "", x: Number(p[1]) || 50, y: Number(p[2]) || 50 }));
+        // [x, y] だけのときは背番号が 1・2・3… の順
+        state.opp = data.op.slice(0, MAX_PLAYERS).map((p, i) => {
+          const [number, x, y] = p.length === 2 ? [String(i + 1), p[0], p[1]] : p;
+          return { number: String(number ?? ""), name: "", x: Number(x) || 50, y: Number(y) || 50 };
+        });
         state.oppFormation = fieldCount(data.of) === state.opp.length - 1 ? data.of : "";
         state.showOpp = true;
         if (hex(data.oc)) state.oppColor = hex(data.oc);
@@ -881,17 +885,23 @@
   // 1000 文字に収まらないときは、線 → 相手・ボールの順に外し、それでも長ければこのページを開くだけ
   function boardLinkUrl() {
     const r = (v) => Math.round(v);
+    // 相手の背番号は、1・2・3… の順のままなら省く（[x, y] だけ）
     const extras = {
-      ...(state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p) => [p.number, r(p.x), r(p.y)]), of: state.oppFormation, oc: state.oppColor } : {}),
+      ...(state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [r(p.x), r(p.y)] : [p.number, r(p.x), r(p.y)])), of: state.oppFormation, oc: state.oppColor } : {}),
       ...(state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {})
     };
-    // 線は点を間引いて短くする（1本につき最大 12 点）
+    // 線は点を間引いて短くする（1本につき最大 8 点。線の形は残る）
     const lines = state.strokes.map((k) => {
-      const step = Math.max(1, Math.ceil(k.points.length / 12));
+      const step = Math.max(1, Math.ceil(k.points.length / 8));
       const pts = k.points.filter((_, i) => i % step === 0 || i === k.points.length - 1);
       return [k.color, pts.flatMap(([x, y]) => [r(x), r(y)])];
     });
-    const candidates = [{ ...lineupData(), ...extras, ...(lines.length ? { k: lines } : {}) }, { ...lineupData(), ...extras }, lineupData()];
+    // 入りきらないときは、新しい線から1本ずつ外す → 相手・ボールも外す
+    const candidates = [
+      ...lines.map((_, n) => ({ ...lineupData(), ...extras, k: lines.slice(0, lines.length - n) })),
+      { ...lineupData(), ...extras },
+      lineupData()
+    ];
     for (const data of candidates) {
       const url = `${EDITOR_URL}?tab=lineup&data=${encode(data)}`;
       if (url.length <= LINK_MAX) return url;
