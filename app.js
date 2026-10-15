@@ -363,7 +363,7 @@
     $("rosterCount").textContent = people.length ? `${people.length}人` : "なし";
     $("rosterNames").replaceChildren(...people.map((p) => Object.assign(document.createElement("option"), { value: p.name })));
     renderGoals();
-    // 得点・MVP の欄の見出しの右
+    // 得点者・MVP の欄の見出しの右
     const goalCount = state.goals.length;
     $("goalsMeta").textContent = [goalCount ? `${goalCount}点` : "", state.mvp ? "MVP あり" : ""].filter(Boolean).join("・") || "なし";
     // 内訳の欄の見出しの右：入っているもの（例：前半・後半・PK）、なければ「なし」
