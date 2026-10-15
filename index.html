@@ -97,7 +97,11 @@
 
     <details class="card fold">
       <summary>📋 試合の情報 <span id="infoMeta" class="meta"></span></summary>
-      <label>日時<input class="when" maxlength="30" placeholder="例：10/18（土）9:00 キックオフ"></label>
+      <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。</p>
+      <div class="two">
+        <label>日にち<input class="when-date" type="date"></label>
+        <label>時間<input class="when-time" type="time"></label>
+      </div>
       <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
       <label>控え<input id="subs" maxlength="80" placeholder="例：佐藤、鈴木、田中"></label>
       <label>ひとこと<input id="lineupNote" maxlength="40" placeholder="例：集合は8:30です"></label>
@@ -111,6 +115,7 @@
 
     <div class="actions">
       <button id="shareLineup" class="btn line" type="button">💬 LINE で共有</button>
+      <button id="saveBoard" class="btn ghost" type="button">📷 画像で保存</button>
     </div>
   </section>
 
@@ -166,7 +171,11 @@
 
     <details class="card fold">
       <summary>📋 試合の情報</summary>
-      <label>日時<input class="when" maxlength="30" placeholder="例：10/18（土）"></label>
+      <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。</p>
+      <div class="two">
+        <label>日にち<input class="when-date" type="date"></label>
+        <label>時間<input class="when-time" type="time"></label>
+      </div>
       <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
       <label>ひとこと<input id="resultNote" maxlength="60" placeholder="例：最後まで走りきりました！"></label>
     </details>
@@ -200,11 +209,10 @@
     <a id="sendLineup" class="choice" href="#"><b>💬 カードで送る</b><small>選手の位置が入ります。カードのピッチをタップすると、この作戦盤が開きます。</small></a>
     <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 画像で送る</b><small>相手・ボール・線も入ります。画像は時間がたつと消えることがあります。</small></button>
     <p id="imageStatus" class="hint" aria-live="polite"></p>
-    <button id="saveBoard" class="link" type="button">📷 画像で保存する</button>
     <button id="shareCancel" class="link" type="button">やめる</button>
   </div>
 </div>
 
-<script src="app.js?v=22"></script>
+<script src="app.js?v=24"></script>
 </body>
 </html>

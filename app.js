@@ -111,7 +111,8 @@
       penColor: PEN_COLORS[0],
       team: "",
       opponent: "",
-      when: "",
+      whenDate: "",
+      whenTime: "",
       where: "",
       subs: "",
       lineupNote: "",
@@ -152,6 +153,10 @@
     render();
   }
   let roster = load(ROSTER_KEY, "");
+  // 日にち（2026-10-18）と時間（09:00）は別々に選ぶ。前の「日時」の自由入力は選択に入らないので捨てる
+  delete state.when;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(state.whenDate || "")) state.whenDate = "";
+  if (!/^\d{2}:\d{2}$/.test(state.whenTime || "")) state.whenTime = "";
   if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtDef(state.court).mode !== state.mode) state.court = courtOf(state.mode, state.formation, state.players.length);
 
   // おくるんの「配置・結果を直す」から戻ってきたとき
@@ -204,6 +209,15 @@
     } catch {
       return null;
     }
+  }
+
+  // 日にち・時間をカード・画像に出す形にする（例：10/18（土）9:00。どちらかだけでもよい）
+  function whenText() {
+    const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(state.whenDate || "");
+    const t = /^(\d{2}):(\d{2})$/.exec(state.whenTime || "");
+    const date = d ? `${Number(d[2])}/${Number(d[3])}（${"日月火水木金土"[new Date(Number(d[1]), Number(d[2]) - 1, Number(d[3])).getDay()]}）` : "";
+    const time = t ? `${Number(t[1])}:${t[2]}` : "";
+    return `${date}${time}`;
   }
 
   // ---- 画面 ----
@@ -321,7 +335,7 @@
     $("teamMeta").textContent = [state.team && state.opponent ? `${state.team} vs ${state.opponent}` : state.team, state.formation || `${ours}人`].filter(Boolean).join("・");
     $("removeOpp").disabled = theirs <= MIN_PLAYERS;
     $("addOpp").disabled = theirs >= MAX_PLAYERS;
-    $("infoMeta").textContent = [state.when, state.where].filter(Boolean).join("・") || "なし";
+    $("infoMeta").textContent = [whenText(), state.where].filter(Boolean).join("・") || "なし";
     $("penColors").replaceChildren(
       ...PEN_COLORS.map((color) => {
         const b = chip("", state.penColor === color, () => {
@@ -795,8 +809,8 @@
     const q = new URLSearchParams({
       kind: "lineup",
       headerTitle: "スタメン発表",
-      date: state.when || "",
-      showDate: state.when ? "true" : "false",
+      date: whenText(),
+      showDate: whenText() ? "true" : "false",
       title: state.opponent ? `vs ${state.opponent}` : state.team || "スタメン",
       detail: [state.where && `📍 ${state.where}`, state.lineupNote].filter(Boolean).join("\n"),
       showDetail: state.where || state.lineupNote ? "true" : "false",
@@ -830,8 +844,8 @@
     const q = new URLSearchParams({
       kind: "match",
       headerTitle: "試合結果",
-      date: state.when || "",
-      showDate: state.when ? "true" : "false",
+      date: whenText(),
+      showDate: whenText() ? "true" : "false",
       title: [state.where].filter(Boolean).join(" ") || "試合結果",
       detail: state.resultNote,
       showDetail: state.resultNote ? "true" : "false",
@@ -863,7 +877,7 @@
     ctx.fillStyle = "#5c6b62";
     const vs = state.showOpp && oppTotal() !== state.players.length ? ` 対 ${oppTotal()}人` : "";
     const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${vs}${state.formation ? `・${state.formation}` : ""}`;
-    ctx.fillText(`${count}${state.when ? `・${state.when}` : ""}`, W / 2, 100);
+    ctx.fillText(`${count}${whenText() ? `・${whenText()}` : ""}`, W / 2, 100);
     ctx.save();
     ctx.translate(0, head);
     ctx.fillStyle = "#2e8b4a";
@@ -1006,8 +1020,8 @@
   function boardImageCardUrl(imageUrl) {
     const q = new URLSearchParams({
       headerTitle: state.showOpp || state.strokes.length ? "作戦盤" : "スタメン発表",
-      date: state.when || "",
-      showDate: state.when ? "true" : "false",
+      date: whenText(),
+      showDate: whenText() ? "true" : "false",
       title: state.opponent ? `vs ${state.opponent}` : state.team || "スタメン",
       detail: [state.where && `📍 ${state.where}`, state.subs && `控え：${state.subs}`, state.lineupNote].filter(Boolean).join("\n"),
       showDetail: state.where || state.subs || state.lineupNote ? "true" : "false",
@@ -1142,14 +1156,11 @@
   shareSheet.addEventListener("click", (e) => {
     if (e.target === shareSheet && !$("sendBoardImage").disabled) shareSheet.hidden = true;
   });
-  $("saveBoard").addEventListener("click", () => {
-    shareSheet.hidden = true;
-    saveBoardImage();
-  });
+  $("saveBoard").addEventListener("click", saveBoardImage);
   $("sendBoardImage").addEventListener("click", sendBoardImage);
 
   // 入力欄（チーム名などは2つのタブで共通。同じクラスの欄をそろえる）
-  const shared = { team: ".team", opponent: ".opponent", when: ".when", where: ".where" };
+  const shared = { team: ".team", opponent: ".opponent", whenDate: ".when-date", whenTime: ".when-time", where: ".where" };
   for (const [key, selector] of Object.entries(shared)) {
     for (const input of document.querySelectorAll(selector)) {
       input.value = state[key];
