@@ -53,17 +53,23 @@
   const cardColor = () => (isLight(state.ourColor) ? "#2e8b4a" : state.ourColor);
 
   // フォーメーションから位置を作る（GK が一番下、列は後ろから前へ）
+  // 自チームの GK と最前線の高さ（%）。相手がいないときはコート全体、相手を出すときは前を下げて相手と互い違いにする。
+  // ほかの列は、この2つの間で同じ割合の位置に動く（選手を動かしたあとでも、同じ割合で縮む・広がる）
+  const FULL = { gk: 90, front: 18 };
+  const VERSUS = { gk: 90, front: 33 };
+  const fitY = (y, from, to) => Math.round((to.gk - ((from.gk - y) * (to.gk - to.front)) / (from.gk - from.front)) * 10) / 10;
+
   // versus：相手も出すとき。上から 相手GK → 相手DF → 自チームFW → 相手MF → 自チームMF → 相手FW → 自チームDF → 自チームGK の順に、
   // 相手と互い違いに並ぶ高さ（相手は上下反対に置く）。FW を前に出しすぎないので、並べ直しが少なくて済む。
   // 相手がいないときは、コート全体に広げる
   function formationPositions(mode, formation, versus = true) {
     const parsed = parseFormation(formation);
     const lines = parsed.length ? parsed : parseFormation(mode === "futsal" ? "1-2-1" : "4-4-2");
-    const spots = [{ x: 50, y: 90 }];
-    const back = versus ? 79 : 74;
-    const front = versus ? 33 : 18;
+    // コート全体に並べてから、相手を出すときは GK と最前線の高さに合わせて縦に縮める
+    const spots = [{ x: 50, y: FULL.gk }];
+    const back = 74;
     lines.forEach((count, i) => {
-      const y = lines.length === 1 ? (versus ? 56 : 46) : Math.round(back - ((back - front) * i) / (lines.length - 1));
+      const y = lines.length === 1 ? 46 : Math.round(back - ((back - FULL.front) * i) / (lines.length - 1));
       // 横の広がりは人数で変える（2人は中央寄り、4人以上はサイドいっぱい）
       const half = Math.min(mode === "futsal" ? 26 : 36, { 2: 16, 3: 26 }[count] ?? 36);
       const [left, right] = [50 - half, 50 + half];
@@ -71,7 +77,7 @@
         spots.push({ x: count === 1 ? 50 : Math.round(left + ((right - left) * j) / (count - 1)), y });
       }
     });
-    return spots;
+    return versus ? spots.map((spot) => ({ x: spot.x, y: fitY(spot.y, FULL, VERSUS) })) : spots;
   }
 
   function freshPlayers(mode, formation, old = [], versus = state.showOpp) {
@@ -149,6 +155,7 @@
   function undo() {
     const last = undoStack.pop();
     if (!last) return;
+    animateTokens = true;
     Object.assign(state, JSON.parse(last));
     selected.clear();
     render();
@@ -246,6 +253,7 @@
     // フォーメーション：同じ並びを同じ行に（左が自チーム、右が相手）。人数を変えて決まった並びがないときは「10人（自由）」
     const pickOurs = (f) => {
       remember();
+      animateTokens = true;
       // 人数が変わるときは、相手も同じ並びにする
       if (fieldCount(f) !== state.players.length - 1) state.oppFormation = f;
       state.formation = f;
@@ -256,6 +264,7 @@
     };
     const pickTheirs = (f) => {
       remember();
+      animateTokens = true;
       state.oppFormation = f;
       state.opp = opponents();
       setShowOpp(true);
@@ -382,15 +391,15 @@
     return b;
   }
 
-  // 相手を出す・消す。自チームがフォーメーションの位置のまま（動かしていない）なら、
-  // 相手と互い違いの高さ／コート全体の高さに並べ直す
+  // 相手を出す・消す
   function setShowOpp(on) {
     if (state.showOpp === on) return;
-    const f = state.formation;
-    const untouched = f && freshPlayers(state.mode, f, state.players, state.showOpp).every((spot, i) => state.players[i] && state.players[i].x === spot.x && state.players[i].y === spot.y);
     state.showOpp = on;
-    if (untouched) state.players = freshPlayers(state.mode, f, state.players, on);
+    // 自チームの高さを、GK と最前線の位置に合わせて縮める・広げる（横はそのまま）。なめらかに動かす
+    const [from, to] = on ? [FULL, VERSUS] : [VERSUS, FULL];
+    state.players = state.players.map((p) => ({ ...p, y: Math.min(98, Math.max(2, fitY(p.y, from, to))) }));
     if (on && !Array.isArray(state.opp)) state.opp = opponents();
+    animateTokens = true;
   }
 
   // 相手は選んだフォーメーション（最初は自チームと同じ）を、上下・左右反対に置く
@@ -406,7 +415,12 @@
   const selected = new Set();
   const keyOf = (target) => (target.kind === "ball" ? "ball" : `${target.kind === "player" ? "p" : "o"}${target.index}`);
 
+  // 並べ直したとき（相手の出し入れ・フォーメーション・戻すなど）は、前の位置からなめらかに動かす
+  let animateTokens = false;
+
   function renderTokens() {
+    const before = animateTokens ? new Map([...tokens.children].map((n) => [n.dataset.key, { left: n.style.left, top: n.style.top }])) : null;
+    animateTokens = false;
     const list = state.players.map((p, i) => tokenEl(p, "", { kind: "player", index: i }));
     if (state.showOpp) {
       if (!Array.isArray(state.opp) || (state.oppFormation && state.opp.length !== fieldCount(state.oppFormation) + 1)) state.opp = opponents();
@@ -423,6 +437,27 @@
       list.push(ball);
     }
     tokens.replaceChildren(...list);
+    if (!before || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const moving = [];
+    for (const el of list) {
+      const from = before.get(el.dataset.key);
+      if (!from) {
+        el.classList.add("is-appearing"); // 新しく出たもの（相手など）はふわっと出す
+        continue;
+      }
+      if (from.left === el.style.left && from.top === el.style.top) continue;
+      moving.push([el, el.style.left, el.style.top]);
+      el.style.left = from.left;
+      el.style.top = from.top;
+    }
+    if (!moving.length) return;
+    tokens.getBoundingClientRect(); // 前の位置を確定させてから動かす
+    for (const [el, left, top] of moving) {
+      el.classList.add("is-moving");
+      el.style.left = left;
+      el.style.top = top;
+      el.addEventListener("transitionend", () => el.classList.remove("is-moving"), { once: true });
+    }
   }
 
   function tokenEl(p, extra, target) {
@@ -662,6 +697,7 @@
 
   function openTactic(entry) {
     remember();
+    animateTokens = true;
     Object.assign(state, JSON.parse(JSON.stringify(entry.board)));
     selected.clear();
     drawing = false;
@@ -1059,6 +1095,7 @@
   $("courtSelect").addEventListener("change", (event) => {
     const court = courtDef(event.target.value);
     remember();
+    animateTokens = true;
     if (court.mode !== state.mode) state.strokes = []; // ピッチが変わるときは線を消す
     state.court = court.id;
     state.mode = court.mode;
@@ -1150,6 +1187,7 @@
   });
   $("resetPositions").addEventListener("click", () => {
     remember();
+    animateTokens = true;
     state.players = freshPlayers(state.mode, state.formation || autoFormation(state.players.length - 1), state.players);
     state.opp = opponents();
     state.ball = { x: 50, y: 50 };

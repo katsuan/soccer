@@ -184,3 +184,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 /* GK：チームと同じ色の丸の右下に 🧤 */
 .token .gk { position: absolute; top: 14px; left: calc(50% + 7px); display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 1; pointer-events: none; }
+
+/* 並べ直したときは、前の位置からなめらかに動く。新しく出たもの（相手など）はふわっと出す */
+.token.is-moving { transition: left 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), top 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.token.is-appearing { animation: token-in 0.35s ease-out; }
+@keyframes token-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
