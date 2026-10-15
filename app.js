@@ -45,14 +45,11 @@
     { label: "サンセット", hex: "#f5a524" },
     { label: "ベリー", hex: "#e5484d" }
   ];
-  const GK_COLOR = "#f5a524";
   const isLight = (hex) => {
     const n = parseInt(String(hex).slice(1), 16);
     return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
   };
   const inkOn = (hex) => (isLight(hex) ? "#23302a" : "#ffffff");
-  // GK は見分けやすいオレンジ。自チームがオレンジ系のときは黒
-  const gkColor = () => (["#f97316", GK_COLOR, "#f5a524"].includes(String(state.ourColor).toLowerCase()) ? "#1f2937" : GK_COLOR);
   // カードの見出しの帯に使う色（白や黄色は帯にすると文字が読めないので、濃い緑にする）
   const cardColor = () => (isLight(state.ourColor) ? "#2e8b4a" : state.ourColor);
 
@@ -385,7 +382,7 @@
   const keyOf = (target) => (target.kind === "ball" ? "ball" : `${target.kind === "player" ? "p" : "o"}${target.index}`);
 
   function renderTokens() {
-    const list = state.players.map((p, i) => tokenEl(p, i === 0 ? "is-gk" : "", { kind: "player", index: i }));
+    const list = state.players.map((p, i) => tokenEl(p, "", { kind: "player", index: i }));
     if (state.showOpp) {
       if (!Array.isArray(state.opp) || (state.oppFormation && state.opp.length !== fieldCount(state.oppFormation) + 1)) state.opp = opponents();
       state.opp.forEach((p, i) => list.push(tokenEl(p, "is-opp", { kind: "opp", index: i })));
@@ -407,11 +404,12 @@
     const el = document.createElement("span");
     el.className = `token ${extra}`;
     el.dataset.key = keyOf(target);
-    el.innerHTML = "<b></b><small></small>";
+    // GK（先頭）はチームと同じ色で、🧤 を付けて見分ける
+    el.innerHTML = target.index === 0 ? '<b></b><i class="gk" aria-label="GK">🧤</i><small></small>' : "<b></b><small></small>";
     const number = el.querySelector("b");
     number.textContent = p.number || "";
-    // 色：自チーム（GK は別の色）・相手
-    const fill = target.kind === "opp" ? state.oppColor : target.index === 0 ? gkColor() : state.ourColor;
+    // 色：自チーム・相手（GK も同じ色）
+    const fill = target.kind === "opp" ? state.oppColor : state.ourColor;
     number.style.background = fill;
     number.style.color = inkOn(fill);
     number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
@@ -902,7 +900,7 @@
     ctx.arc(W / 2, H / 2, W * (state.mode === "futsal" ? 0.09 : 0.11), 0, Math.PI * 2);
     ctx.stroke();
     for (const stroke of state.strokes) drawStroke(ctx, stroke, W, H, 8);
-    const drawToken = (p, fill, text, numberColor = "#ffffff") => {
+    const drawToken = (p, fill, text, numberColor = "#ffffff", keeper = false) => {
       const x = (p.x / 100) * W;
       const y = (p.y / 100) * H;
       ctx.beginPath();
@@ -916,20 +914,26 @@
       ctx.font = font(30);
       ctx.textAlign = "center";
       ctx.fillText(p.number || "", x, y + 11);
+      if (keeper) {
+        // 緑のピッチでも見えるよう、白い丸の上に 🧤
+        ctx.beginPath();
+        ctx.arc(x + 30, y + 28, 20, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.font = font(24, 400);
+        ctx.fillText("🧤", x + 30, y + 36);
+      }
       if (text) {
         ctx.font = font(26);
         ctx.lineWidth = 6;
         ctx.strokeStyle = "rgba(0,0,0,0.45)";
-        ctx.strokeText(text, x, y + 70);
+        ctx.strokeText(text, x, y + 74);
         ctx.fillStyle = "#ffffff";
-        ctx.fillText(text, x, y + 70);
+        ctx.fillText(text, x, y + 74);
       }
     };
-    if (state.showOpp) (state.opp || opponents()).forEach((p) => drawToken(p, state.oppColor, "", inkOn(state.oppColor)));
-    state.players.forEach((p, i) => {
-      const fill = i === 0 ? gkColor() : state.ourColor;
-      drawToken(p, fill, p.name, inkOn(fill));
-    });
+    if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
+    state.players.forEach((p, i) => drawToken(p, state.ourColor, p.name, inkOn(state.ourColor), i === 0));
     if (state.showBall) {
       ctx.font = font(56, 400);
       ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
