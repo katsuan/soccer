@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 <main class="wrap">
@@ -57,30 +57,27 @@
 
     <!-- チーム：自チームと相手を左右に並べ、人数・色・フォーメーションをまとめて選ぶ -->
     <details class="card fold" id="teamFold">
-      <summary>👕 チーム（人数・色・並び） <span id="teamMeta" class="meta"></span></summary>
+      <summary>👕 チーム <span id="teamMeta" class="meta"></span></summary>
       <p id="countVs" class="count-vs"></p>
-      <div class="formations">
-        <div>
-          <span class="label">自チーム</span>
-          <div class="stepper" role="group" aria-label="自チームの人数">
-            <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
-            <span id="playerCount">11人</span>
-            <button id="addPlayer" type="button" aria-label="1人増やす">＋</button>
-          </div>
-          <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
-          <div id="formationChips" class="chips col" role="radiogroup" aria-label="自チームのフォーメーション"></div>
+      <!-- 自チームと相手を左右に向かい合わせ、人数・色・フォーメーションを同じ行にそろえる -->
+      <div class="versus">
+        <span class="label">自チーム</span>
+        <span class="label">相手 <span id="oppHint" class="meta"></span></span>
+        <div class="stepper" role="group" aria-label="自チームの人数">
+          <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
+          <span id="playerCount">11人</span>
+          <button id="addPlayer" type="button" aria-label="1人増やす">＋</button>
         </div>
-        <div>
-          <span class="label">相手 <span id="oppHint" class="meta"></span></span>
-          <div class="stepper" role="group" aria-label="相手の人数">
-            <button id="removeOpp" type="button" aria-label="相手を1人減らす">−</button>
-            <span id="oppCount">11人</span>
-            <button id="addOpp" type="button" aria-label="相手を1人増やす">＋</button>
-          </div>
-          <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
-          <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
+        <div class="stepper" role="group" aria-label="相手の人数">
+          <button id="removeOpp" type="button" aria-label="相手を1人減らす">−</button>
+          <span id="oppCount">11人</span>
+          <button id="addOpp" type="button" aria-label="相手を1人増やす">＋</button>
         </div>
+        <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
+        <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
       </div>
+      <!-- フォーメーション：同じ並びは同じ行（左が自チーム、右が相手） -->
+      <div id="formationRows" class="versus" role="group" aria-label="フォーメーション"></div>
       <p class="hint left">人数の − ＋ は1人ずつ増やす・減らす（ほかの選手の位置はそのまま）。退場や数的有利の練習に。相手の欄を触ると、相手も表示します。</p>
     </details>
 
@@ -208,6 +205,6 @@
   </div>
 </div>
 
-<script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>

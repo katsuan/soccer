@@ -176,6 +176,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 
 /* チームの欄：人数の − ＋ は列の幅いっぱい */
-.formations .stepper { justify-content: space-between; }
+.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; align-items: start; }
+.versus .stepper { justify-content: space-between; }
+.versus .chip:not(.color) { width: 100%; }
 .count-vs { font-size: 14px; font-weight: 800; text-align: center; }
 .count-vs:empty { display: none; }

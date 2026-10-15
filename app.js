@@ -225,39 +225,44 @@
     $("playerCount").textContent = `${state.players.length}人`;
     $("removePlayer").disabled = state.players.length <= MIN_PLAYERS;
     $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
-    const ourList = court.list.includes(state.formation) || !state.formation ? court.list : [state.formation, ...court.list];
-    $("formationChips").replaceChildren(
-      ...(state.formation ? [] : [chip(`${state.players.length}人（自由）`, true, () => {}, "radio")]),
-      ...ourList.map((f) =>
-        chip(f, state.formation === f, () => {
-          remember();
-          // 人数が変わるときは、相手も同じ並びにする
-          if (fieldCount(f) !== state.players.length - 1) state.oppFormation = f;
-          state.formation = f;
-          state.players = freshPlayers(state.mode, f, state.players);
-          state.opp = opponents();
-          selected.clear();
-          render();
-        }, "radio")
-      )
-    );
-    // 相手のフォーメーション（相手を出しているときだけ）
+    // 相手のフォーメーション（人数を変えたあとは ""＝今の相手をそのまま使う）
     if (state.oppFormation !== "" && !fieldCount(state.oppFormation)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     if (state.oppFormation === "" && !Array.isArray(state.opp)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
-    // 相手のフォーメーションを選んだら、相手も表示する
-    const oppList = [...court.list];
-    if (state.oppFormation && !oppList.includes(state.oppFormation)) oppList.unshift(state.oppFormation);
-    $("oppFormationChips").replaceChildren(
-      ...(state.showOpp && !state.oppFormation ? [chip(`${oppTotal()}人（自由）`, true, () => {}, "radio")] : []),
-      ...oppList.map((f) =>
-        chip(f, state.showOpp && state.oppFormation === f, () => {
-          remember();
-          state.oppFormation = f;
-          state.opp = opponents();
-          state.showOpp = true;
-          render();
-        }, "radio")
-      )
+    // フォーメーション：同じ並びを同じ行に（左が自チーム、右が相手）。人数を変えて決まった並びがないときは「10人（自由）」
+    const pickOurs = (f) => {
+      remember();
+      // 人数が変わるときは、相手も同じ並びにする
+      if (fieldCount(f) !== state.players.length - 1) state.oppFormation = f;
+      state.formation = f;
+      state.players = freshPlayers(state.mode, f, state.players);
+      state.opp = opponents();
+      selected.clear();
+      render();
+    };
+    const pickTheirs = (f) => {
+      remember();
+      state.oppFormation = f;
+      state.opp = opponents();
+      state.showOpp = true;
+      render();
+    };
+    const oppFree = state.showOpp && !state.oppFormation;
+    const rows = [];
+    if (!state.formation || oppFree) {
+      rows.push([
+        state.formation ? null : chip(`${state.players.length}人（自由）`, true, () => {}, "radio"),
+        oppFree ? chip(`${oppTotal()}人（自由）`, true, () => {}, "radio") : null
+      ]);
+    }
+    const names = [...new Set([...(state.formation && !court.list.includes(state.formation) ? [state.formation] : []), ...(state.oppFormation && !court.list.includes(state.oppFormation) ? [state.oppFormation] : []), ...court.list])];
+    for (const f of names) {
+      rows.push([
+        chip(f, state.formation === f, () => pickOurs(f), "radio"),
+        chip(f, state.showOpp && state.oppFormation === f, () => pickTheirs(f), "radio")
+      ]);
+    }
+    $("formationRows").replaceChildren(
+      ...rows.flatMap(([ours, theirs]) => [ours || document.createElement("span"), theirs || document.createElement("span")])
     );
     $("oppHint").textContent = state.showOpp ? "" : "（選ぶと表示）";
     // チームの色
