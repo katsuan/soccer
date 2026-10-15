@@ -213,3 +213,6 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 /* 色の丸を選んだときの縁取り（外側 3px）が、下のフォーメーションのボタンに重ならないよう間をあける */
 .versus .chips.colors { padding: 4px 3px; }
 #formationRows { margin-top: 8px; }
+
+/* ツールの名前（さくせん盤）の下の小さな英字 */
+.brand { margin-top: -10px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: var(--ink-soft); text-align: center; }

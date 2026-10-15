@@ -1,10 +1,10 @@
-// スタメン・作戦盤。選手をピッチに並べ、おくるん（お知らせカード）に JSON で渡して LINE にカードで送る。
+// さくせん盤（SAQSEN by おくるん）。スタメン・作戦・試合結果。選手をピッチに並べ、おくるん（お知らせカード）に JSON で渡して LINE にカードで送る。
 // 試合結果も同じように渡す。作戦盤として、相手・ボール・ペンの線も使える（線と相手はカードには入れず、画像で保存できる）。
 //
 // おくるんへの渡し方: https://liff.line.me/<LIFF ID>/card/?kind=lineup|match&data=<JSON を UTF-8 → base64url>&…
 //   lineup: { m: "futsal"|"soccer"（ピッチの描き方）, f（決まった並びでなければ ""）, t, o, s, c, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
 //   match:  { t, o, us, th, hu, ht, g: [["u"|"t", 分, 名前], ...], mvp }
-// おくるんの「配置・結果を直す」からは ?tab=lineup|result&data=… で戻ってくる。
+// おくるんの「さくせん盤で直す」からは ?tab=lineup|result&data=… で戻ってくる。
 // 作戦盤の画像カードの画像をタップすると ?tab=lineup&data=… で開く。lineup に op（相手 [[背番号, x, y]]。背番号が順番どおりなら [x, y]）・of・oc・b（ボール [x, y]）・k（線 [[色, [x, y, x, y, …]]]）も入る。
 (function () {
   "use strict";
@@ -170,7 +170,7 @@
   if (!/^\d{2}:\d{2}$/.test(state.whenTime || "")) state.whenTime = "";
   if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtDef(state.court).mode !== state.mode) state.court = courtOf(state.mode, state.formation, state.players.length);
 
-  // おくるんの「配置・結果を直す」から戻ってきたとき
+  // おくるんの「さくせん盤で直す」から戻ってきたとき
   applyQuery();
 
   function applyQuery() {
