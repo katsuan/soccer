@@ -209,3 +209,7 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .period-row { display: grid; grid-template-columns: 3em minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .period-row span:not(.label) { font-size: 18px; font-weight: 800; }
 .period-row input { padding: 8px; font-size: 16px; font-weight: 800; text-align: center; }
+
+/* 色の丸を選んだときの縁取り（外側 3px）が、下のフォーメーションのボタンに重ならないよう間をあける */
+.versus .chips.colors { padding: 4px 3px; }
+#formationRows { margin-top: 8px; }
