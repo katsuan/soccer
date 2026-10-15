@@ -53,16 +53,17 @@
   const cardColor = () => (isLight(state.ourColor) ? "#2e8b4a" : state.ourColor);
 
   // フォーメーションから位置を作る（GK が一番下、列は後ろから前へ）
-  function formationPositions(mode, formation) {
+  // versus：相手も出すとき。上から 相手GK → 相手DF → 自チームFW → 相手MF → 自チームMF → 相手FW → 自チームDF → 自チームGK の順に、
+  // 相手と互い違いに並ぶ高さ（相手は上下反対に置く）。FW を前に出しすぎないので、並べ直しが少なくて済む。
+  // 相手がいないときは、コート全体に広げる
+  function formationPositions(mode, formation, versus = true) {
     const parsed = parseFormation(formation);
     const lines = parsed.length ? parsed : parseFormation(mode === "futsal" ? "1-2-1" : "4-4-2");
-    // 上から 相手GK → 相手DF → 自チームFW → 相手MF → 自チームMF → 相手FW → 自チームDF → 自チームGK の順に、
-    // 相手と互い違いに並ぶ高さ（相手は上下反対に置く）。FW を前に出しすぎないので、並べ直しが少なくて済む
     const spots = [{ x: 50, y: 90 }];
-    const back = 79;
-    const front = 33;
+    const back = versus ? 79 : 74;
+    const front = versus ? 33 : 18;
     lines.forEach((count, i) => {
-      const y = lines.length === 1 ? 56 : Math.round(back - ((back - front) * i) / (lines.length - 1));
+      const y = lines.length === 1 ? (versus ? 56 : 46) : Math.round(back - ((back - front) * i) / (lines.length - 1));
       // 横の広がりは人数で変える（2人は中央寄り、4人以上はサイドいっぱい）
       const half = Math.min(mode === "futsal" ? 26 : 36, { 2: 16, 3: 26 }[count] ?? 36);
       const [left, right] = [50 - half, 50 + half];
@@ -73,8 +74,8 @@
     return spots;
   }
 
-  function freshPlayers(mode, formation, old = []) {
-    return formationPositions(mode, formation).map((spot, i) => ({
+  function freshPlayers(mode, formation, old = [], versus = state.showOpp) {
+    return formationPositions(mode, formation, versus).map((spot, i) => ({
       number: old[i]?.number ?? String(i + 1),
       name: old[i]?.name ?? "",
       ...spot
@@ -103,7 +104,7 @@
       court: "soccer11",
       mode: "soccer",
       formation: "4-4-2",
-      players: freshPlayers("soccer", "4-4-2"),
+      players: freshPlayers("soccer", "4-4-2", [], false),
       showOpp: false,
       showBall: false,
       ball: { x: 50, y: 50 },
@@ -257,7 +258,7 @@
       remember();
       state.oppFormation = f;
       state.opp = opponents();
-      state.showOpp = true;
+      setShowOpp(true);
       render();
     };
     const oppFree = state.showOpp && !state.oppFormation;
@@ -284,7 +285,7 @@
       const pick = (hex) => {
         remember();
         state[key] = hex;
-        if (key === "oppColor") state.showOpp = true;
+        if (key === "oppColor") setShowOpp(true);
         render();
       };
       const current = String(state[key]).toLowerCase();
@@ -381,13 +382,24 @@
     return b;
   }
 
+  // 相手を出す・消す。自チームがフォーメーションの位置のまま（動かしていない）なら、
+  // 相手と互い違いの高さ／コート全体の高さに並べ直す
+  function setShowOpp(on) {
+    if (state.showOpp === on) return;
+    const f = state.formation;
+    const untouched = f && freshPlayers(state.mode, f, state.players, state.showOpp).every((spot, i) => state.players[i] && state.players[i].x === spot.x && state.players[i].y === spot.y);
+    state.showOpp = on;
+    if (untouched) state.players = freshPlayers(state.mode, f, state.players, on);
+    if (on && !Array.isArray(state.opp)) state.opp = opponents();
+  }
+
   // 相手は選んだフォーメーション（最初は自チームと同じ）を、上下・左右反対に置く
   // 相手の人数（並べる前は、フォーメーションの人数）
   const oppTotal = () => (Array.isArray(state.opp) && state.opp.length ? state.opp.length : fieldCount(state.oppFormation || state.formation) ? fieldCount(state.oppFormation || state.formation) + 1 : state.players.length);
 
   function opponents() {
     const formation = state.oppFormation || autoFormation(oppTotal() - 1);
-    return formationPositions(state.mode, formation).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
+    return formationPositions(state.mode, formation, true).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
   }
 
   // 範囲で選んだもの（"p3"＝自チームの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
@@ -1059,9 +1071,8 @@
   });
   $("toggleOpp").addEventListener("click", () => {
     remember();
-    state.showOpp = !state.showOpp;
     // 前に並べた相手（人数・位置）はそのまま残す
-    if (state.showOpp && !Array.isArray(state.opp)) state.opp = opponents();
+    setShowOpp(!state.showOpp);
     render();
   });
   $("toggleBall").addEventListener("click", () => {
@@ -1093,7 +1104,7 @@
     const spot = [50, 65, 35, 80, 20].map((x) => ({ x, y: 40 })).find((c) => all.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 8)) || { x: 50, y: 40 };
     state.opp.push({ number: String(number), name: "", ...spot });
     state.oppFormation = "";
-    state.showOpp = true;
+    setShowOpp(true);
     render();
   });
   $("removeOpp").addEventListener("click", () => {
@@ -1102,7 +1113,7 @@
     if (!Array.isArray(state.opp)) state.opp = opponents();
     state.opp.pop();
     state.oppFormation = "";
-    state.showOpp = true;
+    setShowOpp(true);
     selected.clear();
     render();
   });
