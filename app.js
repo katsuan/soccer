@@ -881,26 +881,28 @@
     pl: state.players.map((p) => [p.number, p.name, p.x, p.y])
   });
 
-  // 画像をタップしたときに開く、同じ作戦盤へのリンク。相手・ボール・線も入れる。
-  // 1000 文字に収まらないときは、線 → 相手・ボールの順に外し、それでも長ければこのページを開くだけ
+  // 画像をタップしたときに開く、同じ作戦盤へのリンク。相手・ボール・線も入れる。位置は整数に丸める（短くするため）。
+  // 1000 文字に収まらないときは、選手の名前 → 線（新しいものから1本ずつ）→ ボール → 相手の順に外し、
+  // それでも長ければこのページを開くだけ
   function boardLinkUrl() {
     const r = (v) => Math.round(v);
+    const players = (withNames) => ({ ...lineupData(), pl: state.players.map((p) => [p.number, withNames ? p.name : "", r(p.x), r(p.y)]) });
     // 相手の背番号は、1・2・3… の順のままなら省く（[x, y] だけ）
-    const extras = {
-      ...(state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [r(p.x), r(p.y)] : [p.number, r(p.x), r(p.y)])), of: state.oppFormation, oc: state.oppColor } : {}),
-      ...(state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {})
-    };
+    const opp = state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [r(p.x), r(p.y)] : [p.number, r(p.x), r(p.y)])), of: state.oppFormation, oc: state.oppColor } : {};
+    const ball = state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {};
     // 線は点を間引いて短くする（1本につき最大 8 点。線の形は残る）
     const lines = state.strokes.map((k) => {
       const step = Math.max(1, Math.ceil(k.points.length / 8));
       const pts = k.points.filter((_, i) => i % step === 0 || i === k.points.length - 1);
       return [k.color, pts.flatMap(([x, y]) => [r(x), r(y)])];
     });
-    // 入りきらないときは、新しい線から1本ずつ外す → 相手・ボールも外す
+    const withLines = (n) => (n ? { k: lines.slice(0, n) } : {});
     const candidates = [
-      ...lines.map((_, n) => ({ ...lineupData(), ...extras, k: lines.slice(0, lines.length - n) })),
-      { ...lineupData(), ...extras },
-      lineupData()
+      { ...players(true), ...opp, ...ball, ...withLines(lines.length) },
+      ...lines.map((_, n) => ({ ...players(false), ...opp, ...ball, ...withLines(lines.length - n) })),
+      { ...players(false), ...opp, ...ball },
+      { ...players(false), ...opp },
+      players(false)
     ];
     for (const data of candidates) {
       const url = `${EDITOR_URL}?tab=lineup&data=${encode(data)}`;
