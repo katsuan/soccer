@@ -10,7 +10,7 @@ S 字は「さくせん（SAQSEN）」の S も兼ねる。作戦盤の線と同
   apple-touch-icon.png … iPhone のホーム画面（180px）
   icon-512.png         … 大きいアイコン（512px）
   logo.svg             … 横長のロゴ「SAQSEN」。ピッチ（盤）の上に文字を並べ、Q はセンターサークル＋右下のボール、
-                         S はアイコンと同じ線の S（作戦の線＋両端の選手）。A・E・N の字形は Jua（SIL Open Font License 1.1、~/Library/Fonts/Jua.ttf。おくるんのロゴと同じ）。fontTools が必要
+                         Q の後ろの S はアイコンと同じ線の S（作戦の線。左下の端はボールの下）。最初の S・A・E・N の字形は Jua（SIL Open Font License 1.1、~/Library/Fonts/Jua.ttf。おくるんのロゴと同じ）。fontTools が必要
 
 Pillow が必要。使い方: python3 tools/icon.py
 """
@@ -182,9 +182,9 @@ def logo_svg():
             ball = (q[0] + (r + w * 0.15) * 0.7071, q[1] + (r + w * 0.15) * 0.7071)
             x += 2 * r + w + gap
             continue
-        if char == "S":
+        if char == "S" and ball is not None:
             # Q のすぐ後ろの S は、左下の端（選手の丸）がちょうどボールの下に隠れるところまで寄せる（形は変えない）
-            after_q = ball is not None and not line_s[1:]
+            after_q = not line_s
             if after_q:
                 # 選手の丸（半径 s_dot）が、ボール＋縁取り（半径 br + w*0.35）の中に収まる中で、いちばん右（ボールの右寄り）に置く
                 cover = br + w * 0.35 - s_dot
