@@ -31,6 +31,8 @@
     const front = Math.max(1, Math.floor(n * 0.2));
     return `${back}-${n - back - front}-${front}`;
   }
+  // サッカーボールの絵（作戦盤の上と、画像に使う）
+  const BALL_SVG = '<svg class="ball-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#1f2937" stroke-width="1.6"/><path d="M12 7.6l4.2 3-1.6 4.9H9.4l-1.6-4.9z" fill="#1f2937" stroke="#1f2937" stroke-width="1"/><path d="M12 7.6V2.3M16.2 10.6l5-1.6M14.6 15.5l3.1 4.2M9.4 15.5l-3.1 4.2M7.8 10.6l-5-1.6" fill="none" stroke="#1f2937" stroke-width="1.5"/></svg>';
   const presetGroup = (mode, f) => FORMATION_GROUPS.find((g) => g.mode === mode && g.list.includes(f));
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
   // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
@@ -228,10 +230,11 @@
     $("removePlayer").disabled = state.players.length <= MIN_PLAYERS;
     $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
     // 相手のフォーメーション（相手を出しているときだけ）
-    if (!fieldCount(state.oppFormation)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
+    if (state.oppFormation !== "" && !fieldCount(state.oppFormation)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
+    if (state.oppFormation === "" && !Array.isArray(state.opp)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     // 相手のフォーメーションを選んだら、相手も表示する
     const oppList = [...new Set(FORMATION_GROUPS.filter((g) => g.mode === state.mode).flatMap((g) => g.list))];
-    if (!oppList.includes(state.oppFormation)) oppList.unshift(state.oppFormation);
+    if (state.oppFormation && !oppList.includes(state.oppFormation)) oppList.unshift(state.oppFormation);
     $("oppFormationChips").replaceChildren(
       ...oppList.map((f) =>
         chip(`${f}（${fieldCount(f) + 1}人）`, state.showOpp && state.oppFormation === f, () => {
@@ -292,7 +295,15 @@
         ? "選手をタップすると、名前・背番号を変えられます。"
         : "ドラッグで移動。タップや、何もない所をなぞって選ぶと、まとめて動かせます。";
     // たたんだ欄の見出しの右
-    $("colorMeta").textContent = state.showOpp ? `相手 ${state.oppFormation}` : "";
+    $("colorMeta").textContent = state.showOpp ? `相手 ${state.oppFormation || `${oppTotal()}人`}` : "";
+    // 相手の人数（自チームとの差も出す）
+    $("oppRow").hidden = !state.showOpp;
+    const ours = state.players.length;
+    const theirs = oppTotal();
+    $("oppCount").textContent = `${theirs}人`;
+    $("countVs").textContent = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
+    $("removeOpp").disabled = theirs <= MIN_PLAYERS;
+    $("addOpp").disabled = theirs >= MAX_PLAYERS;
     $("infoMeta").textContent = [state.team, state.opponent && `vs ${state.opponent}`].filter(Boolean).join(" ") || "なし";
     $("penColors").replaceChildren(
       ...PEN_COLORS.map((color) => {
@@ -340,8 +351,12 @@
   }
 
   // 相手は選んだフォーメーション（最初は自チームと同じ）を、上下・左右反対に置く
+  // 相手の人数（並べる前は、フォーメーションの人数）
+  const oppTotal = () => (Array.isArray(state.opp) && state.opp.length ? state.opp.length : fieldCount(state.oppFormation || state.formation) ? fieldCount(state.oppFormation || state.formation) + 1 : state.players.length);
+
   function opponents() {
-    return formationPositions(state.mode, state.oppFormation || state.formation).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
+    const formation = state.oppFormation || autoFormation(oppTotal() - 1);
+    return formationPositions(state.mode, formation).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
   }
 
   // 範囲で選んだもの（"p3"＝自チームの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
@@ -351,14 +366,14 @@
   function renderTokens() {
     const list = state.players.map((p, i) => tokenEl(p, i === 0 ? "is-gk" : "", { kind: "player", index: i }));
     if (state.showOpp) {
-      if (!Array.isArray(state.opp) || state.opp.length !== fieldCount(state.oppFormation) + 1) state.opp = opponents();
+      if (!Array.isArray(state.opp) || (state.oppFormation && state.opp.length !== fieldCount(state.oppFormation) + 1)) state.opp = opponents();
       state.opp.forEach((p, i) => list.push(tokenEl(p, "is-opp", { kind: "opp", index: i })));
     }
     if (state.showBall) {
       const ball = document.createElement("span");
       ball.className = "token is-ball";
       ball.dataset.key = "ball";
-      ball.textContent = "⚽";
+      ball.innerHTML = BALL_SVG;
       place(ball, state.ball);
       ball.classList.toggle("is-selected", selected.has("ball"));
       bindDrag(ball, { kind: "ball" });
@@ -828,7 +843,8 @@
     ctx.fillText([state.team || "", state.opponent ? `vs ${state.opponent}` : ""].filter(Boolean).join(" ") || "作戦盤", W / 2, 60);
     ctx.font = font(28, 700);
     ctx.fillStyle = "#5c6b62";
-    const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${state.formation ? `・${state.formation}` : ""}`;
+    const vs = state.showOpp && oppTotal() !== state.players.length ? ` 対 ${oppTotal()}人` : "";
+    const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${vs}${state.formation ? `・${state.formation}` : ""}`;
     ctx.fillText(`${count}${state.when ? `・${state.when}` : ""}`, W / 2, 100);
     ctx.save();
     ctx.translate(0, head);
@@ -894,8 +910,10 @@
       drawToken(p, fill, p.name, inkOn(fill));
     });
     if (state.showBall) {
-      ctx.font = font(56, 400);
-      ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
+      const img = new Image();
+      img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(BALL_SVG.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" '))}`;
+      await img.decode().catch(() => {});
+      ctx.drawImage(img, (state.ball.x / 100) * W - 32, (state.ball.y / 100) * H - 32, 64, 64);
     }
     ctx.restore();
     return canvas;
@@ -1006,7 +1024,8 @@
   $("toggleOpp").addEventListener("click", () => {
     remember();
     state.showOpp = !state.showOpp;
-    if (state.showOpp) state.opp = opponents();
+    // 前に並べた相手（人数・位置）はそのまま残す
+    if (state.showOpp && !Array.isArray(state.opp)) state.opp = opponents();
     render();
   });
   $("toggleBall").addEventListener("click", () => {
@@ -1026,6 +1045,29 @@
     render();
   });
   $("undo").addEventListener("click", undo);
+  // 相手の人数を1人ずつ変える（ほかの相手の位置はそのまま）
+  $("addOpp").addEventListener("click", () => {
+    if (oppTotal() >= MAX_PLAYERS) return;
+    remember();
+    if (!Array.isArray(state.opp)) state.opp = opponents();
+    const used = new Set(state.opp.map((p) => p.number));
+    let number = 1;
+    while (used.has(String(number))) number += 1;
+    const all = [...state.players, ...state.opp];
+    const spot = [50, 65, 35, 80, 20].map((x) => ({ x, y: 40 })).find((c) => all.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 8)) || { x: 50, y: 40 };
+    state.opp.push({ number: String(number), name: "", ...spot });
+    state.oppFormation = "";
+    render();
+  });
+  $("removeOpp").addEventListener("click", () => {
+    if (oppTotal() <= MIN_PLAYERS) return;
+    remember();
+    if (!Array.isArray(state.opp)) state.opp = opponents();
+    state.opp.pop();
+    state.oppFormation = "";
+    selected.clear();
+    render();
+  });
   $("saveTactic").addEventListener("click", saveTactic);
   $("tacticName").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.isComposing) saveTactic();

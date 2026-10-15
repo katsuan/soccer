@@ -74,7 +74,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .token { position: absolute; display: grid; justify-items: center; gap: 1px; width: 64px; margin-left: -32px; margin-top: -16px; cursor: grab; touch-action: none; }
 .token b { display: grid; place-items: center; width: 30px; height: 30px; border: 2px solid #fff; border-radius: 50%; background: var(--accent); color: #fff; font-size: 13px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
 .token small { max-width: 64px; overflow: hidden; color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); }
-.token.is-ball { width: 28px; margin-left: -14px; margin-top: -14px; font-size: 22px; line-height: 1; }
+.token.is-ball { width: 26px; height: 26px; margin-left: -13px; margin-top: -13px; }
+.token.is-ball svg { display: block; width: 26px; height: 26px; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3)); }
 .token.is-dragging { cursor: grabbing; z-index: 2; }
 
 .tools .link { justify-self: start; }
@@ -173,3 +174,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .tactic-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .tactic-actions .is-main { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
 .tactic-actions button { min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+
+/* 相手の人数の行（相手を出しているときだけ） */
+.opp-row .label { margin-right: 0; font-size: 13px; color: var(--ink-soft); }
+.opp-row .meta { margin-right: auto; }
+.tool .ball-icon { stroke: none; }
