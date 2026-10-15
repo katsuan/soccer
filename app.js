@@ -659,9 +659,43 @@
     ctx.lineWidth = width;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+    // 点と点を曲線でつなぐ（リンクで点を間引いた線でも、カクカクせずになめらかに見える）
     ctx.beginPath();
-    pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length - 1; i += 1) {
+      const [x, y] = pts[i];
+      ctx.quadraticCurveTo(x, y, (x + pts[i + 1][0]) / 2, (y + pts[i + 1][1]) / 2);
+    }
+    ctx.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
     ctx.stroke();
+  }
+
+  // 線の点を max 個以下に減らす。曲がり角を残すように、元の線から離れた点を優先して残す（Douglas–Peucker）
+  function simplifyPoints(points, max) {
+    if (points.length <= max) return points;
+    const rdp = (pts, eps) => {
+      if (pts.length < 3) return pts;
+      const [ax, ay] = pts[0];
+      const [bx, by] = pts[pts.length - 1];
+      const len = Math.hypot(bx - ax, by - ay) || 1;
+      let far = 0;
+      let index = 0;
+      for (let i = 1; i < pts.length - 1; i += 1) {
+        const d = Math.abs((bx - ax) * (ay - pts[i][1]) - (ax - pts[i][0]) * (by - ay)) / len;
+        if (d > far) [far, index] = [d, i];
+      }
+      if (far <= eps) return [pts[0], pts[pts.length - 1]];
+      return [...rdp(pts.slice(0, index + 1), eps).slice(0, -1), ...rdp(pts.slice(index), eps)];
+    };
+    let [low, high] = [0, 50];
+    let best = null;
+    for (let i = 0; i < 14; i += 1) {
+      const eps = (low + high) / 2;
+      const out = rdp(points, eps);
+      if (out.length <= max) [best, high] = [out, eps];
+      else low = eps;
+    }
+    return best || [points[0], points[points.length - 1]];
   }
 
   ink.addEventListener("pointerdown", (event) => {
@@ -891,15 +925,15 @@
     const opp = state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [r(p.x), r(p.y)] : [p.number, r(p.x), r(p.y)])), of: state.oppFormation, oc: state.oppColor } : {};
     const ball = state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {};
     // 線は点を間引いて短くする（1本につき最大 8 点。線の形は残る）
-    const lines = state.strokes.map((k) => {
-      const step = Math.max(1, Math.ceil(k.points.length / 8));
-      const pts = k.points.filter((_, i) => i % step === 0 || i === k.points.length - 1);
-      return [k.color, pts.flatMap(([x, y]) => [r(x), r(y)])];
-    });
-    const withLines = (n) => (n ? { k: lines.slice(0, n) } : {});
+    // 線は、入る範囲でできるだけ多くの点を残す（1本 24 点 → 16 → 12 → 8 → 5 と減らして試す）。
+    // 開いた側では点を曲線でつなぐので、点が少なくてもなめらかに見える
+    const linesAt = (max) => state.strokes.map((k) => [k.color, simplifyPoints(k.points, max).flatMap(([x, y]) => [r(x), r(y)])]);
+    const withLines = (max, n = state.strokes.length) => (n ? { k: linesAt(max).slice(0, n) } : {});
+    const BUDGETS = [24, 16, 12, 8, 5];
     const candidates = [
-      { ...players(true), ...opp, ...ball, ...withLines(lines.length) },
-      ...lines.map((_, n) => ({ ...players(false), ...opp, ...ball, ...withLines(lines.length - n) })),
+      ...BUDGETS.slice(0, 4).map((max) => ({ ...players(true), ...opp, ...ball, ...withLines(max) })),
+      ...BUDGETS.map((max) => ({ ...players(false), ...opp, ...ball, ...withLines(max) })),
+      ...state.strokes.map((_, n) => ({ ...players(false), ...opp, ...ball, ...withLines(5, state.strokes.length - n) })),
       { ...players(false), ...opp, ...ball },
       { ...players(false), ...opp },
       players(false)
