@@ -220,4 +220,4 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 2px; }
 h1 { display: flex; align-items: center; gap: 8px; font-size: 20px; line-height: 1.2; text-align: left; }
 h1 .logo { width: 28px; height: 28px; }
-.brand { display: block; width: 84px; height: auto; }
+.brand { display: block; width: auto; height: 28px; } /* アイコン＋名前の行と同じ高さ */
