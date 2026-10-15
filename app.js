@@ -2,12 +2,15 @@
 // 試合結果も同じように渡す。作戦盤として、相手・ボール・ペンの線も使える（線と相手はカードには入れず、画像で保存できる）。
 //
 // おくるんへの渡し方: https://liff.line.me/<LIFF ID>/card/?kind=lineup|match&data=<JSON を UTF-8 → base64url>&…
-//   lineup: { m: "futsal"|"soccer"（ピッチの描き方）, f（決まった並びでなければ ""）, t, o, s, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
+//   lineup: { m: "futsal"|"soccer"（ピッチの描き方）, f（決まった並びでなければ ""）, t, o, s, c, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
 //   match:  { t, o, us, th, hu, ht, g: [["u"|"t", 分, 名前], ...], mvp }
 // おくるんの「配置・結果を直す」からは ?tab=lineup|result&data=… で戻ってくる。
+// 作戦盤の画像カードの画像をタップすると ?tab=lineup&data=… で開く。lineup に op（相手 [[背番号, x, y]]）・of・oc・b（ボール [x, y]）・k（線 [[色, [x, y, x, y, …]]]）も入る。
 (function () {
   "use strict";
   const OQRN_CARD = "https://liff.line.me/2009927876-DioOJd0z/card/";
+  const EDITOR_URL = "https://katsuan.github.io/soccer/"; // このページ（画像をタップしたときに開く）
+  const LINK_MAX = 1000; // LINE のリンクは 1000 文字まで
   const STORE_KEY = "soccer:state";
   const ROSTER_KEY = "soccer:roster";
   const $ = (id) => document.getElementById(id);
@@ -181,6 +184,25 @@
       state.formation = fieldCount(data.f) === state.players.length - 1 ? data.f : "";
       state.court = courtOf(state.mode, state.formation, state.players.length);
       Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent, subs: data.s || "" });
+      const hex = (v) => (/^#[0-9a-f]{6}$/i.test(v || "") ? v.toLowerCase() : "");
+      if (hex(data.c)) state.ourColor = hex(data.c);
+      // 画像のリンクからは、相手・ボール・線も戻す（スタメンのカードからは選手だけ）
+      if (Array.isArray(data.op)) {
+        state.opp = data.op.slice(0, MAX_PLAYERS).map((p) => ({ number: String(p[0] ?? ""), name: "", x: Number(p[1]) || 50, y: Number(p[2]) || 50 }));
+        state.oppFormation = fieldCount(data.of) === state.opp.length - 1 ? data.of : "";
+        state.showOpp = true;
+        if (hex(data.oc)) state.oppColor = hex(data.oc);
+      }
+      if (Array.isArray(data.b)) {
+        state.ball = { x: Number(data.b[0]) || 50, y: Number(data.b[1]) || 50 };
+        state.showBall = true;
+      }
+      if (Array.isArray(data.k)) {
+        state.strokes = data.k
+          .filter((k) => Array.isArray(k) && Array.isArray(k[1]))
+          .map(([color, flat]) => ({ color: hex(color) || "#ffffff", points: flat.reduce((pts, v, i) => (i % 2 ? (pts[pts.length - 1].push(Number(v) || 0), pts) : [...pts, [Number(v) || 0]]), []) }))
+          .filter((k) => k.points.length > 1);
+      }
     } else if (data && "us" in data) {
       Object.assign(state, {
         team: data.t || state.team,
@@ -844,16 +866,41 @@
   }
 
   // ---- おくるんへのリンク ----
-  function lineupCardUrl() {
-    const data = {
-      m: state.mode,
-      f: state.formation,
-      t: state.team,
-      o: state.opponent,
-      s: state.subs,
-      c: state.ourColor,
-      pl: state.players.map((p) => [p.number, p.name, p.x, p.y])
+  // スタメン（選手の位置）の中身。おくるんのカードにも、作戦盤を開くリンクにも使う
+  const lineupData = () => ({
+    m: state.mode,
+    f: state.formation,
+    t: state.team,
+    o: state.opponent,
+    s: state.subs,
+    c: state.ourColor,
+    pl: state.players.map((p) => [p.number, p.name, p.x, p.y])
+  });
+
+  // 画像をタップしたときに開く、同じ作戦盤へのリンク。相手・ボール・線も入れる。
+  // 1000 文字に収まらないときは、線 → 相手・ボールの順に外し、それでも長ければこのページを開くだけ
+  function boardLinkUrl() {
+    const r = (v) => Math.round(v);
+    const extras = {
+      ...(state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p) => [p.number, r(p.x), r(p.y)]), of: state.oppFormation, oc: state.oppColor } : {}),
+      ...(state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {})
     };
+    // 線は点を間引いて短くする（1本につき最大 12 点）
+    const lines = state.strokes.map((k) => {
+      const step = Math.max(1, Math.ceil(k.points.length / 12));
+      const pts = k.points.filter((_, i) => i % step === 0 || i === k.points.length - 1);
+      return [k.color, pts.flatMap(([x, y]) => [r(x), r(y)])];
+    });
+    const candidates = [{ ...lineupData(), ...extras, ...(lines.length ? { k: lines } : {}) }, { ...lineupData(), ...extras }, lineupData()];
+    for (const data of candidates) {
+      const url = `${EDITOR_URL}?tab=lineup&data=${encode(data)}`;
+      if (url.length <= LINK_MAX) return url;
+    }
+    return EDITOR_URL;
+  }
+
+  function lineupCardUrl() {
+    const data = lineupData();
     const q = new URLSearchParams({
       kind: "lineup",
       headerTitle: "スタメン発表",
@@ -1074,6 +1121,7 @@
       detail: [state.where && `📍 ${state.where}`, state.subs && `控え：${state.subs}`, state.lineupNote].filter(Boolean).join("\n"),
       showDetail: state.where || state.subs || state.lineupNote ? "true" : "false",
       imageUrl,
+      imageActionUrl: boardLinkUrl(),
       bubbleSize: "giga",
       theme: "custom",
       customColor: cardColor(),
