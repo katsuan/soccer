@@ -50,7 +50,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 /* ---- ピッチ（作戦盤）。縦向きで、上が攻める向き。位置は % で持つ（送るカードと同じ） ---- */
 .board { position: relative; width: 100%; aspect-ratio: 3 / 4; border-radius: 14px; background: var(--pitch); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
-.board.is-futsal { aspect-ratio: 2 / 3; }
+/* フットサルはサッカーより小さいコートなので低めに（おくるんのカードと同じ比：サッカー 360px・フットサル 300px） */
+.board.is-futsal { aspect-ratio: 9 / 10; }
 .pitch-lines i { position: absolute; border: 2px solid var(--line); }
 .pitch-lines .is-border { top: 4%; left: 5%; width: 90%; height: 92%; border-radius: 4px; }
 .pitch-lines .is-half { top: 50%; left: 5%; width: 90%; height: 0; border-width: 1px; }

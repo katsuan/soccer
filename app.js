@@ -1005,7 +1005,7 @@
   async function boardCanvas() {
     if (document.fonts?.ready) await document.fonts.ready;
     const W = 1080;
-    const H = Math.round(W * (state.mode === "futsal" ? 1.5 : 4 / 3));
+    const H = Math.round(W * (state.mode === "futsal" ? 10 / 9 : 4 / 3)); // 作戦盤と同じ縦横の比
     const head = 120;
     const canvas = Object.assign(document.createElement("canvas"), { width: W, height: H + head });
     const ctx = canvas.getContext("2d");
