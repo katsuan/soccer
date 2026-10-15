@@ -14,9 +14,9 @@
 
   // フォーメーションは後ろの列から（"4-4-2"）。GK は別に先頭に置く。mode はピッチの描き方（サッカー／フットサル）
   const FORMATION_GROUPS = [
-    { label: "サッカー 11人", mode: "soccer", list: ["4-4-2", "4-3-3", "4-2-3-1", "3-5-2", "3-4-3"] },
-    { label: "サッカー 8人制", mode: "soccer", list: ["3-3-1", "2-3-2", "3-2-2", "2-4-1"] },
-    { label: "フットサル 5人", mode: "futsal", list: ["1-2-1", "2-2", "3-1", "2-1-1"] }
+    { id: "soccer11", label: "サッカー（11人）", mode: "soccer", list: ["4-4-2", "4-3-3", "4-2-3-1", "3-5-2", "3-4-3"] },
+    { id: "soccer8", label: "サッカー（8人制）", mode: "soccer", list: ["3-3-1", "2-3-2", "3-2-2", "2-4-1"] },
+    { id: "futsal", label: "フットサル（5人）", mode: "futsal", list: ["1-2-1", "2-2", "3-1", "2-1-1"] }
   ];
   // 人数は変則もある（退場で10人、7人制など）。GK を入れて 2〜11 人
   const MIN_PLAYERS = 2;
@@ -31,7 +31,10 @@
     const front = Math.max(1, Math.floor(n * 0.2));
     return `${back}-${n - back - front}-${front}`;
   }
-  const presetGroup = (mode, f) => FORMATION_GROUPS.find((g) => g.mode === mode && g.list.includes(f));
+  // コート（サッカー 11人・8人制・フットサル）。決まったフォーメーションが無いときは、ピッチと人数から決める
+  const courtOf = (mode, f, count) =>
+    (FORMATION_GROUPS.find((g) => g.mode === mode && g.list.includes(f)) || FORMATION_GROUPS.find((g) => g.id === (mode === "futsal" ? "futsal" : count <= 8 ? "soccer8" : "soccer11"))).id;
+  const courtDef = (id) => FORMATION_GROUPS.find((g) => g.id === id) || FORMATION_GROUPS[0];
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
   // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
   // おくるんの基本の色の並び（紫・スカイ・リーフ・サンセット・ベリー）。最後に「カスタム」（自由な色）
@@ -97,6 +100,7 @@
   const state = Object.assign(
     {
       tab: "lineup",
+      court: "soccer11",
       mode: "soccer",
       formation: "4-4-2",
       players: freshPlayers("soccer", "4-4-2"),
@@ -134,7 +138,7 @@
   let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
 
   // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
-  const BOARD_KEYS = ["mode", "formation", "oppFormation", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
+  const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
   const undoStack = [];
   function remember() {
     undoStack.push(JSON.stringify(Object.fromEntries(BOARD_KEYS.map((k) => [k, state[k]]))));
@@ -148,6 +152,7 @@
     render();
   }
   let roster = load(ROSTER_KEY, "");
+  if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtDef(state.court).mode !== state.mode) state.court = courtOf(state.mode, state.formation, state.players.length);
 
   // おくるんの「配置・結果を直す」から戻ってきたとき
   applyQuery();
@@ -161,6 +166,7 @@
       state.mode = data.m === "futsal" ? "futsal" : "soccer";
       state.players = data.pl.slice(0, MAX_PLAYERS).map((p) => ({ number: String(p[0] ?? ""), name: String(p[1] ?? ""), x: Number(p[2]) || 50, y: Number(p[3]) || 50 }));
       state.formation = fieldCount(data.f) === state.players.length - 1 ? data.f : "";
+      state.court = courtOf(state.mode, state.formation, state.players.length);
       Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent, subs: data.s || "" });
     } else if (data && "us" in data) {
       Object.assign(state, {
@@ -211,31 +217,40 @@
     for (const tab of document.querySelectorAll(".tab")) tab.setAttribute("aria-selected", String(tab.dataset.tab === state.tab));
     $("panelLineup").hidden = state.tab !== "lineup";
     $("panelResult").hidden = state.tab !== "result";
-    // 人数・フォーメーション（右上の選択1つ。サッカー・フットサルの中から選ぶ）
-    const select = $("formationSelect");
-    const current = presetGroup(state.mode, state.formation) ? `${state.mode}:${state.formation}` : "";
-    select.replaceChildren(
-      // 人数を変えて、決まったフォーメーションがないとき（例：10人）
-      ...(current ? [] : [Object.assign(document.createElement("option"), { value: "", textContent: state.formation || `${state.players.length}人`, disabled: true })]),
-      ...FORMATION_GROUPS.map((def) => {
-        const group = Object.assign(document.createElement("optgroup"), { label: def.label });
-        group.append(...def.list.map((f) => Object.assign(document.createElement("option"), { value: `${def.mode}:${f}`, textContent: f })));
-        return group;
-      })
-    );
-    select.value = current;
+    // コート（作戦盤の右上）
+    $("courtSelect").replaceChildren(...FORMATION_GROUPS.map((g) => Object.assign(document.createElement("option"), { value: g.id, textContent: g.label })));
+    $("courtSelect").value = state.court;
+    const court = courtDef(state.court);
+    // 自チーム：人数・フォーメーション（人数を変えて決まった並びがないときは「10人」）
     $("playerCount").textContent = `${state.players.length}人`;
     $("removePlayer").disabled = state.players.length <= MIN_PLAYERS;
     $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
+    const ourList = court.list.includes(state.formation) || !state.formation ? court.list : [state.formation, ...court.list];
+    $("formationChips").replaceChildren(
+      ...(state.formation ? [] : [chip(`${state.players.length}人（自由）`, true, () => {}, "radio")]),
+      ...ourList.map((f) =>
+        chip(f, state.formation === f, () => {
+          remember();
+          // 人数が変わるときは、相手も同じ並びにする
+          if (fieldCount(f) !== state.players.length - 1) state.oppFormation = f;
+          state.formation = f;
+          state.players = freshPlayers(state.mode, f, state.players);
+          state.opp = opponents();
+          selected.clear();
+          render();
+        }, "radio")
+      )
+    );
     // 相手のフォーメーション（相手を出しているときだけ）
     if (state.oppFormation !== "" && !fieldCount(state.oppFormation)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     if (state.oppFormation === "" && !Array.isArray(state.opp)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     // 相手のフォーメーションを選んだら、相手も表示する
-    const oppList = [...new Set(FORMATION_GROUPS.filter((g) => g.mode === state.mode).flatMap((g) => g.list))];
+    const oppList = [...court.list];
     if (state.oppFormation && !oppList.includes(state.oppFormation)) oppList.unshift(state.oppFormation);
     $("oppFormationChips").replaceChildren(
+      ...(state.showOpp && !state.oppFormation ? [chip(`${oppTotal()}人（自由）`, true, () => {}, "radio")] : []),
       ...oppList.map((f) =>
-        chip(`${f}（${fieldCount(f) + 1}人）`, state.showOpp && state.oppFormation === f, () => {
+        chip(f, state.showOpp && state.oppFormation === f, () => {
           remember();
           state.oppFormation = f;
           state.opp = opponents();
@@ -292,14 +307,13 @@
       : editMode
         ? "選手をタップすると、名前・背番号を変えられます。"
         : "ドラッグで移動。タップや、何もない所をなぞって選ぶと、まとめて動かせます。";
-    // たたんだ欄の見出しの右
-    $("colorMeta").textContent = state.showOpp ? `相手 ${state.oppFormation || `${oppTotal()}人`}` : "";
-    // 相手の人数（自チームとの差も出す）
-    $("oppRow").hidden = !state.showOpp;
+    // チームの欄：人数（相手を出しているときは差も）
     const ours = state.players.length;
     const theirs = oppTotal();
+    const vs = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
     $("oppCount").textContent = `${theirs}人`;
-    $("countVs").textContent = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
+    $("countVs").textContent = state.showOpp ? vs : "";
+    $("teamMeta").textContent = `${state.formation || `${ours}人`}${state.showOpp ? `・${ours} 対 ${theirs}` : ""}`;
     $("removeOpp").disabled = theirs <= MIN_PLAYERS;
     $("addOpp").disabled = theirs >= MAX_PLAYERS;
     $("infoMeta").textContent = [state.team, state.opponent && `vs ${state.opponent}`].filter(Boolean).join(" ") || "なし";
@@ -590,7 +604,7 @@
 
   // ---- 作戦の保存（場面ごとの配置と線。チームの色は含めない。この端末に残す） ----
   const TACTICS_KEY = "soccer:tactics";
-  const TACTIC_KEYS = ["mode", "formation", "oppFormation", "players", "opp", "ball", "showOpp", "showBall", "strokes"];
+  const TACTIC_KEYS = ["court", "mode", "formation", "oppFormation", "players", "opp", "ball", "showOpp", "showBall", "strokes"];
   const MAX_TACTICS = 30;
   let tactics = load(TACTICS_KEY, []);
   if (!Array.isArray(tactics)) tactics = [];
@@ -1004,15 +1018,15 @@
       render();
     });
   }
-  $("formationSelect").addEventListener("change", (event) => {
-    const [mode, formation] = event.target.value.split(":");
+  $("courtSelect").addEventListener("change", (event) => {
+    const court = courtDef(event.target.value);
     remember();
-    if (mode !== state.mode) state.strokes = []; // ピッチが変わるときは線を消す
-    // 人数が変わるときは、相手も同じ並びにする
-    if (mode !== state.mode || fieldCount(formation) !== state.players.length - 1) state.oppFormation = formation;
-    state.mode = mode;
-    state.formation = formation;
-    state.players = freshPlayers(mode, formation, state.players);
+    if (court.mode !== state.mode) state.strokes = []; // ピッチが変わるときは線を消す
+    state.court = court.id;
+    state.mode = court.mode;
+    state.formation = court.list[0];
+    state.oppFormation = court.list[0];
+    state.players = freshPlayers(court.mode, court.list[0], state.players);
     state.opp = opponents();
     selected.clear();
     render();
@@ -1053,6 +1067,7 @@
     const spot = [50, 65, 35, 80, 20].map((x) => ({ x, y: 40 })).find((c) => all.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 8)) || { x: 50, y: 40 };
     state.opp.push({ number: String(number), name: "", ...spot });
     state.oppFormation = "";
+    state.showOpp = true;
     render();
   });
   $("removeOpp").addEventListener("click", () => {
@@ -1061,6 +1076,7 @@
     if (!Array.isArray(state.opp)) state.opp = opponents();
     state.opp.pop();
     state.oppFormation = "";
+    state.showOpp = true;
     selected.clear();
     render();
   });

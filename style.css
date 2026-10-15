@@ -114,7 +114,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .hint.left { text-align: left; }
 
 /* フォーメーション：自チームと相手を左右に並べ、縦に選ぶ */
-.formations { grid-template-columns: 1fr 1fr; align-items: start; }
+.formations { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 .formations > div { display: grid; gap: 6px; }
 .chips.col { flex-direction: column; }
 .chips.col .chip { width: 100%; }
@@ -174,6 +174,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .tactic-actions .is-main { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
 .tactic-actions button { min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
 
-/* 相手の人数の行（相手を出しているときだけ） */
-.opp-row .label { margin-right: 0; font-size: 13px; color: var(--ink-soft); }
-.opp-row .meta { margin-right: auto; }
+
+/* チームの欄：人数の − ＋ は列の幅いっぱい */
+.formations .stepper { justify-content: space-between; }
+.count-vs { font-size: 14px; font-weight: 800; text-align: center; }
+.count-vs:empty { display: none; }

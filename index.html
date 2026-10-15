@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=12">
+<link rel="stylesheet" href="style.css?v=13">
 </head>
 <body>
 <main class="wrap">
@@ -27,26 +27,11 @@
 
   <!-- ===== スタメン・作戦盤 ===== -->
   <section id="panelLineup" class="panel">
-    <!-- 作戦盤：ピッチと、よく使う操作（相手・ボール・ペン・選手・戻す）をひとまとめに。人数（1人ずつ増やす・減らす）とフォーメーションは右上 -->
+    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（相手・ボール・ペン・選手・戻す）をひとまとめに。人数・色・フォーメーションは下の「チーム」の欄 -->
     <div class="card board-card">
       <div class="board-head">
         <span class="label">作戦盤</span>
-        <div class="stepper" role="group" aria-label="人数">
-          <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
-          <span id="playerCount">11人</span>
-          <button id="addPlayer" type="button" aria-label="1人増やす">＋</button>
-        </div>
-        <label class="select"><span class="sr">人数・フォーメーション</span><select id="formationSelect"></select></label>
-      </div>
-      <!-- 相手を出しているときだけ：相手の人数（退場・数的有利の練習など、自チームと違う人数にできる） -->
-      <div id="oppRow" class="board-head opp-row" hidden>
-        <span class="label">相手の人数</span>
-        <span id="countVs" class="meta"></span>
-        <div class="stepper" role="group" aria-label="相手の人数">
-          <button id="removeOpp" type="button" aria-label="相手を1人減らす">−</button>
-          <span id="oppCount">11人</span>
-          <button id="addOpp" type="button" aria-label="相手を1人増やす">＋</button>
-        </div>
+        <label class="select"><span class="sr">コート</span><select id="courtSelect"></select></label>
       </div>
       <div id="board" class="board">
         <!-- ピッチの線。サッカーは四角いペナルティエリア、フットサルはゴール前が半円（D形）のエリア -->
@@ -70,6 +55,35 @@
       <button id="resetPositions" class="link reset" type="button">位置をフォーメーションに戻す</button>
     </div>
 
+    <!-- チーム：自チームと相手を左右に並べ、人数・色・フォーメーションをまとめて選ぶ -->
+    <details class="card fold" id="teamFold">
+      <summary>👕 チーム（人数・色・並び） <span id="teamMeta" class="meta"></span></summary>
+      <p id="countVs" class="count-vs"></p>
+      <div class="formations">
+        <div>
+          <span class="label">自チーム</span>
+          <div class="stepper" role="group" aria-label="自チームの人数">
+            <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
+            <span id="playerCount">11人</span>
+            <button id="addPlayer" type="button" aria-label="1人増やす">＋</button>
+          </div>
+          <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
+          <div id="formationChips" class="chips col" role="radiogroup" aria-label="自チームのフォーメーション"></div>
+        </div>
+        <div>
+          <span class="label">相手 <span id="oppHint" class="meta"></span></span>
+          <div class="stepper" role="group" aria-label="相手の人数">
+            <button id="removeOpp" type="button" aria-label="相手を1人減らす">−</button>
+            <span id="oppCount">11人</span>
+            <button id="addOpp" type="button" aria-label="相手を1人増やす">＋</button>
+          </div>
+          <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
+          <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
+        </div>
+      </div>
+      <p class="hint left">人数の − ＋ は1人ずつ増やす・減らす（ほかの選手の位置はそのまま）。退場や数的有利の練習に。相手の欄を触ると、相手も表示します。</p>
+    </details>
+
     <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
     <details id="tacticsFold" class="card fold">
       <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
@@ -80,21 +94,6 @@
       <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
       <ul id="tacticList" class="tactic-list"></ul>
       <p class="hint left">選手の位置・相手・ボール・線を保存します。開くと今の作戦盤に呼び出します（「戻す」で元に戻せます）。チームの色はそのままです。この端末に残ります。</p>
-    </details>
-
-    <details class="card fold">
-      <summary>🎨 チームの色・相手の並び <span id="colorMeta" class="meta"></span></summary>
-      <div class="formations">
-        <div>
-          <span class="label">自チーム</span>
-          <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
-        </div>
-        <div>
-          <span class="label">相手 <span id="oppHint" class="meta"></span></span>
-          <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
-          <div id="oppFormationChips" class="chips col" role="radiogroup" aria-label="相手のフォーメーション"></div>
-        </div>
-      </div>
     </details>
 
     <details class="card fold">
@@ -209,6 +208,6 @@
   </div>
 </div>
 
-<script src="app.js?v=13"></script>
+<script src="app.js?v=14"></script>
 </body>
 </html>
