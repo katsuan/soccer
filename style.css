@@ -85,7 +85,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .btn.line { background: var(--line-green); box-shadow: 0 6px 16px rgba(6, 199, 85, 0.25); }
 .btn.ghost { background: #fff; color: var(--ink); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); }
 .btn.small { min-height: 42px; font-size: 14px; }
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 
 .score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; }
 .score span { padding-bottom: 10px; font-size: 22px; font-weight: 800; }
@@ -193,3 +193,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 /* 共有と画像の保存を横に並べる（共有を広く） */
 .share-row { display: grid; grid-template-columns: 3fr 2fr; gap: 8px; }
 .share-row .btn { padding: 12px 8px; white-space: nowrap; }
+
+/* 日にち・時間：iPhone は標準の見た目のままだと幅・高さ・文字の位置がほかの欄とずれるので、見た目をそろえる（おくるんの共通スタイルと同じ） */
+input[type="date"], input[type="time"] { appearance: none; -webkit-appearance: none; display: block; min-width: 0; min-height: 48px; text-align: left; }
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+.score > i { display: block; }
+.score .team, .score .opponent { font-size: 16px; font-weight: 400; text-align: left; }
+.score { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
+.score .label { padding-bottom: 0; font-size: 13px; }
