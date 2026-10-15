@@ -49,3 +49,7 @@
 ```bash
 python3 -m http.server 8795
 ```
+
+## 紹介の窓口
+
+「📤 さくせん盤を紹介する」（ページのいちばん下）は、おくるんの `shared/tool-share.js`（`data-tool="saqsen"`）。押すとおくるんで緑の紹介カードを作って LINE に送れる（リンクのシェアも選べる）。中身は line-share の `data/hub-links.json` の `key: "saqsen"`。
