@@ -273,8 +273,12 @@
     $("playerCount").textContent = `${state.players.length}人`;
     $("removePlayer").disabled = state.players.length <= MIN_PLAYERS;
     $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
-    // 相手のフォーメーション（人数を変えたあとは ""＝今の相手をそのまま使う）
-    if (state.oppFormation !== "" && !fieldCount(state.oppFormation)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
+    // 相手のフォーメーション（人数を変えたあとは ""＝今の相手をそのまま使う）。
+    // 今のコートにない並び（フットサルなのにサッカーの 4-4-2 など）は、自チームの並びにそろえる
+    if (state.oppFormation !== "" && (!fieldCount(state.oppFormation) || !court.list.includes(state.oppFormation))) {
+      state.oppFormation = state.formation || autoFormation(state.players.length - 1);
+      if (!state.showOpp) state.opp = null; // 出していない相手は、次に出すときに自チームの人数で並べ直す
+    }
     if (state.oppFormation === "" && !Array.isArray(state.opp)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     // フォーメーション：同じ並びを同じ行に（左が自チーム、右が相手）。人数を変えて決まった並びがないときは「10人（自由）」
     const pickOurs = (f) => {
@@ -424,7 +428,15 @@
     // 自チームの高さを、GK と最前線の位置に合わせて縮める・広げる（横はそのまま）。なめらかに動かす
     const [from, to] = on ? [FULL, VERSUS] : [VERSUS, FULL];
     state.players = state.players.map((p) => ({ ...p, y: Math.min(98, Math.max(2, fitY(p.y, from, to))) }));
-    if (on && !Array.isArray(state.opp)) state.opp = opponents();
+    if (on) {
+      // 相手がまだいない・今のコートに合わない人数（フットサルなのに 11 人など）のときは、自チームの人数・並びで出す
+      const court = courtDef(state.court);
+      const tooMany = Array.isArray(state.opp) && state.opp.length > Math.max(...court.list.map((f) => fieldCount(f) || 0)) + 1;
+      if (!Array.isArray(state.opp) || !state.opp.length || tooMany) {
+        state.oppFormation = state.formation || autoFormation(state.players.length - 1);
+        state.opp = opponents();
+      }
+    }
     animateTokens = true;
   }
 
