@@ -60,14 +60,15 @@ def svg():
     faint = f'stroke="#ffffff" stroke-opacity="{FAINT}" stroke-width="3" fill="none"'
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
-        f'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{hex_(PITCH_LIGHT)}"/>'
+        f'<defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="100"><stop offset="0" stop-color="{hex_(PITCH_LIGHT)}"/>'
         f'<stop offset="1" stop-color="{hex_(PITCH_DARK)}"/></linearGradient></defs>'
         f'<rect width="100" height="100" rx="{RADIUS}" fill="url(#g)"/>'
         f'<path d="M14 50H86" {faint}/><circle cx="{CIRCLE[0]}" cy="{CIRCLE[1]}" r="{CIRCLE[2]}" stroke="#ffffff" stroke-opacity="{CIRCLE_ALPHA}" stroke-width="3.5" fill="none"/>'
         f'<path d="{s_d}" stroke="#ffffff" stroke-width="{S_WIDTH}" stroke-linecap="round" fill="none"/>'
         f'<circle cx="{x0}" cy="{y0}" r="{PLAYER_R}" fill="#ffffff"/><circle cx="{x3}" cy="{y3}" r="{PLAYER_R}" fill="#ffffff"/>'
         f'<clipPath id="b"><circle cx="{BALL[0]}" cy="{BALL[1]}" r="{BALL[2]}"/></clipPath>'
-        f'<circle cx="{BALL[0]}" cy="{BALL[1]}" r="{BALL[2] + 1.6}" fill="{hex_(PITCH_DARK)}"/>'
+        # ボールの縁取りはコートと同じ色（同じグラデーションで塗る）
+        f'<circle cx="{BALL[0]}" cy="{BALL[1]}" r="{BALL[2] + 1.6}" fill="url(#g)"/>'
         f'<circle cx="{BALL[0]}" cy="{BALL[1]}" r="{BALL[2]}" fill="#ffffff"/>'
         f'<g clip-path="url(#b)" fill="{hex_(BALL_INK)}">'
         + "".join('<polygon points="' + " ".join(f"{x:.2f},{y:.2f}" for x, y in poly) + '"/>' for poly in ball_patches())
@@ -120,7 +121,9 @@ def png(size, rounded=True):
     # サークルの右下のボール（Q のしっぽ）
     bx, by, br = BALL
     # S の線と重なっても見分けられるよう、まわりを濃い緑で囲む
-    d.ellipse((s(bx - br - 1.6), s(by - br - 1.6), s(bx + br + 1.6), s(by + br + 1.6)), fill=PITCH_DARK)
+    t = (bx + by) / 200  # ボールの位置のコートの色（背景と同じグラデーション）
+    court = tuple(round(PITCH_LIGHT[i] + (PITCH_DARK[i] - PITCH_LIGHT[i]) * t) for i in range(3))
+    d.ellipse((s(bx - br - 1.6), s(by - br - 1.6), s(bx + br + 1.6), s(by + br + 1.6)), fill=court)
     d.ellipse((s(bx - br), s(by - br), s(bx + br), s(by + br)), fill=WHITE)
     big_ = img.size[0]
     pattern = Image.new("RGBA", (big_, big_), (0, 0, 0, 0))
@@ -160,7 +163,7 @@ def logo_svg():
     top, bottom = bounds("E")[3], bounds("E")[1]  # 上下が平らな E で文字の高さを決める
     h = top - bottom
     gap = h * 0.09
-    w = h * 0.2  # Q（センターサークル）の線の太さ（文字の線とそろえる）
+    w = h * 0.15  # Q（センターサークル）の線の太さ（文字より少し細く。サークルの線らしく）
     r = h / 2 - w / 2
     # S はアイコンと同じ線の S（作戦の線＋両端の選手）。アイコンの S の外形（選手の丸を含む）を、文字の高さにそろえる
     pts = [pt for seg in S_PATHS for pt in cubic(seg)]
@@ -221,8 +224,8 @@ def logo_svg():
     patches = "".join('<polygon points="' + " ".join(f"{_num(px_)},{_num(py_)}" for px_, py_ in poly) + '"/>' for poly in ball_patches((bx, by, br)))
     return (
         f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{_num(x0)} {_num(y0)} {_num(width)} {_num(height)}" role="img" aria-label="SAQSEN（さくせん盤）">'
-        f'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{hex_(PITCH_LIGHT)}"/>'
-        f'<stop offset="1" stop-color="{hex_(PITCH_DARK)}"/></linearGradient>'
+        f'<defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="{_num(x0)}" y1="{_num(y0)}" x2="{_num(x0 + width)}" y2="{_num(y0 + height)}">'
+        f'<stop offset="0" stop-color="{hex_(PITCH_LIGHT)}"/><stop offset="1" stop-color="{hex_(PITCH_DARK)}"/></linearGradient>'
         f'<clipPath id="b"><circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br)}"/></clipPath></defs>'
         f'<rect x="{_num(x0)}" y="{_num(y0)}" width="{_num(width)}" height="{_num(height)}" rx="{_num(h * 0.3)}" fill="url(#g)"/>'
         # ピッチの線（うっすら）：外枠・ハーフウェーライン・両端のペナルティエリア
@@ -233,7 +236,7 @@ def logo_svg():
         # 文字（A・E・N は Jua、S はアイコンと同じ線の S）と、Q＝センターサークル＋ボール
         f'<g fill="#ffffff">' + "".join(f'<path d="{d}"/>' for d in paths) + "</g>" + "".join(line_s) +
         f'<circle cx="{_num(qx)}" cy="{_num(qy)}" r="{_num(r)}" fill="none" stroke="#ffffff" stroke-width="{_num(w)}"/>'
-        f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br + w * 0.35)}" fill="{hex_(PITCH_DARK)}"/>'
+        f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br + w * 0.35)}" fill="url(#g)"/>'
         f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br)}" fill="#ffffff"/>'
         f'<g clip-path="url(#b)" fill="{ink}">{patches}</g>'
         "</svg>\n"
