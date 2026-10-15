@@ -2,7 +2,7 @@
 // 試合結果も同じように渡す。作戦盤として、相手・ボール・ペンの線も使える（線と相手はカードには入れず、画像で保存できる）。
 //
 // おくるんへの渡し方: https://liff.line.me/<LIFF ID>/card/?kind=lineup|match&data=<JSON を UTF-8 → base64url>&…
-//   lineup: { m: "futsal"|"soccer", f, t, o, s, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
+//   lineup: { m: "futsal"|"soccer"（ピッチの描き方）, f（決まった並びでなければ ""）, t, o, s, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
 //   match:  { t, o, us, th, hu, ht, g: [["u"|"t", 分, 名前], ...], mvp }
 // おくるんの「配置・結果を直す」からは ?tab=lineup|result&data=… で戻ってくる。
 (function () {
@@ -12,11 +12,26 @@
   const ROSTER_KEY = "soccer:roster";
   const $ = (id) => document.getElementById(id);
 
-  // フォーメーションは後ろの列から。GK は別に先頭に置く
-  const FORMATIONS = {
-    futsal: { label: "フットサル 5人", list: { "1-2-1": [1, 2, 1], "2-2": [2, 2], "3-1": [3, 1], "2-1-1": [2, 1, 1] } },
-    soccer: { label: "サッカー 11人", list: { "4-4-2": [4, 4, 2], "4-3-3": [4, 3, 3], "4-2-3-1": [4, 2, 3, 1], "3-5-2": [3, 5, 2], "3-4-3": [3, 4, 3] } }
-  };
+  // フォーメーションは後ろの列から（"4-4-2"）。GK は別に先頭に置く。mode はピッチの描き方（サッカー／フットサル）
+  const FORMATION_GROUPS = [
+    { label: "サッカー 11人", mode: "soccer", list: ["4-4-2", "4-3-3", "4-2-3-1", "3-5-2", "3-4-3"] },
+    { label: "サッカー 8人制", mode: "soccer", list: ["3-3-1", "2-3-2", "3-2-2", "2-4-1"] },
+    { label: "フットサル 5人", mode: "futsal", list: ["1-2-1", "2-2", "3-1", "2-1-1"] }
+  ];
+  // 人数は変則もある（退場で10人、7人制など）。GK を入れて 2〜11 人
+  const MIN_PLAYERS = 2;
+  const MAX_PLAYERS = 11;
+  const parseFormation = (f) => (/^\d{1,2}(-\d{1,2}){0,4}$/.test(String(f)) ? String(f).split("-").map(Number) : []);
+  const fieldCount = (f) => parseFormation(f).reduce((a, b) => a + b, 0);
+  // 決まったフォーメーションがない人数のときの並び（後ろ 4 割・前 2 割・残りが中盤）
+  function autoFormation(n) {
+    if (n <= 2) return String(Math.max(1, n));
+    if (n <= 4) return `${Math.ceil(n / 2)}-${Math.floor(n / 2)}`;
+    const back = Math.ceil(n * 0.4);
+    const front = Math.max(1, Math.floor(n * 0.2));
+    return `${back}-${n - back - front}-${front}`;
+  }
+  const presetGroup = (mode, f) => FORMATION_GROUPS.find((g) => g.mode === mode && g.list.includes(f));
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
   // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
   // おくるんの基本の色の並び（紫・スカイ・リーフ・サンセット・ベリー）。最後に「カスタム」（自由な色）
@@ -40,7 +55,8 @@
 
   // フォーメーションから位置を作る（GK が一番下、列は後ろから前へ）
   function formationPositions(mode, formation) {
-    const lines = FORMATIONS[mode].list[formation] || Object.values(FORMATIONS[mode].list)[0];
+    const parsed = parseFormation(formation);
+    const lines = parsed.length ? parsed : parseFormation(mode === "futsal" ? "1-2-1" : "4-4-2");
     const spots = [{ x: 50, y: 88 }];
     const back = 70;
     const front = mode === "futsal" ? 26 : 18;
@@ -143,8 +159,8 @@
     if (q.get("tab") === "lineup") state.tab = "lineup";
     if (data && Array.isArray(data.pl)) {
       state.mode = data.m === "futsal" ? "futsal" : "soccer";
-      state.formation = FORMATIONS[state.mode].list[data.f] ? data.f : Object.keys(FORMATIONS[state.mode].list)[0];
-      state.players = data.pl.map((p) => ({ number: String(p[0] ?? ""), name: String(p[1] ?? ""), x: Number(p[2]) || 50, y: Number(p[3]) || 50 }));
+      state.players = data.pl.slice(0, MAX_PLAYERS).map((p) => ({ number: String(p[0] ?? ""), name: String(p[1] ?? ""), x: Number(p[2]) || 50, y: Number(p[3]) || 50 }));
+      state.formation = fieldCount(data.f) === state.players.length - 1 ? data.f : "";
       Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent, subs: data.s || "" });
     } else if (data && "us" in data) {
       Object.assign(state, {
@@ -197,20 +213,28 @@
     $("panelResult").hidden = state.tab !== "result";
     // 人数・フォーメーション（右上の選択1つ。サッカー・フットサルの中から選ぶ）
     const select = $("formationSelect");
+    const current = presetGroup(state.mode, state.formation) ? `${state.mode}:${state.formation}` : "";
     select.replaceChildren(
-      ...Object.entries(FORMATIONS).map(([mode, def]) => {
+      // 人数を変えて、決まったフォーメーションがないとき（例：10人）
+      ...(current ? [] : [Object.assign(document.createElement("option"), { value: "", textContent: state.formation || `${state.players.length}人`, disabled: true })]),
+      ...FORMATION_GROUPS.map((def) => {
         const group = Object.assign(document.createElement("optgroup"), { label: def.label });
-        group.append(...Object.keys(def.list).map((f) => Object.assign(document.createElement("option"), { value: `${mode}:${f}`, textContent: f })));
+        group.append(...def.list.map((f) => Object.assign(document.createElement("option"), { value: `${def.mode}:${f}`, textContent: f })));
         return group;
       })
     );
-    select.value = `${state.mode}:${state.formation}`;
+    select.value = current;
+    $("playerCount").textContent = `${state.players.length}人`;
+    $("removePlayer").disabled = state.players.length <= MIN_PLAYERS;
+    $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
     // 相手のフォーメーション（相手を出しているときだけ）
-    if (!FORMATIONS[state.mode].list[state.oppFormation]) state.oppFormation = state.formation;
+    if (!fieldCount(state.oppFormation)) state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     // 相手のフォーメーションを選んだら、相手も表示する
+    const oppList = [...new Set(FORMATION_GROUPS.filter((g) => g.mode === state.mode).flatMap((g) => g.list))];
+    if (!oppList.includes(state.oppFormation)) oppList.unshift(state.oppFormation);
     $("oppFormationChips").replaceChildren(
-      ...Object.keys(FORMATIONS[state.mode].list).map((f) =>
-        chip(f, state.showOpp && state.oppFormation === f, () => {
+      ...oppList.map((f) =>
+        chip(`${f}（${fieldCount(f) + 1}人）`, state.showOpp && state.oppFormation === f, () => {
           remember();
           state.oppFormation = f;
           state.opp = opponents();
@@ -327,7 +351,7 @@
   function renderTokens() {
     const list = state.players.map((p, i) => tokenEl(p, i === 0 ? "is-gk" : "", { kind: "player", index: i }));
     if (state.showOpp) {
-      if (!Array.isArray(state.opp) || state.opp.length !== formationPositions(state.mode, state.oppFormation).length) state.opp = opponents();
+      if (!Array.isArray(state.opp) || state.opp.length !== fieldCount(state.oppFormation) + 1) state.opp = opponents();
       state.opp.forEach((p, i) => list.push(tokenEl(p, "is-opp", { kind: "opp", index: i })));
     }
     if (state.showBall) {
@@ -713,7 +737,8 @@
     ctx.fillText([state.team || "", state.opponent ? `vs ${state.opponent}` : ""].filter(Boolean).join(" ") || "作戦盤", W / 2, 60);
     ctx.font = font(28, 700);
     ctx.fillStyle = "#5c6b62";
-    ctx.fillText(`${FORMATIONS[state.mode].label}・${state.formation}${state.when ? `・${state.when}` : ""}`, W / 2, 100);
+    const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${state.formation ? `・${state.formation}` : ""}`;
+    ctx.fillText(`${count}${state.when ? `・${state.when}` : ""}`, W / 2, 100);
     ctx.save();
     ctx.translate(0, head);
     ctx.fillStyle = "#2e8b4a";
@@ -877,12 +902,10 @@
   $("formationSelect").addEventListener("change", (event) => {
     const [mode, formation] = event.target.value.split(":");
     remember();
-    if (mode !== state.mode) {
-      // 人数が変わるときは、相手・線も新しくする
-      state.mode = mode;
-      state.oppFormation = formation;
-      state.strokes = [];
-    }
+    if (mode !== state.mode) state.strokes = []; // ピッチが変わるときは線を消す
+    // 人数が変わるときは、相手も同じ並びにする
+    if (mode !== state.mode || fieldCount(formation) !== state.players.length - 1) state.oppFormation = formation;
+    state.mode = mode;
     state.formation = formation;
     state.players = freshPlayers(mode, formation, state.players);
     state.opp = opponents();
@@ -912,6 +935,27 @@
     render();
   });
   $("undo").addEventListener("click", undo);
+  // 人数を1人ずつ変える（ほかの選手の位置はそのまま。決まったフォーメーションからは外れる）
+  $("addPlayer").addEventListener("click", () => {
+    if (state.players.length >= MAX_PLAYERS) return;
+    remember();
+    const used = new Set(state.players.map((p) => p.number));
+    let number = 1;
+    while (used.has(String(number))) number += 1;
+    // 空いている所に置く（真ん中から左右へ）
+    const spot = [50, 35, 65, 20, 80].map((x) => ({ x, y: 50 })).find((c) => state.players.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 8)) || { x: 50, y: 50 };
+    state.players.push({ number: String(number), name: "", ...spot });
+    state.formation = "";
+    render();
+  });
+  $("removePlayer").addEventListener("click", () => {
+    if (state.players.length <= MIN_PLAYERS) return;
+    remember();
+    state.players.pop();
+    state.formation = "";
+    selected.clear();
+    render();
+  });
   $("inkClear").addEventListener("click", () => {
     if (!state.strokes.length) return;
     remember();
@@ -920,7 +964,7 @@
   });
   $("resetPositions").addEventListener("click", () => {
     remember();
-    state.players = freshPlayers(state.mode, state.formation, state.players);
+    state.players = freshPlayers(state.mode, state.formation || autoFormation(state.players.length - 1), state.players);
     state.opp = opponents();
     state.ball = { x: 50, y: 50 };
     selected.clear();

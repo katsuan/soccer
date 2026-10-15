@@ -154,3 +154,10 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .choice:disabled { opacity: 0.6; cursor: progress; }
 .sheet-card .link { justify-self: center; }
 .fold:not([open]) { gap: 0; }
+
+/* 人数：− 11人 ＋ */
+.stepper { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 999px; background: #fff; }
+.stepper button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: none; color: var(--ink); font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; }
+.stepper button:disabled { opacity: 0.3; cursor: default; }
+.stepper span { min-width: 34px; font-size: 14px; font-weight: 800; text-align: center; }
+.board-card .reset { justify-self: center; }

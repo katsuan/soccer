@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚽</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <main class="wrap">
@@ -27,11 +27,15 @@
 
   <!-- ===== スタメン・作戦盤 ===== -->
   <section id="panelLineup" class="panel">
-    <!-- 作戦盤：ピッチと、よく使う操作（相手・ボール・ペン・選手・戻す）をひとまとめに。人数とフォーメーションは右上で選ぶ -->
+    <!-- 作戦盤：ピッチと、よく使う操作（相手・ボール・ペン・選手・戻す）をひとまとめに。人数（1人ずつ増やす・減らす）とフォーメーションは右上 -->
     <div class="card board-card">
       <div class="board-head">
         <span class="label">作戦盤</span>
-        <button id="resetPositions" class="link" type="button">並べ直す</button>
+        <div class="stepper" role="group" aria-label="人数">
+          <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
+          <span id="playerCount">11人</span>
+          <button id="addPlayer" type="button" aria-label="1人増やす">＋</button>
+        </div>
         <label class="select"><span class="sr">人数・フォーメーション</span><select id="formationSelect"></select></label>
       </div>
       <div id="board" class="board">
@@ -53,6 +57,7 @@
         <button id="undo" class="tool" type="button"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg><span>戻す</span></button>
       </div>
       <p class="hint" id="boardHint"></p>
+      <button id="resetPositions" class="link reset" type="button">位置をフォーメーションに戻す</button>
     </div>
 
     <details class="card fold">
@@ -182,6 +187,6 @@
   </div>
 </div>
 
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
