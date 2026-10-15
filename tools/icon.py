@@ -8,7 +8,9 @@ S 字は「さくせん（SAQSEN）」の S も兼ねる。作戦盤の線と同
 
   icon.svg             … ファビコン
   apple-touch-icon.png … iPhone のホーム画面（180px）
-  icon-512.png         … 大きいアイコン（512px）
+  icon-512.png         … 大きいアイコン（512px。角は丸い）
+  icon-maskable-512.png … ホーム画面に追加したとき用（四隅まで塗る。端末が自分で丸や角丸に切る）
+  icon-32.png          … SVG のファビコンを使えないブラウザ用（32px）
   logo.svg             … 横長のロゴ「SAQSEN」。ピッチ（盤）の上に文字を並べ、Q はセンターサークル＋右下のボール、
                          Q の後ろの S はアイコンと同じ線の S（作戦の線。左下の端はボールの下）。最初の S・A・E・N の字形は Jua（SIL Open Font License 1.1、~/Library/Fonts/Jua.ttf。おくるんのロゴと同じ）。fontTools が必要
 
@@ -248,7 +250,9 @@ def main():
     (ROOT / "logo.svg").write_text(logo_svg(), encoding="utf-8")
     png(180, rounded=False).convert("RGB").save(ROOT / "apple-touch-icon.png", optimize=True)
     png(512).save(ROOT / "icon-512.png", optimize=True)
-    print("icon.svg / logo.svg / apple-touch-icon.png / icon-512.png を書き出しました")
+    png(512, rounded=False).convert("RGB").save(ROOT / "icon-maskable-512.png", optimize=True)
+    png(32).save(ROOT / "icon-32.png", optimize=True)
+    print("icon.svg / logo.svg / apple-touch-icon.png / icon-512.png / icon-maskable-512.png / icon-32.png を書き出しました")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,18 @@
+{
+  "name": "さくせん盤",
+  "short_name": "さくせん盤",
+  "description": "サッカー・フットサルのスタメン・作戦・試合結果を、LINE にカードで送れるツール（SAQSEN）",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eaf6ee",
+  "theme_color": "#eaf6ee",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "icon-32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
