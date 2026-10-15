@@ -1006,21 +1006,27 @@
     if (document.fonts?.ready) await document.fonts.ready;
     const W = 1080;
     const H = Math.round(W * 4 / 3); // 作戦盤と同じ縦横の比（サッカー・フットサルとも同じ大きさ）
-    const head = 120;
+    // 上の見出しは、チーム名・対戦相手・日時を入れたときだけ（入れていなければピッチだけの画像）
+    const title = [state.team || "", state.opponent ? `vs ${state.opponent}` : ""].filter(Boolean).join(" ");
+    const head = title ? 120 : whenText() ? 76 : 0;
     const canvas = Object.assign(document.createElement("canvas"), { width: W, height: H + head });
     const ctx = canvas.getContext("2d");
     const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, W, H + head);
-    ctx.fillStyle = "#23302a";
-    ctx.font = font(44);
     ctx.textAlign = "center";
-    ctx.fillText([state.team || "", state.opponent ? `vs ${state.opponent}` : ""].filter(Boolean).join(" ") || "作戦盤", W / 2, 60);
-    ctx.font = font(28, 700);
-    ctx.fillStyle = "#5c6b62";
-    const vs = state.showOpp && oppTotal() !== state.players.length ? ` 対 ${oppTotal()}人` : "";
-    const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${vs}${state.formation ? `・${state.formation}` : ""}`;
-    ctx.fillText(`${count}${whenText() ? `・${whenText()}` : ""}`, W / 2, 100);
+    if (head) {
+      if (title) {
+        ctx.fillStyle = "#23302a";
+        ctx.font = font(44);
+        ctx.fillText(title, W / 2, 60);
+      }
+      ctx.font = font(28, 700);
+      ctx.fillStyle = "#5c6b62";
+      const vs = state.showOpp && oppTotal() !== state.players.length ? ` 対 ${oppTotal()}人` : "";
+      const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${vs}${state.formation ? `・${state.formation}` : ""}`;
+      ctx.fillText(`${count}${whenText() ? `・${whenText()}` : ""}`, W / 2, title ? 100 : 48);
+    }
     ctx.save();
     ctx.translate(0, head);
     ctx.fillStyle = "#2e8b4a";
