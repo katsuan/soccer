@@ -38,11 +38,11 @@
   const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
   // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
   // 最後に「カスタム」（自由な色）
-  // ユニフォームの色は3色にしぼる（紫・青・赤）。ほかの色はカスタムで
+  // ユニフォームの色は見分けやすい3色にしぼる（紫・赤・白。白は相手の最初の色）。ほかの色はカスタムで
   const TEAM_COLORS = [
     { label: "おくるん", hex: "#6c47ff" },
-    { label: "スカイ", hex: "#3e7bfa" },
-    { label: "ベリー", hex: "#e5484d" }
+    { label: "ベリー", hex: "#e5484d" },
+    { label: "白", hex: "#ffffff" }
   ];
   const isLight = (hex) => {
     const n = parseInt(String(hex).slice(1), 16);
