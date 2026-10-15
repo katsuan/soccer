@@ -215,6 +215,7 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 #formationRows { margin-top: 8px; }
 
 /* ツールの名前（さくせん盤）の下の小さな英字 */
-.brand { margin-top: -10px; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; color: var(--ink-soft); text-align: center; }
+.brand { margin-top: -6px; line-height: 0; text-align: center; }
+.brand img { width: 94px; height: auto; }
 h1 { display: flex; align-items: center; justify-content: center; gap: 8px; }
 h1 .logo { width: 30px; height: 30px; }

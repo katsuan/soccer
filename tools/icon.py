@@ -9,6 +9,8 @@ S 字は「さくせん（SAQSEN）」の S も兼ねる。作戦盤の線と同
   icon.svg             … ファビコン
   apple-touch-icon.png … iPhone のホーム画面（180px）
   icon-512.png         … 大きいアイコン（512px）
+  logo.svg             … 横長のロゴ「SAQSEN」。ピッチ（盤）の上に文字を並べ、Q はセンターサークル＋右下のボール。
+                         S・A・E・N の字形は Jua（SIL Open Font License 1.1、~/Library/Fonts/Jua.ttf。おくるんのロゴと同じ）。fontTools が必要
 
 Pillow が必要。使い方: python3 tools/icon.py
 """
@@ -43,9 +45,9 @@ def pentagon(cx, cy, r, rot=-90):
     return [(cx + r * math.cos(math.radians(rot + 72 * i)), cy + r * math.sin(math.radians(rot + 72 * i))) for i in range(5)]
 
 
-def ball_patches():
+def ball_patches(ball=BALL):
     """ボールの模様：真ん中の五角形と、ふちの5つの五角形（ボールの輪で切って使う）"""
-    cx, cy, r = BALL
+    cx, cy, r = ball
     outer = [pentagon(cx + r * math.cos(math.radians(-90 + 72 * i)), cy + r * math.sin(math.radians(-90 + 72 * i)), r * 0.36, -90 + 72 * i + 36) for i in range(5)]
     return [pentagon(cx, cy, r * 0.4), *outer]
 
@@ -125,11 +127,89 @@ def png(size, rounded=True):
     return img.resize((size, size), Image.LANCZOS)
 
 
+# ---- 横長のロゴ「SAQSEN」（盤の上の文字。Q＝センターサークル＋ボール） ----
+
+FONT_PATH = Path.home() / "Library" / "Fonts" / "Jua.ttf"
+
+
+def _num(v):
+    return f"{v:.1f}".rstrip("0").rstrip(".")
+
+
+def logo_svg():
+    from fontTools.pens.boundsPen import BoundsPen
+    from fontTools.pens.svgPathPen import SVGPathPen
+    from fontTools.pens.transformPen import TransformPen
+    from fontTools.ttLib import TTFont
+
+    font = TTFont(str(FONT_PATH))
+    glyphs = font.getGlyphSet()
+    cmap = font.getBestCmap()
+
+    def bounds(char):
+        pen = BoundsPen(glyphs)
+        glyphs[cmap[ord(char)]].draw(pen)
+        return pen.bounds
+
+    top, bottom = bounds("E")[3], bounds("E")[1]  # 上下が平らな E で文字の高さを決める
+    h = top - bottom
+    gap = h * 0.09
+    w = h * 0.2  # Q（センターサークル）の線の太さ（文字の線とそろえる）
+    r = h / 2 - w / 2
+    paths, x, q = [], 0.0, None
+    for char in "SAQSEN":
+        if char == "Q":
+            q = (x + r + w / 2, h / 2)
+            x += 2 * r + w + gap
+            continue
+        b = bounds(char)
+        origin = x - b[0]
+        pen = SVGPathPen(glyphs)
+        glyphs[cmap[ord(char)]].draw(TransformPen(pen, (1, 0, 0, -1, origin, top)))
+        paths.append(pen.getCommands())
+        x = origin + b[2] + gap
+    right = x - gap
+    qx, qy = q
+    # ボール：サークルの右下（45°）のふち
+    br = h * 0.24
+    bx, by = qx + (r + w * 0.15) * 0.7071, qy + (r + w * 0.15) * 0.7071
+    # 盤（ピッチ）：Q がちょうど真ん中（ハーフウェーライン上）に来るよう左右の幅をそろえる
+    half = max(qx, right - qx) + h * 0.95
+    pad_y = h * 0.62
+    x0, y0, width, height = qx - half, -pad_y, half * 2, h + pad_y * 2
+    lw = h * 0.045
+    line = f'stroke="#ffffff" stroke-opacity="0.35" stroke-width="{_num(lw)}" fill="none"'
+    inset = h * 0.16
+    box_h, box_d = height * 0.56, h * 0.5
+    ink = hex_(BALL_INK)
+    patches = "".join('<polygon points="' + " ".join(f"{_num(px_)},{_num(py_)}" for px_, py_ in poly) + '"/>' for poly in ball_patches((bx, by, br)))
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{_num(x0)} {_num(y0)} {_num(width)} {_num(height)}" role="img" aria-label="SAQSEN（さくせん盤）">'
+        f'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{hex_(PITCH_LIGHT)}"/>'
+        f'<stop offset="1" stop-color="{hex_(PITCH_DARK)}"/></linearGradient>'
+        f'<clipPath id="b"><circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br)}"/></clipPath></defs>'
+        f'<rect x="{_num(x0)}" y="{_num(y0)}" width="{_num(width)}" height="{_num(height)}" rx="{_num(h * 0.3)}" fill="url(#g)"/>'
+        # ピッチの線（うっすら）：外枠・ハーフウェーライン・両端のペナルティエリア
+        f'<rect x="{_num(x0 + inset)}" y="{_num(y0 + inset)}" width="{_num(width - inset * 2)}" height="{_num(height - inset * 2)}" rx="{_num(h * 0.08)}" {line}/>'
+        f'<path d="M{_num(qx)} {_num(y0 + inset)}V{_num(y0 + height - inset)}" {line}/>'
+        f'<path d="M{_num(x0 + inset)} {_num(qy - box_h / 2)}h{_num(box_d)}v{_num(box_h)}h{_num(-box_d)}" {line}/>'
+        f'<path d="M{_num(x0 + width - inset)} {_num(qy - box_h / 2)}h{_num(-box_d)}v{_num(box_h)}h{_num(box_d)}" {line}/>'
+        # 文字（S・A・S・E・N）と、Q＝センターサークル＋ボール
+        f'<g fill="#ffffff">' + "".join(f'<path d="{d}"/>' for d in paths) + "</g>"
+        f'<circle cx="{_num(qx)}" cy="{_num(qy)}" r="{_num(r)}" fill="none" stroke="#ffffff" stroke-width="{_num(w)}"/>'
+        f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br + w * 0.35)}" fill="{hex_(PITCH_DARK)}"/>'
+        f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br)}" fill="#ffffff"/>'
+        f'<g clip-path="url(#b)" fill="{ink}">{patches}</g>'
+        "</svg>\n"
+    )
+
+
 def main():
     (ROOT / "icon.svg").write_text(svg() + "\n", encoding="utf-8")
+    (ROOT / "logo.svg").write_text(logo_svg(), encoding="utf-8")
     png(180, rounded=False).convert("RGB").save(ROOT / "apple-touch-icon.png", optimize=True)
     png(512).save(ROOT / "icon-512.png", optimize=True)
-    print("icon.svg / apple-touch-icon.png / icon-512.png を書き出しました")
+    print("icon.svg / logo.svg / apple-touch-icon.png / icon-512.png を書き出しました")
 
 
 if __name__ == "__main__":
