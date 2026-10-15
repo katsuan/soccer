@@ -172,8 +172,8 @@ def logo_svg():
     sx0, sy0 = min(x for x, _ in pts) - S_WIDTH / 2, min(y for _, y in pts) - S_WIDTH / 2
     sx1, sy1 = max(x for x, _ in pts) + S_WIDTH / 2, max(y for _, y in pts) + S_WIDTH / 2
     k = h / (sy1 - sy0)
-    s_w = h * 0.17  # 線の太さ（字の線に近づける）
-    s_dot = h * 0.14  # 選手の丸
+    s_w = h * 0.15  # 線の太さ（細くした字の線にそろえる）
+    s_dot = h * 0.13  # 選手の丸
     line_s = []  # 線の S の SVG
     # ボール：Q（サークル）の右下（45°）のふち
     br = h * 0.24
@@ -236,7 +236,8 @@ def logo_svg():
         f'<path d="M{_num(x0 + inset)} {_num(qy - box_h / 2)}h{_num(box_d)}v{_num(box_h)}h{_num(-box_d)}" {line}/>'
         f'<path d="M{_num(x0 + width - inset)} {_num(qy - box_h / 2)}h{_num(-box_d)}v{_num(box_h)}h{_num(box_d)}" {line}/>'
         # 文字（A・E・N は Jua、S はアイコンと同じ線の S）と、Q＝センターサークル＋ボール
-        f'<g fill="#ffffff">' + "".join(f'<path d="{d}"/>' for d in paths) + "</g>" + "".join(line_s) +
+        # フォントの字（S・A・E・N）は太さが1種類なので、ふちをコートと同じ色でなぞって少し細く見せる
+        f'<g fill="#ffffff" stroke="url(#g)" stroke-width="{_num(h * 0.05)}" stroke-linejoin="round">' + "".join(f'<path d="{d}"/>' for d in paths) + "</g>" + "".join(line_s) +
         f'<circle cx="{_num(qx)}" cy="{_num(qy)}" r="{_num(r)}" fill="none" stroke="#ffffff" stroke-width="{_num(w)}"/>'
         f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br + w * 0.35)}" fill="url(#g)"/>'
         f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br)}" fill="#ffffff"/>'
