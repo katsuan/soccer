@@ -165,7 +165,9 @@ def logo_svg():
     top, bottom = bounds("E")[3], bounds("E")[1]  # 上下が平らな E で文字の高さを決める
     h = top - bottom
     gap = h * 0.09
-    w = h * 0.11  # Q（センターサークル）の線の太さ（文字より細く。サークルの線らしく）
+    # 字の線の太さ：Jua の線（字の高さの約 21%。おくるんのロゴと同じ見積もり）から、ふちをなぞって削る分を引いた太さ
+    thin = h * 0.05  # ふちをコートの色でなぞる線の幅（内側に半分ずつ削れる）
+    w = h * 0.21 - thin  # Q（センターサークル）の線は、細くした字（S・A・E・N）と同じ太さ
     r = h / 2 - w / 2
     # S はアイコンと同じ線の S（作戦の線＋両端の選手）。アイコンの S の外形（選手の丸を含む）を、文字の高さにそろえる
     pts = [pt for seg in S_PATHS for pt in cubic(seg)]
@@ -237,7 +239,7 @@ def logo_svg():
         f'<path d="M{_num(x0 + width - inset)} {_num(qy - box_h / 2)}h{_num(-box_d)}v{_num(box_h)}h{_num(box_d)}" {line}/>'
         # 文字（A・E・N は Jua、S はアイコンと同じ線の S）と、Q＝センターサークル＋ボール
         # フォントの字（S・A・E・N）は太さが1種類なので、ふちをコートと同じ色でなぞって少し細く見せる
-        f'<g fill="#ffffff" stroke="url(#g)" stroke-width="{_num(h * 0.05)}" stroke-linejoin="round">' + "".join(f'<path d="{d}"/>' for d in paths) + "</g>" + "".join(line_s) +
+        f'<g fill="#ffffff" stroke="url(#g)" stroke-width="{_num(thin)}" stroke-linejoin="round">' + "".join(f'<path d="{d}"/>' for d in paths) + "</g>" + "".join(line_s) +
         f'<circle cx="{_num(qx)}" cy="{_num(qy)}" r="{_num(r)}" fill="none" stroke="#ffffff" stroke-width="{_num(w)}"/>'
         f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br + w * 0.35)}" fill="url(#g)"/>'
         f'<circle cx="{_num(bx)}" cy="{_num(by)}" r="{_num(br)}" fill="#ffffff"/>'
