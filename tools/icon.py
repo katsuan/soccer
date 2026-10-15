@@ -163,7 +163,7 @@ def logo_svg():
     top, bottom = bounds("E")[3], bounds("E")[1]  # 上下が平らな E で文字の高さを決める
     h = top - bottom
     gap = h * 0.09
-    w = h * 0.15  # Q（センターサークル）の線の太さ（文字より少し細く。サークルの線らしく）
+    w = h * 0.11  # Q（センターサークル）の線の太さ（文字より細く。サークルの線らしく）
     r = h / 2 - w / 2
     # S はアイコンと同じ線の S（作戦の線＋両端の選手）。アイコンの S の外形（選手の丸を含む）を、文字の高さにそろえる
     pts = [pt for seg in S_PATHS for pt in cubic(seg)]
