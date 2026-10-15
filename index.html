@@ -59,10 +59,12 @@
     <details class="card fold" id="teamFold">
       <summary>👕 チーム <span id="teamMeta" class="meta"></span></summary>
       <p id="countVs" class="count-vs"></p>
-      <!-- 自チームと相手を左右に向かい合わせ、人数・色・フォーメーションを同じ行にそろえる -->
+      <!-- 自チームと相手を左右に向かい合わせ、チーム名・人数・色・フォーメーションを同じ行にそろえる -->
       <div class="versus">
         <span class="label">自チーム</span>
         <span class="label">相手 <span id="oppHint" class="meta"></span></span>
+        <input class="team" maxlength="20" placeholder="チーム名" aria-label="チーム名">
+        <input class="opponent" maxlength="20" placeholder="対戦相手" aria-label="対戦相手">
         <div class="stepper" role="group" aria-label="自チームの人数">
           <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
           <span id="playerCount">11人</span>
@@ -95,8 +97,6 @@
 
     <details class="card fold">
       <summary>📋 試合の情報 <span id="infoMeta" class="meta"></span></summary>
-      <label>チーム名<input class="team" maxlength="20" placeholder="例：FC おくるん"></label>
-      <label>対戦相手<input class="opponent" maxlength="20" placeholder="例：シティFC"></label>
       <label>日時<input class="when" maxlength="30" placeholder="例：10/18（土）9:00 キックオフ"></label>
       <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
       <label>控え<input id="subs" maxlength="80" placeholder="例：佐藤、鈴木、田中"></label>
@@ -205,6 +205,6 @@
   </div>
 </div>
 
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>

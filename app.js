@@ -319,10 +319,10 @@
     const vs = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
     $("oppCount").textContent = `${theirs}人`;
     $("countVs").textContent = state.showOpp ? vs : "";
-    $("teamMeta").textContent = `${state.formation || `${ours}人`}${state.showOpp ? `・${ours} 対 ${theirs}` : ""}`;
+    $("teamMeta").textContent = [state.team && state.opponent ? `${state.team} vs ${state.opponent}` : state.team, state.formation || `${ours}人`].filter(Boolean).join("・");
     $("removeOpp").disabled = theirs <= MIN_PLAYERS;
     $("addOpp").disabled = theirs >= MAX_PLAYERS;
-    $("infoMeta").textContent = [state.team, state.opponent && `vs ${state.opponent}`].filter(Boolean).join(" ") || "なし";
+    $("infoMeta").textContent = [state.when, state.where].filter(Boolean).join("・") || "なし";
     $("penColors").replaceChildren(
       ...PEN_COLORS.map((color) => {
         const b = chip("", state.penColor === color, () => {
