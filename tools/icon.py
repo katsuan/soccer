@@ -180,25 +180,23 @@ def logo_svg():
             x += 2 * r + w + gap
             continue
         if char == "S":
-            # Q のすぐ後ろの S は、左下の端（選手）をボールに重ねる（ボールから作戦の線が出る）
+            # Q のすぐ後ろの S は、左下の端（選手の丸）がちょうどボールの下に隠れるところまで寄せる（形は変えない）
             after_q = ball is not None and not line_s[1:]
             if after_q:
-                x = ball[0] - (S_PATHS[-1][-1][0] - sx0) * k
+                # 選手の丸（半径 s_dot）が、ボール＋縁取り（半径 br + w*0.35）の中に収まる中で、いちばん右（ボールの右寄り）に置く
+                cover = br + w * 0.35 - s_dot
+                dy_ = (S_PATHS[-1][-1][1] - sy0) * k - ball[1]
+                dx_ = math.sqrt(max(0.0, cover * cover - dy_ * dy_)) * 0.9
+                x = ball[0] + dx_ - (S_PATHS[-1][-1][0] - sx0) * k
             to = lambda pt: (x + (pt[0] - sx0) * k, (pt[1] - sy0) * k)  # noqa: E731
             segs = [[to(pt) for pt in seg] for seg in S_PATHS]
-            if after_q:
-                # 終わりの点をボールの中心へ。最後の制御点も同じだけ動かして、線の向きを保つ
-                ex, ey = segs[-1][3]
-                ddx, ddy = ball[0] - ex, ball[1] - ey
-                segs[-1][2] = (segs[-1][2][0] + ddx, segs[-1][2][1] + ddy)
-                segs[-1][3] = ball
             ax, ay = segs[0][0]
             dx, dy = segs[-1][3]
             d_ = f"M{_num(ax)} {_num(ay)}" + "".join("C" + " ".join(f"{_num(v)}" for pt in seg[1:] for v in pt) for seg in segs)
             line_s.append(
                 f'<path d="{d_}" stroke="#ffffff" stroke-width="{_num(s_w)}" stroke-linecap="round" fill="none"/>'
                 f'<circle cx="{_num(ax)}" cy="{_num(ay)}" r="{_num(s_dot)}" fill="#ffffff"/>'
-                + ("" if after_q else f'<circle cx="{_num(dx)}" cy="{_num(dy)}" r="{_num(s_dot)}" fill="#ffffff"/>')
+                + f'<circle cx="{_num(dx)}" cy="{_num(dy)}" r="{_num(s_dot)}" fill="#ffffff"/>'
             )
             x += (sx1 - sx0) * k + gap
             continue
