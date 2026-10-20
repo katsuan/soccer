@@ -147,13 +147,14 @@ const MARKS = [
   { key: "a", icon: "👟", label: "アシスト", max: 9 },
   { key: "o", icon: "⚽", label: "OG", max: 9, red: true } // ボールを赤く描く（markParts の red）
 ];
-// 盤・画像に出す部品（[{ text: "⚽⚽", red: false }, ...]。3つ以上は「⚽3」）。red はオウンゴール（ボールを赤く描く）
+// 盤・画像に出す部品（[{ icon: "⚽", count: 1, label: "2" }, ...]）。2つ以上は「⚽2」のように数で（交代前・出場中とも）。
+// イエローだけは 2枚で退場とわかるよう「🟨🟨」と並べる。red はオウンゴール（ボールを赤く描く）
 function markParts(marks) {
   if (!marks) return [];
   return MARKS.map(({ key, icon, red }) => {
     const n = Math.max(0, Math.floor(Number(marks[key]) || 0));
     if (n <= 0) return null;
-    return n <= 2 ? { icon, count: n, red: Boolean(red) } : { icon, count: 1, label: String(n), red: Boolean(red) };
+    return n === 1 || key === "y" ? { icon, count: n, red: Boolean(red) } : { icon, count: 1, label: String(n), red: Boolean(red) };
   }).filter(Boolean);
 }
 // 文字だけの形（「🟨⚽⚽」）。印があるかどうかの判定や、文字で出すときに使う

@@ -303,7 +303,7 @@ h1 .logo { width: 28px; height: 28px; }
 .first-tip .btn { justify-self: end; width: auto; min-height: 36px; padding: 0 16px; }
 
 /* 長押しのメニュー：印をすぐ付ける（丸のそばに浮かせる） */
-.quick-marks { position: fixed; z-index: 30; display: grid; gap: 6px; width: min(320px, calc(100vw - 16px)); padding: 12px; border-radius: 16px; background: #fff; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); }
+.quick-marks { position: fixed; z-index: 30; display: grid; gap: 6px; overflow-y: auto; overscroll-behavior: contain; width: min(320px, calc(100vw - 16px)); padding: 12px; border-radius: 16px; background: #fff; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); }
 .quick-marks[hidden] { display: none; }
 .quick-head { display: flex; align-items: center; justify-content: space-between; }
 .quick-title { margin: 0; font-size: 15px; font-weight: 800; }

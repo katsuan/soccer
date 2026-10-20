@@ -449,7 +449,7 @@ function tokenEl(p, extra, target) {
   el.querySelector("small").textContent = p.name || "";
   // 交代して入った選手：丸の右上に小さく 🔄
   if (p.subs?.length) el.append(Object.assign(document.createElement("i"), { className: "sub-mark", textContent: "🔄", ariaLabel: "交代" }));
-  // 交代前の選手の得点・OG：🔄 の右下に小さく（印と同じ ⚽・赤いボール。3つ以上は「⚽3」）
+  // 交代前の選手の得点・OG：🔄 の右下に小さく（印と同じ ⚽・赤いボール。2つ以上は「⚽2」）
   const subGoals = p.subs?.length ? subGoalsOf(p, target.kind === "opp" ? "t" : "u") : undefined;
   if (subGoals) el.append(marksBadge(subGoals, "sub-goals", `交代前の得点 ${markText(subGoals)}`));
   // 印（イエロー・レッド・ゴール・アシスト）：いつも丸の右下（盤からはみ出すときは fitMarks で選手をずらす）。

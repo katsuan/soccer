@@ -33,8 +33,21 @@ function renderQuickMarks() {
   close.setAttribute("aria-label", "閉じる");
   close.addEventListener("click", closeQuickMarks);
   const head = Object.assign(document.createElement("div"), { className: "quick-head" });
+  // 背番号・名前を入れているときは「完了」で印のボタンに戻る
+  const done = (onDone) => {
+    const b = Object.assign(document.createElement("button"), { type: "button", className: "quick-sub-open", textContent: "完了" });
+    b.addEventListener("click", onDone);
+    return b;
+  };
   if (quickEditing) {
-    head.append(Object.assign(document.createElement("p"), { className: "quick-title", textContent: quickIndex === 0 ? "GK" : `${quickIndex + 1}人目` }), close);
+    head.append(
+      Object.assign(document.createElement("p"), { className: "quick-title", textContent: quickIndex === 0 ? "GK" : `${quickIndex + 1}人目` }),
+      done(() => {
+        quickEditing = false;
+        renderQuickMarks();
+      }),
+      close
+    );
   } else {
     const title = Object.assign(document.createElement("button"), { type: "button", className: "quick-title is-edit", textContent: `${`${p.number || ""} ${p.name || ""}`.trim() || "背番号・名前"} ✏️` });
     title.setAttribute("aria-label", "背番号・名前を変える");
@@ -280,7 +293,15 @@ function renderOppQuick() {
     renderOppQuick();
     if (oppEditing) $("quickName").focus();
   });
-  head.append(title, subOpen, close);
+  if (oppEditing) {
+    title.textContent = name;
+    const done = Object.assign(document.createElement("button"), { type: "button", className: "quick-sub-open", textContent: "完了" });
+    done.addEventListener("click", () => {
+      oppEditing = false;
+      renderOppQuick();
+    });
+    head.append(title, done, close);
+  } else head.append(title, subOpen, close);
   const top = [head, ...(oppEditing ? quickEditRows(p, "t") : []), ...(p.subs?.length ? [subHistoryEl(p, "t")] : [])];
   if (oppSubbing) {
     $("quickMarks").replaceChildren(...top, subFormEl(p, "t"));
@@ -337,30 +358,68 @@ function openOppQuick(index, el) {
 }
 
 // ポップアップを丸の下（入らなければ上）に、画面からはみ出さないように置く
+let quickAnchor = ""; // ポップアップを出した丸（data-key）。描き直しても、その丸のそばに置き直す
+
 function placeQuick(el) {
-  const menu = $("quickMarks");
-  menu.hidden = false;
-  const r = el.getBoundingClientRect();
-  const w = menu.offsetWidth;
-  const h = menu.offsetHeight;
-  const left = Math.min(window.innerWidth - w - 8, Math.max(8, r.left + r.width / 2 - w / 2));
-  const below = r.top + 36;
-  const top = below + h + 8 <= window.innerHeight ? below : Math.max(8, Math.min(window.innerHeight - h - 8, r.top - h - 4));
-  menu.style.left = `${left}px`;
-  menu.style.top = `${top}px`;
+  quickAnchor = el.dataset.key || "";
+  $("quickMarks").hidden = false;
+  positionQuick();
 }
 
+// 見えている範囲（スマホのキーボードが出ているときは、その上まで。visualViewport）の中に置く。
+// 文字を入れているときは、見えている範囲のいちばん上（キーボードに隠れない所）。それ以外は丸の下（入らなければ上）
+function positionQuick() {
+  const menu = $("quickMarks");
+  if (menu.hidden) return;
+  const vv = window.visualViewport;
+  const view = { top: vv ? vv.offsetTop : 0, left: vv ? vv.offsetLeft : 0, height: vv ? vv.height : window.innerHeight, width: vv ? vv.width : window.innerWidth };
+  menu.style.maxHeight = `${Math.max(160, view.height - 16)}px`;
+  const w = menu.offsetWidth;
+  const h = menu.offsetHeight;
+  const typing = menu.contains(document.activeElement) && document.activeElement.matches("input, textarea");
+  const anchor = quickAnchor && tokens.querySelector(`[data-key="${quickAnchor}"]`);
+  let left = view.left + (view.width - w) / 2;
+  let top = view.top + 8;
+  if (!typing && anchor) {
+    const r = anchor.getBoundingClientRect();
+    left = r.left + r.width / 2 - w / 2;
+    const below = r.top + 36;
+    top = below + h + 8 <= view.top + view.height ? below : r.top - h - 4;
+  }
+  const clamp = (v, min, max) => Math.min(Math.max(v, min), Math.max(min, max));
+  menu.style.left = `${clamp(left, view.left + 8, view.left + view.width - w - 8)}px`;
+  menu.style.top = `${clamp(top, view.top + 8, view.top + view.height - h - 8)}px`;
+}
+// 中身が変わったとき（入力欄・交代の欄を開いたなど）、画面が動いたとき、キーボードが出た・閉じたときに置き直す
+let positionTimer = 0;
+const schedulePosition = () => {
+  clearTimeout(positionTimer);
+  positionTimer = setTimeout(positionQuick, 16);
+};
+new MutationObserver(schedulePosition).observe($("quickMarks"), { childList: true, subtree: true });
+window.addEventListener("scroll", schedulePosition, { passive: true });
+window.addEventListener("resize", schedulePosition);
+window.visualViewport?.addEventListener("resize", schedulePosition);
+window.visualViewport?.addEventListener("scroll", schedulePosition);
+// キーボードは少し遅れて出る・閉じるので、入力の出入りでは少しあとにもう一度
+["focusin", "focusout"].forEach((type) =>
+  $("quickMarks").addEventListener(type, () => {
+    schedulePosition();
+    setTimeout(schedulePosition, 350);
+  })
+);
+
 function closeQuickMarks() {
+  quickAnchor = "";
   quickIndex = -1;
   oppQuickIndex = -1;
   quickEditing = false;
   $("quickMarks").hidden = true;
 }
-// メニューの外を触る・画面を動かすと閉じる（文字を入れているとき、キーボードで画面が動くのでは閉じない）
+// メニューの外を触ると閉じる（画面が動いたとき・キーボードの開け閉めでは閉じず、置き直す）
 document.addEventListener("pointerdown", (e) => {
   if (!$("quickMarks").hidden && !$("quickMarks").contains(e.target)) closeQuickMarks();
 }, true);
-window.addEventListener("scroll", () => !$("quickMarks").contains(document.activeElement) && closeQuickMarks(), { passive: true });
 
 // ---- 結果の得点 ----
 // 得点者が増えた・減ったら、スコアも合わせる（before＝変える前の得点者）。
