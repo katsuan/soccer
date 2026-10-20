@@ -173,8 +173,11 @@ function subHistoryEl(p, team = "u") {
   const box = Object.assign(document.createElement("div"), { className: "quick-subs" });
   p.subs.forEach((s) => {
     const out = subLabel(s.outNumber, s.outName, team);
+    // 出た選手の記録：得点（⚽・⚽2）・オウンゴール（OG・OG2）は得点者から、カード・アシストは残した印から
     const goals = state.goals.filter((g) => g.side === team && g.name === out).length;
-    const record = [goals ? "⚽".repeat(Math.min(goals, 3)) + (goals > 3 ? goals : "") : "", markText(s.outMarks)].filter(Boolean).join("");
+    const ogs = state.goals.filter((g) => g.side !== team && g.name === `${out}（OG）`).length;
+    const count = (icon, n) => (n ? `${icon}${n > 1 ? n : ""}` : "");
+    const record = [count("⚽", goals), count("OG", ogs), markText(s.outMarks)].filter(Boolean).join(" ");
     box.append(Object.assign(document.createElement("p"), { textContent: `🔄 ${s.min ? `${s.min}' ` : ""}${out} → ${subLabel(s.inNumber, s.inName, team)}${record ? `（${out}：${record}）` : ""}` }));
   });
   const undoSub = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "最後の交代を取り消す" });
