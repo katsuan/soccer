@@ -228,8 +228,11 @@ $("goalsFromMarks").addEventListener("click", () => {
     const og = `${name}（OG）`;
     for (let n = Number(p.marks?.o) || 0; n > 0; n--) goals.push({ side: "t", min: minOf("t", og), name: og });
   });
+  // 手で入れた相手の得点者（オウンゴール以外）と、相手のオウンゴール（「相手10番（OG）」。相手の長押しで入れたもの）は残す
   old.forEach((g, j) => {
-    if (g.side === "t" && !used.has(j) && !/（OG）$/.test(g.name || "")) goals.push(g);
+    if (used.has(j)) return;
+    if (g.side === "t" && !/（OG）$/.test(g.name || "")) goals.push(g);
+    if (g.side === "u" && /^相手.*（OG）$/.test(g.name || "")) goals.push(g);
   });
   state.goals = goals;
   syncScore(old);

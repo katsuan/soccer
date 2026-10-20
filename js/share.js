@@ -313,9 +313,14 @@ async function boardCanvas() {
   };
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
-  // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く
-  if (state.showMarks !== false) state.players.forEach((p) => {
-    const parts = markParts(p.marks);
+  // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く。
+  // 相手は、試合結果の得点者から数えた ⚽・OG（盤と同じ）
+  const marked = [
+    ...state.players.map((p) => [p, p.marks]),
+    ...(state.showOpp ? (state.opp || []).map((p) => [p, oppMarksOf(p)]) : [])
+  ];
+  if (state.showMarks !== false) marked.forEach(([p, marks]) => {
+    const parts = markParts(marks);
     if (!parts.length) return;
     const x = (p.x / 100) * W;
     const y = (p.y / 100) * H;

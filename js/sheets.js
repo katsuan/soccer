@@ -117,9 +117,72 @@ function openQuickMarks(index, el) {
   quickIndex = index;
   quickEditing = false;
   quickRemembered = false;
-  const menu = $("quickMarks");
   renderQuickMarks();
-  // 丸の下（入らなければ上）に、画面からはみ出さないように置く
+  placeQuick(el);
+}
+
+// ---- 相手の長押し：相手の得点を記録する（試合結果の得点者の相手側に「相手10番」として入る。スコアも合わせる）。
+// OG（相手のオウンゴール）は自チームの得点として「相手10番（OG）」 ----
+let oppQuickIndex = -1;
+
+function renderOppQuick() {
+  const p = (state.opp || [])[oppQuickIndex];
+  if (!p) return closeQuickMarks();
+  const name = oppLabel(p);
+  const close = Object.assign(document.createElement("button"), { type: "button", className: "quick-close", textContent: "×" });
+  close.setAttribute("aria-label", "閉じる");
+  close.addEventListener("click", closeQuickMarks);
+  const head = Object.assign(document.createElement("div"), { className: "quick-head" });
+  head.append(Object.assign(document.createElement("p"), { className: "quick-title", textContent: name }), close);
+  const kinds = [
+    { side: "t", goalName: name, label: "ゴール", icon: "⚽" },
+    { side: "u", goalName: `${name}（OG）`, label: "OG", red: true }
+  ];
+  const grid = Object.assign(document.createElement("div"), { className: "quick-grid is-opp" });
+  grid.append(
+    ...kinds.map(({ side, goalName, label, icon, red }) => {
+      const n = state.goals.filter((g) => g.side === side && g.name === goalName).length;
+      const cell = Object.assign(document.createElement("div"), { className: "quick-cell" });
+      const add = Object.assign(document.createElement("button"), { type: "button", className: "quick-mark" });
+      add.setAttribute("aria-label", `${name}の${label}を足す（今 ${n}）`);
+      if (red) add.append(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }));
+      else add.append(icon);
+      add.append(Object.assign(document.createElement("small"), { textContent: label }));
+      if (n) add.append(Object.assign(document.createElement("i"), { className: "quick-count", textContent: String(n) }));
+      add.addEventListener("click", () => {
+        const before = [...state.goals];
+        state.goals.push({ side, min: "", name: goalName });
+        syncScore(before);
+        render();
+        renderOppQuick();
+      });
+      const minus = Object.assign(document.createElement("button"), { type: "button", className: "quick-minus", textContent: "−", disabled: n <= 0 });
+      minus.setAttribute("aria-label", `${name}の${label}を1つ減らす`);
+      minus.addEventListener("click", () => {
+        const before = [...state.goals];
+        const i = state.goals.map((g) => g.side === side && g.name === goalName).lastIndexOf(true);
+        if (i >= 0) state.goals.splice(i, 1);
+        syncScore(before);
+        render();
+        renderOppQuick();
+      });
+      cell.append(add, minus);
+      return cell;
+    })
+  );
+  const note = Object.assign(document.createElement("p"), { className: "quick-note", textContent: "試合結果の得点者に入ります（時間や名前は「👕 チーム・試合結果」で）" });
+  $("quickMarks").replaceChildren(head, grid, note);
+}
+
+function openOppQuick(index, el) {
+  oppQuickIndex = index;
+  renderOppQuick();
+  placeQuick(el);
+}
+
+// ポップアップを丸の下（入らなければ上）に、画面からはみ出さないように置く
+function placeQuick(el) {
+  const menu = $("quickMarks");
   menu.hidden = false;
   const r = el.getBoundingClientRect();
   const w = menu.offsetWidth;
@@ -133,6 +196,7 @@ function openQuickMarks(index, el) {
 
 function closeQuickMarks() {
   quickIndex = -1;
+  oppQuickIndex = -1;
   quickEditing = false;
   $("quickMarks").hidden = true;
 }

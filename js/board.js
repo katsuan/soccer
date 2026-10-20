@@ -428,12 +428,14 @@ function tokenEl(p, extra, target) {
   number.style.color = inkOn(fill);
   number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
   el.querySelector("small").textContent = p.name || "";
-  // 印（イエロー・レッド・ゴール・アシスト）：いつも丸の右下（盤からはみ出すときは fitMarks で選手をずらす）
-  const parts = markParts(p.marks);
+  // 印（イエロー・レッド・ゴール・アシスト）：いつも丸の右下（盤からはみ出すときは fitMarks で選手をずらす）。
+  // 相手は、試合結果の得点者から数えた ⚽・OG
+  const marks = target.kind === "opp" ? oppMarksOf(p) : p.marks;
+  const parts = markParts(marks);
   if (parts.length) {
     const badge = document.createElement("em");
     badge.className = "marks";
-    badge.setAttribute("aria-label", markText(p.marks));
+    badge.setAttribute("aria-label", markText(marks));
     parts.forEach((part) => {
       for (let k = 0; k < part.count; k += 1) {
         if (part.red) {
@@ -463,9 +465,9 @@ function fitMarks() {
   if (!width) return;
   [...tokens.children].forEach((el) => {
     const badge = el.querySelector(".marks");
-    const match = /^p(\d+)$/.exec(el.dataset.key || "");
+    const match = /^([po])(\d+)$/.exec(el.dataset.key || "");
     if (!badge || !match) return;
-    const p = state.players[Number(match[1])];
+    const p = (match[1] === "p" ? state.players : state.opp || [])[Number(match[2])];
     const max = Math.floor((1 - (7 + badge.offsetWidth + 2) / width) * 1000) / 10;
     if (p && p.x > max) {
       p.x = max;
@@ -528,11 +530,13 @@ function bindDrag(el, target) {
     const clamp = (v) => Math.round(Math.min(98, Math.max(2, v)));
     // 自チームの選手を動かさずに長押しすると、印（ゴール・カードなど）をすぐ付けるメニュー（sheets.js の openQuickMarks）
     let longPressed = false;
-    const timer = target.kind === "player" && !adding
+    // 相手を長押しすると、相手の得点（OG も）を記録するポップアップ
+    const timer = (target.kind === "player" || target.kind === "opp") && !adding
       ? setTimeout(() => {
           longPressed = true;
           if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(15); // 触れた合図（震えない端末は何もしない）
-          openQuickMarks(target.index, el);
+          if (target.kind === "opp") openOppQuick(target.index, el);
+          else openQuickMarks(target.index, el);
         }, LONG_PRESS_MS)
       : 0;
     const onMove = (e) => {

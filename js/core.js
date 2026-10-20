@@ -169,6 +169,16 @@ function decodeMarks(text) {
   return Object.keys(marks).length ? marks : undefined;
 }
 
+// 相手の得点は、試合結果の得点者（相手側「相手10番」）として残す。相手のオウンゴールは自チーム側「相手10番（OG）」。
+// 相手のこまの印（⚽・赤いボール）は、そこから数える（相手の選手には印を持たせない）
+const oppLabel = (p) => `相手${p.number || ""}番`;
+function oppMarksOf(p) {
+  const name = oppLabel(p);
+  const g = state.goals.filter((x) => x.side === "t" && x.name === name).length;
+  const o = state.goals.filter((x) => x.side === "u" && x.name === `${name}（OG）`).length;
+  const marks = { ...(g ? { g } : {}), ...(o ? { o } : {}) };
+  return Object.keys(marks).length ? marks : undefined;
+}
 // 結果に使う選手の呼び名（名前がなければ「7番」）
 const playerLabel = (p) => p.name || (p.number ? `${p.number}番` : "");
 // 作戦盤の印から、結果のカードに入れるアシスト・カード（[[名前, 数], ...]・[["y"|"r", 名前, 数], ...]）
