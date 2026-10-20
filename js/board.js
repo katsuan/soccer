@@ -432,7 +432,7 @@ function tokenEl(p, extra, target) {
   number.style.color = inkOn(fill);
   number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
   el.querySelector("small").textContent = p.name || "";
-  // 交代して入った選手：丸の左上に小さく 🔄
+  // 交代して入った選手：丸の右上に小さく 🔄
   if (p.subs?.length) el.append(Object.assign(document.createElement("i"), { className: "sub-mark", textContent: "🔄", ariaLabel: "交代" }));
   // 印（イエロー・レッド・ゴール・アシスト）：いつも丸の右下（盤からはみ出すときは fitMarks で選手をずらす）。
   // 相手は、試合結果の得点者から数えた ⚽・OG
