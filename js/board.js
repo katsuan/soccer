@@ -146,8 +146,9 @@ function render() {
   $("viewTools").hidden = !viewMode;
   $("ballOn").setAttribute("aria-checked", String(!!state.showBall));
   $("ballOff").setAttribute("aria-checked", String(!state.showBall));
-  $("namesOn").setAttribute("aria-checked", String(state.showNames !== false));
-  $("namesOff").setAttribute("aria-checked", String(state.showNames === false));
+  document.querySelectorAll("[data-names]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.names === "on") === (state.showNames !== false))));
+  // 👁 表示を開いているときは、そちらに同じ切りかえがあるので出さない
+  $("editTools").hidden = !editMode || viewMode;
   $("togglePen").setAttribute("aria-pressed", String(drawing));
   $("toggleEdit").setAttribute("aria-pressed", String(editMode));
   $("undo").disabled = !undoStack.length;
@@ -164,7 +165,7 @@ function render() {
     : shapeMode
       ? "フォーメーションと列の形を選ぶと、その形に並べ直します（背番号・名前はそのまま）。"
     : editMode
-      ? "選手をタップすると、名前・背番号を変えられます。"
+      ? "選手をタップすると、名前・背番号・印を変えられます。"
       : "ドラッグで移動。タップや、何もない所をなぞって選ぶと、まとめて動かせます。";
   // チームの欄：人数（相手を出しているときは差も）
   const ours = state.players.length;

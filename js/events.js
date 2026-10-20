@@ -36,8 +36,8 @@ const setShowNames = (on) => {
   state.showNames = on;
   render();
 };
-$("namesOn").addEventListener("click", () => setShowNames(true));
-$("namesOff").addEventListener("click", () => setShowNames(false));
+// 👁 表示と 👤 選手名の両方にある（同じ設定）
+document.querySelectorAll("[data-names]").forEach((b) => b.addEventListener("click", () => setShowNames(b.dataset.names === "on")));
 // 📐 並びのタブ（自チーム・相手）
 $("shapeTabOurs").addEventListener("click", () => {
   shapeSide = "ours";

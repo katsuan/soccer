@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201350">
+<link rel="stylesheet" href="style.css?v=202610201351">
 </head>
 <body>
 <main class="wrap">
@@ -41,7 +41,7 @@
 
   <!-- ===== スタメン・作戦 ===== -->
   <section id="panelLineup" class="panel">
-    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
+    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手名・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
       <div class="board-head">
         <span class="label">作戦盤</span>
@@ -101,15 +101,23 @@
         </div>
         <span class="label">選手名</span>
         <div class="seg" role="radiogroup" aria-label="選手名">
-          <button id="namesOff" class="chip" type="button" role="radio">かくす</button>
-          <button id="namesOn" class="chip" type="button" role="radio">出す</button>
+          <button class="chip" type="button" role="radio" data-names="off">かくす</button>
+          <button class="chip" type="button" role="radio" data-names="on">出す</button>
         </div>
         <p class="hint left">フルコートは両チームが互い違いに、コート別は半分ずつ並びます。選手名をかくすと、画像・カードのリンクからも外します（入れた名前は消えません）。</p>
+      </div>
+      <!-- 👤 選手名：名前を入れるときも、表示・非表示を切りかえられるように（👁 表示の「選手名」と同じ設定） -->
+      <div id="editTools" class="view-tools" hidden>
+        <span class="label">選手名</span>
+        <div class="seg" role="radiogroup" aria-label="選手名">
+          <button class="chip" type="button" role="radio" data-names="off">かくす</button>
+          <button class="chip" type="button" role="radio" data-names="on">出す</button>
+        </div>
       </div>
       <div class="toolbar">
         <button id="toggleView" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👁️</i><span>表示</span></button>
         <button id="toggleShape" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">📐</i><span>並び</span></button>
-        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手</span></button>
+        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手名</span></button>
         <button id="togglePen" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">✏️</i><span>ペン</span></button>
         <button id="undo" class="tool" type="button"><i class="emoji" aria-hidden="true">↩️</i><span>戻す</span></button>
       </div>
@@ -160,7 +168,7 @@
     <details class="card fold">
       <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
       <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
-      <p class="hint">「選手」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
+      <p class="hint">「👤 選手名」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
     </details>
 
     <!-- 共有（主）と画像の保存を横に並べる -->
@@ -277,14 +285,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201350"></script>
-<script src="js/board.js?v=202610201350"></script>
-<script src="js/ink.js?v=202610201350"></script>
-<script src="js/tactics.js?v=202610201350"></script>
-<script src="js/sheets.js?v=202610201350"></script>
-<script src="js/share.js?v=202610201350"></script>
-<script src="js/events.js?v=202610201350"></script>
-<script src="app.js?v=202610201350"></script>
+<script src="js/core.js?v=202610201351"></script>
+<script src="js/board.js?v=202610201351"></script>
+<script src="js/ink.js?v=202610201351"></script>
+<script src="js/tactics.js?v=202610201351"></script>
+<script src="js/sheets.js?v=202610201351"></script>
+<script src="js/share.js?v=202610201351"></script>
+<script src="js/events.js?v=202610201351"></script>
+<script src="app.js?v=202610201351"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>
