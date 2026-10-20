@@ -251,11 +251,9 @@ $("resetResult").addEventListener("click", () => {
   }
   render();
 });
-$("saveVenue").addEventListener("click", saveVenue);
-$("removeVenue").addEventListener("click", removeVenue);
+$("venueAction").addEventListener("click", () => (venues.includes(String(state.where || "").trim()) ? removeVenue() : saveVenue()));
 $("venueSelect").addEventListener("change", (e) => {
   if (e.target.value) applyVenue(e.target.value);
-  else $("removeVenue").disabled = true;
 });
 $("addGoalUs").addEventListener("click", () => {
   state.goals.push({ side: "u", min: "", name: "" });

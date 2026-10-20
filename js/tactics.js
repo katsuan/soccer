@@ -88,24 +88,28 @@ function applyVenue(place) {
 }
 
 function removeVenue() {
-  const place = $("venueSelect").value;
+  const place = String(state.where || "").trim();
   if (!place || !confirm(`「${place}」を保存した場所から消しますか？`)) return;
   venues = venues.filter((v) => v !== place);
   save(VENUES_KEY, venues);
   renderVenues();
 }
 
+// ▼ は保存した場所があるときだけ。右のボタンは、今の場所が保存済みなら「消す」、まだなら「保存」
 function renderVenues() {
-  $("venueRow").hidden = !venues.length;
+  const place = String(state.where || "").trim();
+  const saved = venues.includes(place);
+  $("venuePick").hidden = !venues.length;
   const select = $("venueSelect");
   select.replaceChildren(
-    Object.assign(document.createElement("option"), { value: "", textContent: `保存した場所から選ぶ（${venues.length}件）` }),
+    Object.assign(document.createElement("option"), { value: "", textContent: "保存した場所" }),
     ...venues.map((v) => Object.assign(document.createElement("option"), { value: v, textContent: v }))
   );
-  // 今の場所が保存した中にあれば、それを選んでおく（「消す」で消せる）
-  select.value = venues.includes(state.where) ? state.where : "";
-  $("removeVenue").disabled = !select.value;
-  $("saveVenue").disabled = !String(state.where || "").trim() || venues.includes(String(state.where).trim());
+  select.value = "";
+  const action = $("venueAction");
+  action.textContent = saved ? "消す" : "保存";
+  action.classList.toggle("is-remove", saved);
+  action.disabled = !place;
 }
 
 function renderTactics() {

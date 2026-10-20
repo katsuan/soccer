@@ -183,9 +183,15 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 /* 保存した作戦 */
 .save-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
-/* 場所：入力＋保存、その下に保存した場所のプルダウン＋消す */
+/* 場所：1行に 入力・▼（保存した場所。select を小さな四角に見せる）・保存／消す */
 .venue { display: grid; gap: 6px; }
-.venue .save-row[hidden] { display: none; }
+.venue-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: stretch; gap: 6px; }
+.venue-pick { position: relative; display: grid; place-items: center; width: 46px; border: 2px solid var(--border); border-radius: 12px; background: #fff; }
+.venue-pick[hidden] { display: none; }
+.venue-pick::after { content: "▼"; font-size: 12px; color: var(--ink-soft); pointer-events: none; }
+.venue-pick select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.venue-row .btn { width: auto; min-height: 46px; padding: 0 14px; }
+.venue-row .btn.is-remove { color: #c2410c; }
 .venue .btn:disabled { opacity: 0.45; }
 .save-row .btn { width: auto; min-height: 46px; padding: 0 18px; }
 .tactic-list { display: grid; gap: 6px; list-style: none; }
