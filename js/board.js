@@ -56,7 +56,6 @@ function render() {
   $("shapeTabOurs").setAttribute("aria-selected", String(!opp));
   $("shapeTabOpp").setAttribute("aria-selected", String(opp));
   $("ourStepper").hidden = opp;
-  $("oppLayoutRow").hidden = !opp;
   $("oppLayoutNone").setAttribute("aria-checked", String(!state.showOpp));
   $("oppLayoutFull").setAttribute("aria-checked", String(state.showOpp && state.oppLayout !== "half"));
   $("oppLayoutHalf").setAttribute("aria-checked", String(state.showOpp && state.oppLayout === "half"));
@@ -107,7 +106,7 @@ function render() {
   customInput.onkeydown = (e) => {
     if (e.key === "Enter" && !e.isComposing) $("customApply").click();
   };
-  if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "「フルコート」（互い違い）か「コート別」（半分ずつ）を選ぶと、相手を盤に出します。" : "";
+  if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "相手はいま出していません。「👁 表示」で出すか、ここでフォーメーションを選ぶと出ます。" : "";
   renderLineShapes(opp ? "opp" : "ours");
   // チームの色
   const swatches = (key) => {
@@ -143,14 +142,16 @@ function render() {
   renderTokens();
   drawInk();
   // 作戦盤の道具
-  $("toggleBall").setAttribute("aria-pressed", String(state.showBall));
+  $("toggleView").setAttribute("aria-pressed", String(viewMode));
+  $("viewTools").hidden = !viewMode;
+  $("ballOn").setAttribute("aria-checked", String(!!state.showBall));
+  $("ballOff").setAttribute("aria-checked", String(!state.showBall));
+  $("namesOn").setAttribute("aria-checked", String(state.showNames !== false));
+  $("namesOff").setAttribute("aria-checked", String(state.showNames === false));
   $("togglePen").setAttribute("aria-pressed", String(drawing));
   $("toggleEdit").setAttribute("aria-pressed", String(editMode));
   $("undo").disabled = !undoStack.length;
   $("penTools").hidden = !drawing;
-  $("editTools").hidden = !editMode;
-  $("toggleNames").setAttribute("aria-pressed", String(state.showNames !== false));
-  $("toggleNames").textContent = state.showNames !== false ? "🏷️ 名前：表示中" : "🏷️ 名前：かくし中";
   board.classList.toggle("hide-names", state.showNames === false);
   $("toggleShape").setAttribute("aria-pressed", String(shapeMode));
   $("shapeTools").hidden = !shapeMode;
@@ -158,6 +159,8 @@ function render() {
   board.classList.toggle("is-editing", editMode);
   $("boardHint").textContent = drawing
     ? "指でなぞって線を描けます。"
+    : viewMode
+      ? "盤に出すもの（相手・ボール・選手名）を選べます。"
     : shapeMode
       ? "フォーメーションと列の形を選ぶと、その形に並べ直します（背番号・名前はそのまま）。"
     : editMode

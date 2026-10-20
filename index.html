@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201346">
+<link rel="stylesheet" href="style.css?v=202610201350">
 </head>
 <body>
 <main class="wrap">
@@ -41,7 +41,7 @@
 
   <!-- ===== スタメン・作戦 ===== -->
   <section id="panelLineup" class="panel">
-    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（ボール・ペン・選手・並び・戻す。相手は「並び」の相手タブ）をひとまとめに。人数・色は下の「チーム」の欄 -->
+    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
       <div class="board-head">
         <span class="label">作戦盤</span>
@@ -61,12 +61,6 @@
         <div class="shape-tabs" role="tablist" aria-label="自チーム・相手">
           <button id="shapeTabOurs" class="shape-tab" type="button" role="tab">自チーム</button>
           <button id="shapeTabOpp" class="shape-tab" type="button" role="tab">相手</button>
-        </div>
-        <!-- 相手を出すか・どう並べるか（出さない／フルコート＝互い違い／コート別＝半分ずつ） -->
-        <div id="oppLayoutRow" class="chips opp-layout" role="radiogroup" aria-label="相手の出し方" hidden>
-          <button id="oppLayoutNone" class="chip" type="button" role="radio" aria-checked="true">出さない</button>
-          <button id="oppLayoutFull" class="chip" type="button" role="radio" aria-checked="false">フルコート</button>
-          <button id="oppLayoutHalf" class="chip" type="button" role="radio" aria-checked="false">コート別</button>
         </div>
         <div class="shape-head">
           <div id="ourStepper" class="stepper" role="group" aria-label="自チームの人数">
@@ -92,15 +86,31 @@
         <div id="penColors" class="chips"></div>
         <button id="inkClear" class="link" type="button">線を全部消す</button>
       </div>
-      <div id="editTools" class="chips edit-tools" hidden>
-        <button id="toggleNames" class="chip" type="button" aria-pressed="true">名前を表示</button>
-        <span class="hint">オフにすると、盤・画像・カードのリンクから名前を外します（名前は消えません）。</span>
+      <!-- 👁 表示：盤に何を見せるか（相手・ボール・選手名）をここにまとめる。並べ方は 📐 並び -->
+      <div id="viewTools" class="view-tools" hidden>
+        <span class="label">相手</span>
+        <div class="seg" role="radiogroup" aria-label="相手">
+          <button id="oppLayoutNone" class="chip" type="button" role="radio">出さない</button>
+          <button id="oppLayoutFull" class="chip" type="button" role="radio">フルコート</button>
+          <button id="oppLayoutHalf" class="chip" type="button" role="radio">コート別</button>
+        </div>
+        <span class="label">ボール</span>
+        <div class="seg" role="radiogroup" aria-label="ボール">
+          <button id="ballOff" class="chip" type="button" role="radio">出さない</button>
+          <button id="ballOn" class="chip" type="button" role="radio">出す</button>
+        </div>
+        <span class="label">選手名</span>
+        <div class="seg" role="radiogroup" aria-label="選手名">
+          <button id="namesOff" class="chip" type="button" role="radio">かくす</button>
+          <button id="namesOn" class="chip" type="button" role="radio">出す</button>
+        </div>
+        <p class="hint left">フルコートは両チームが互い違いに、コート別は半分ずつ並びます。選手名をかくすと、画像・カードのリンクからも外します（入れた名前は消えません）。</p>
       </div>
       <div class="toolbar">
-        <button id="toggleBall" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">⚽</i><span>ボール</span></button>
-        <button id="togglePen" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">✏️</i><span>ペン</span></button>
-        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手</span></button>
+        <button id="toggleView" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👁️</i><span>表示</span></button>
         <button id="toggleShape" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">📐</i><span>並び</span></button>
+        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手</span></button>
+        <button id="togglePen" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">✏️</i><span>ペン</span></button>
         <button id="undo" class="tool" type="button"><i class="emoji" aria-hidden="true">↩️</i><span>戻す</span></button>
       </div>
       <p class="hint" id="boardHint"></p>
@@ -267,14 +277,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201346"></script>
-<script src="js/board.js?v=202610201346"></script>
-<script src="js/ink.js?v=202610201346"></script>
-<script src="js/tactics.js?v=202610201346"></script>
-<script src="js/sheets.js?v=202610201346"></script>
-<script src="js/share.js?v=202610201346"></script>
-<script src="js/events.js?v=202610201346"></script>
-<script src="app.js?v=202610201346"></script>
+<script src="js/core.js?v=202610201350"></script>
+<script src="js/board.js?v=202610201350"></script>
+<script src="js/ink.js?v=202610201350"></script>
+<script src="js/tactics.js?v=202610201350"></script>
+<script src="js/sheets.js?v=202610201350"></script>
+<script src="js/share.js?v=202610201350"></script>
+<script src="js/events.js?v=202610201350"></script>
+<script src="app.js?v=202610201350"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

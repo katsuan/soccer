@@ -75,10 +75,13 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 /* 名前：白い文字がピッチの白線と重なっても読めるよう、半透明の濃い札に入れる */
 .token small { max-width: 64px; overflow: hidden; padding: 0 5px; border-radius: 999px; background: rgba(16, 36, 24, 0.72); color: #fff; font-size: 11px; font-weight: 800; line-height: 15px; white-space: nowrap; text-overflow: ellipsis; }
 .token small:empty, .hide-names .token small { display: none; }
-.edit-tools { align-items: center; gap: 8px; }
-.opp-layout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.opp-layout .chip { padding: 0 6px; font-size: 12px; }
-.edit-tools .hint { flex: 1 1 160px; margin: 0; text-align: left; }
+/* 👁 表示：左に項目名、右に選ぶボタン（同じ幅で並べる） */
+.view-tools { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 10px; padding: 10px 2px 2px; }
+.view-tools[hidden] { display: none; }
+.view-tools > .label { font-size: 12px; font-weight: 800; }
+.view-tools .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
+.view-tools .seg .chip { padding: 0 6px; font-size: 12px; }
+.view-tools .hint { grid-column: 1 / -1; margin: 0; }
 .token.is-ball { width: 28px; margin-left: -14px; margin-top: -14px; font-size: 22px; line-height: 1; }
 .token.is-dragging { cursor: grabbing; z-index: 2; }
 

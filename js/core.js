@@ -237,6 +237,7 @@ const state = Object.assign(
 );
 let drawing = false; // ペンで描くモード（作戦盤の線）
 let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
+let viewMode = false; // 👁 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
 let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 

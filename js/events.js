@@ -23,11 +23,21 @@ $("courtSelect").addEventListener("change", (event) => {
   selected.clear();
   render();
 });
-$("toggleBall").addEventListener("click", () => {
+// 👁 表示：ボール・選手名を出す／出さない
+const setShowBall = (on) => {
+  if (state.showBall === on) return;
   remember();
-  state.showBall = !state.showBall;
+  state.showBall = on;
   render();
-});
+};
+$("ballOn").addEventListener("click", () => setShowBall(true));
+$("ballOff").addEventListener("click", () => setShowBall(false));
+const setShowNames = (on) => {
+  state.showNames = on;
+  render();
+};
+$("namesOn").addEventListener("click", () => setShowNames(true));
+$("namesOff").addEventListener("click", () => setShowNames(false));
 // 📐 並びのタブ（自チーム・相手）
 $("shapeTabOurs").addEventListener("click", () => {
   shapeSide = "ours";
@@ -37,9 +47,15 @@ $("shapeTabOpp").addEventListener("click", () => {
   shapeSide = "opp";
   render();
 });
+// 盤の下の欄（表示・並び・ペンの色）は、どれか1つだけ開く
+$("toggleView").addEventListener("click", () => {
+  viewMode = !viewMode;
+  if (viewMode) drawing = shapeMode = false;
+  render();
+});
 $("toggleShape").addEventListener("click", () => {
   shapeMode = !shapeMode;
-  if (shapeMode) drawing = false; // 盤の下はどちらか一方（ペンの色の欄と並びの欄）
+  if (shapeMode) drawing = viewMode = false;
   render();
 });
 $("togglePen").addEventListener("click", () => {
@@ -47,6 +63,7 @@ $("togglePen").addEventListener("click", () => {
   if (drawing) {
     editMode = false;
     shapeMode = false;
+    viewMode = false;
   }
   render();
 });
@@ -56,7 +73,7 @@ $("toggleEdit").addEventListener("click", () => {
   selected.clear();
   render();
 });
-// 📐 並び →「相手」：出さない／フルコート／コート別。消しても、前に並べた相手（人数・位置）は残す
+// 👁 表示 →「相手」：出さない／フルコート／コート別。消しても、前に並べた相手（人数・位置）は残す
 $("oppLayoutNone").addEventListener("click", () => {
   if (!state.showOpp) return;
   remember();
@@ -72,10 +89,6 @@ const showOppAs = (layout) => {
 };
 $("oppLayoutFull").addEventListener("click", () => showOppAs("full"));
 $("oppLayoutHalf").addEventListener("click", () => showOppAs("half"));
-$("toggleNames").addEventListener("click", () => {
-  state.showNames = state.showNames === false;
-  render();
-});
 $("undo").addEventListener("click", undo);
 // 相手の人数を1人ずつ変える（ほかの相手の位置はそのまま）
 $("addOpp").addEventListener("click", () => {
