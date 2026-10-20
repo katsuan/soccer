@@ -165,7 +165,7 @@ $("resetPositions").addEventListener("click", () => {
 // LINE で共有：スタメンのカード・作戦の画像・試合結果のカードから選ぶシート
 const shareSheet = $("shareSheet");
 $("shareLineup").addEventListener("click", () => {
-  // 試合結果を入れてあれば、最初から2枚（メンバー・試合結果）を選んでおく
+  // 試合結果を入れてあれば、最初から2枚（さくせん盤・試合結果）を選んでおく
   $("pickLineup").checked = true;
   $("pickResult").checked = hasResult();
   // 送る前のプレビュー：それぞれのカードに入る中身を短く

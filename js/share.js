@@ -177,7 +177,8 @@ function lineupCardQuery() {
   const data = lineupData();
   return new URLSearchParams({
     kind: "lineup",
-    headerTitle: "スタメン発表",
+    // 見出しは、相手を出していなければ「スタメン発表」、出していれば「作戦盤」（相手も描くので）
+    headerTitle: state.showOpp ? "作戦盤" : "スタメン発表",
     date: whenText(),
     showDate: whenText() ? "true" : "false",
     title: state.opponent ? `vs ${state.opponent}` : state.team || "スタメン",

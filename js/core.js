@@ -416,7 +416,7 @@ function applyQuery() {
     if (hex(data.c)) state.ourColor = hex(data.c);
     // 画像のリンクからは、相手・ボール・線も戻す（スタメンのカードからは選手だけ）
     if (Array.isArray(data.op)) {
-      // [x, y] だけのときは背番号が 1・2・3… の順。メンバーのカードからは [背番号, 名前, x, y]
+      // [x, y] だけのときは背番号が 1・2・3… の順。さくせん盤のカードからは [背番号, 名前, x, y]
       state.opp = data.op.slice(0, MAX_PLAYERS).map((p, i) => {
         const [number, name, x, y] = p.length === 2 ? [String(i + 1), "", p[0], p[1]] : p.length === 3 ? [p[0], "", p[1], p[2]] : p;
         return { number: String(number ?? ""), name: String(name ?? ""), x: Number(x) || 50, y: Number(y) || 50 };

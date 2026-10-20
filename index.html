@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201558">
+<link rel="stylesheet" href="style.css?v=202610201601">
 </head>
 <body>
 <main class="wrap">
@@ -45,7 +45,7 @@
         <ul>
           <li>選手はドラッグで動かせます。<b>長押し</b>で背番号・名前を変えたり、得点やカードを記録できます。</li>
           <li>「👁️ 表示」で相手・ボールを出し、「📐 並び」で人数とフォーメーションを決めます。</li>
-          <li>「💬 LINE で共有」から、メンバーと試合結果のカードを送れます。</li>
+          <li>「💬 LINE で共有」から、さくせん盤と試合結果のカードを送れます。</li>
         </ul>
         <button id="firstTipClose" class="btn small" type="button">わかった</button>
       </div>
@@ -201,7 +201,7 @@
         <button id="addGoalUs" class="btn ghost small" type="button">＋ 自チームの得点</button>
         <button id="addGoalThem" class="btn ghost small" type="button">＋ 相手の得点</button>
       </div>
-      <!-- ひとことは2つ：作戦盤（メンバーのカード。🏟️ 会場情報）と、結果（試合結果のカード。ここ）。改行できる -->
+      <!-- ひとことは2つ：作戦盤（さくせん盤のカード。🏟️ 会場情報）と、結果（試合結果のカード。ここ）。改行できる -->
       <label>ひとこと（結果）<textarea id="resultNote" rows="2" maxlength="120" placeholder="例：MVP は山田！&#10;最後まで走りきりました"></textarea></label>
       <!-- ひな形：タップで、ひとことの次の行に足す -->
       <div class="chips note-presets" role="group" aria-label="ひとこと（結果）のひな形">
@@ -230,7 +230,7 @@
           <button id="venueAction" class="btn ghost small" type="button">保存</button>
         </div>
       </div>
-      <!-- 控え・集合時間などは、ひとことに改行して書く（メンバーのカードにそのまま入る） -->
+      <!-- 控え・集合時間などは、ひとことに改行して書く（さくせん盤のカードにそのまま入る） -->
       <label>ひとこと（作戦盤）<textarea id="lineupNote" rows="3" maxlength="200" placeholder="例：集合は8:30です&#10;控え：佐藤、鈴木、田中"></textarea></label>
       <div class="chips note-presets" role="group" aria-label="ひとこと（作戦盤）のひな形">
         <button class="chip" type="button" data-note="lineupNote" data-text="集合：">＋ 集合</button>
@@ -269,10 +269,10 @@
     <!-- カードで送る：送るカードを選ぶ（2枚なら1つのメッセージに横に並ぶ）。試合結果は入れてあれば最初から選んでおく -->
     <div class="card-picks">
       <!-- それぞれのカードを、おくるんで送るときと同じ見た目で小さく見せる（タップで選ぶ・外す） -->
-      <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 メンバー</b></span><span id="previewLineup" class="pick-preview"></span></label>
+      <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 さくせん盤</b></span><span id="previewLineup" class="pick-preview"></span></label>
       <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b></span><span id="previewResult" class="pick-preview"></span></label>
       <a id="sendCards" class="btn line" href="#">💬 カードで送る</a>
-      <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。メンバーのカードのピッチをタップすると、さくせん盤で同じ配置が開きます。</p>
+      <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。さくせん盤のカードのピッチをタップすると、さくせん盤で同じ配置が開きます。</p>
     </div>
     <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 作戦を画像で送る</b><small>相手・ボール・線も入った画像です。画像をタップすると、さくせん盤で同じ配置が開きます。画像は時間がたつと消えることがあります。</small></button>
     <p id="imageStatus" class="hint" aria-live="polite"></p>
@@ -283,14 +283,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201558"></script>
-<script src="js/board.js?v=202610201558"></script>
-<script src="js/ink.js?v=202610201558"></script>
-<script src="js/tactics.js?v=202610201558"></script>
-<script src="js/sheets.js?v=202610201558"></script>
-<script src="js/share.js?v=202610201558"></script>
-<script src="js/events.js?v=202610201558"></script>
-<script src="app.js?v=202610201558"></script>
+<script src="js/core.js?v=202610201601"></script>
+<script src="js/board.js?v=202610201601"></script>
+<script src="js/ink.js?v=202610201601"></script>
+<script src="js/tactics.js?v=202610201601"></script>
+<script src="js/sheets.js?v=202610201601"></script>
+<script src="js/share.js?v=202610201601"></script>
+<script src="js/events.js?v=202610201601"></script>
+<script src="app.js?v=202610201601"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>
