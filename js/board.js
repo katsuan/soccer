@@ -67,6 +67,8 @@ function render() {
     ...rows.flatMap(([ours, theirs]) => [ours || document.createElement("span"), theirs || document.createElement("span")])
   );
   $("oppHint").textContent = state.showOpp ? "" : "（選ぶと表示）";
+  // 📐 並びの欄：今のコートのフォーメーション（自チーム）と、列ごとの形
+  $("shapeFormations").replaceChildren(...court.list.map((f) => chip(f, state.formation === f, () => pickOurs(f), "radio")));
   renderLineShapes();
   // チームの色
   const swatches = (key) => {
@@ -108,10 +110,14 @@ function render() {
   $("toggleEdit").setAttribute("aria-pressed", String(editMode));
   $("undo").disabled = !undoStack.length;
   $("penTools").hidden = !drawing;
+  $("toggleShape").setAttribute("aria-pressed", String(shapeMode));
+  $("shapeTools").hidden = !shapeMode;
   board.classList.toggle("is-drawing", drawing);
   board.classList.toggle("is-editing", editMode);
   $("boardHint").textContent = drawing
     ? "指でなぞって線を描けます。"
+    : shapeMode
+      ? "フォーメーションと列の形を選ぶと、その形に並べ直します（背番号・名前はそのまま）。"
     : editMode
       ? "選手をタップすると、名前・背番号を変えられます。"
       : "ドラッグで移動。タップや、何もない所をなぞって選ぶと、まとめて動かせます。";
@@ -161,9 +167,11 @@ function renderLineShapes() {
   const box = $("lineShapes");
   const shapes = lineShapesOf(state.formation);
   const names = LINE_NAMES[lines.length] || lines.map((_, i) => `${i + 1}列目`);
+  // 盤と同じ順（上が前＝FW、下が後ろ＝DF）に並べる
   const rows = lines
     .map((count, i) => ({ count, i, options: LINE_SHAPES[count] }))
-    .filter((line) => line.options);
+    .filter((line) => line.options)
+    .reverse();
   box.hidden = !rows.length;
   if (!rows.length) {
     box.replaceChildren();
@@ -181,7 +189,7 @@ function renderLineShapes() {
   };
   const title = document.createElement("p");
   title.className = "line-shapes-title";
-  title.textContent = `並びの形（${state.formation}）`;
+  title.textContent = `列ごとの形（${state.formation}・上が前）`;
   box.replaceChildren(
     title,
     ...rows.map(({ count, i, options }) => {

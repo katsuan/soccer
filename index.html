@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201303">
+<link rel="stylesheet" href="style.css?v=202610201313">
 </head>
 <body>
 <main class="wrap">
@@ -41,7 +41,7 @@
 
   <!-- ===== スタメン・作戦 ===== -->
   <section id="panelLineup" class="panel">
-    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（相手・ボール・ペン・選手・戻す）をひとまとめに。人数・色・フォーメーションは下の「チーム」の欄 -->
+    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（相手・ボール・ペン・選手・並び・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
       <div class="board-head">
         <span class="label">作戦盤</span>
@@ -54,6 +54,12 @@
         <div id="tokens" class="tokens"></div>
         <div id="marquee" class="marquee" hidden></div>
       </div>
+      <!-- 📐 並び：フォーメーションと列ごとの形（3 を三角に、4 をダイヤに、2 を開く・しぼる など）。盤を見ながら変えられるよう、盤のすぐ下に。
+           列は盤と同じく上から FW → MF → DF の順 -->
+      <div id="shapeTools" class="shape-tools" hidden>
+        <div id="shapeFormations" class="chips shape-formations" role="radiogroup" aria-label="フォーメーション"></div>
+        <div id="lineShapes" class="line-shapes" aria-label="列ごとの形"></div>
+      </div>
       <div id="penTools" class="chips pen-tools" hidden>
         <div id="penColors" class="chips"></div>
         <button id="inkClear" class="link" type="button">線を全部消す</button>
@@ -63,6 +69,7 @@
         <button id="toggleBall" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">⚽</i><span>ボール</span></button>
         <button id="togglePen" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">✏️</i><span>ペン</span></button>
         <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手</span></button>
+        <button id="toggleShape" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">📐</i><span>並び</span></button>
         <button id="undo" class="tool" type="button"><i class="emoji" aria-hidden="true">↩️</i><span>戻す</span></button>
       </div>
       <p class="hint" id="boardHint"></p>
@@ -94,8 +101,6 @@
       </div>
       <!-- フォーメーション：同じ並びは同じ行（左が自チーム、右が相手） -->
       <div id="formationRows" class="versus" role="group" aria-label="フォーメーション"></div>
-      <!-- 列ごとの形（自チーム）：3 を三角に、4 をダイヤに、2 を開く・しぼる など。選ぶとその形に並べ直す -->
-      <div id="lineShapes" class="line-shapes" aria-label="列ごとの形"></div>
       <p class="hint left">人数の − ＋ は1人ずつ増やす・減らす（ほかの選手の位置はそのまま）。退場や数的有利の練習に。相手の欄を触ると、相手も表示します。</p>
     </details>
 
@@ -241,14 +246,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201303"></script>
-<script src="js/board.js?v=202610201303"></script>
-<script src="js/ink.js?v=202610201303"></script>
-<script src="js/tactics.js?v=202610201303"></script>
-<script src="js/sheets.js?v=202610201303"></script>
-<script src="js/share.js?v=202610201303"></script>
-<script src="js/events.js?v=202610201303"></script>
-<script src="app.js?v=202610201303"></script>
+<script src="js/core.js?v=202610201313"></script>
+<script src="js/board.js?v=202610201313"></script>
+<script src="js/ink.js?v=202610201313"></script>
+<script src="js/tactics.js?v=202610201313"></script>
+<script src="js/sheets.js?v=202610201313"></script>
+<script src="js/share.js?v=202610201313"></script>
+<script src="js/events.js?v=202610201313"></script>
+<script src="app.js?v=202610201313"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

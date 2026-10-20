@@ -195,6 +195,7 @@ const state = Object.assign(
 );
 let drawing = false; // ペンで描くモード（作戦盤の線）
 let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
+let shapeMode = false; // 📐 並び：盤のすぐ下にフォーメーションと列ごとの形を出す
 
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
 const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];

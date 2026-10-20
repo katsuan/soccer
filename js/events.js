@@ -34,9 +34,17 @@ $("toggleBall").addEventListener("click", () => {
   state.showBall = !state.showBall;
   render();
 });
+$("toggleShape").addEventListener("click", () => {
+  shapeMode = !shapeMode;
+  if (shapeMode) drawing = false; // 盤の下はどちらか一方（ペンの色の欄と並びの欄）
+  render();
+});
 $("togglePen").addEventListener("click", () => {
   drawing = !drawing;
-  if (drawing) editMode = false;
+  if (drawing) {
+    editMode = false;
+    shapeMode = false;
+  }
   render();
 });
 $("toggleEdit").addEventListener("click", () => {

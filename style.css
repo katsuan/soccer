@@ -138,7 +138,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .select select { appearance: none; -webkit-appearance: none; min-height: 36px; padding: 0 28px 0 12px; border: 2px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
 .select::after { content: "▾"; position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-soft); pointer-events: none; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-.toolbar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.toolbar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; }
 .tool { display: grid; justify-items: center; gap: 2px; min-height: 56px; padding: 6px 0 4px; border: 2px solid transparent; border-radius: 14px; background: #eaf4ed; color: var(--ink); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
 .tool .emoji { font-size: 22px; font-style: normal; line-height: 26px; }
 .tool[aria-pressed="true"] { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
@@ -226,11 +226,17 @@ h1 .logo { width: 28px; height: 28px; }
 .brand-copy { margin: 2px 2px 0; color: #2E8B4A; font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: 0.02em; }
 
 /* 列ごとの形（フォーメーションの下）：左に列の名前、右に形のボタン */
-.line-shapes { display: grid; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.line-shapes { display: grid; gap: 8px; }
 .line-shapes[hidden] { display: none; }
 .line-shapes-title { margin: 0; color: var(--ink-soft, #5b6b62); font-size: 12px; font-weight: 800; }
 .line-shape-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 6px; }
 .line-shape-label { font-size: 12px; font-weight: 800; white-space: nowrap; }
 .line-shape-row .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 .line-shape-row .chip { min-height: 34px; padding: 0 4px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 📐 並び：盤のすぐ下。フォーメーションのボタン（横に並べて、あふれたら横にすべらせる）と列ごとの形 */
+.shape-tools { display: grid; gap: 10px; padding: 10px 2px 2px; }
+.shape-tools[hidden] { display: none; }
+.shape-formations { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.shape-formations .chip { flex: 0 0 auto; min-height: 32px; padding: 0 12px; font-size: 12px; }
 
