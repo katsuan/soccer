@@ -3,15 +3,21 @@
 "use strict";
 
 // ---- おくるんへのリンク ----
-// スタメン（選手の位置）の中身。おくるんのカードにも、作戦盤を開くリンクにも使う
-const lineupData = () => ({
-  m: state.mode,
-  f: state.formation,
-  t: state.team,
-  o: state.opponent,
-  c: state.ourColor,
-  pl: state.players.map((p) => [p.number, p.name, p.x, p.y])
-});
+// スタメン（選手の位置）の中身。おくるんのカードにも、作戦盤を開くリンクにも使う。
+// 👁️ 表示に合わせる：選手名を出さないなら名前を外し、相手を出しているなら相手（op: [[背番号, 名前, x, y], ...]・oc: 相手の色）も入れる
+const lineupData = () => {
+  const name = (p) => (state.showNames === false ? "" : p.name || "");
+  const r = (v) => Math.round(v);
+  return {
+    m: state.mode,
+    f: state.formation,
+    t: state.team,
+    o: state.opponent,
+    c: state.ourColor,
+    pl: state.players.map((p) => [p.number, name(p), r(p.x), r(p.y)]),
+    ...(state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p) => [p.number, name(p), r(p.x), r(p.y)]), oc: state.oppColor } : {})
+  };
+};
 
 // 画像をタップしたときに開く、同じ作戦盤へのリンク。相手・ボール・線も入れる。位置は整数に丸める（短くするため）。
 // 1000 文字に収まらないときは、選手の名前 → 線（新しいものから1本ずつ）→ ボール → 相手の順に外し、
@@ -103,19 +109,24 @@ function lineupPreviewEl() {
   const q = lineupCardQuery();
   const pitch = el("div", `cp-pitch${state.mode === "futsal" ? " is-futsal" : ""}`);
   pitch.innerHTML = '<i class="is-half"></i><i class="is-circle"></i><i class="is-box-top"></i><i class="is-box-bottom"></i>';
-  const ink = inkOn(state.ourColor);
-  state.players.forEach((p, i) => {
-    const t = el("span", "cp-token");
-    t.style.left = `${p.x}%`;
-    t.style.top = `${p.y}%`;
-    const n = el("b", "", p.number || "");
-    n.style.background = state.ourColor;
-    n.style.color = ink;
-    t.append(n);
-    if (i === 0) t.append(el("i", "cp-gk", "🧤"));
-    if (p.name) t.append(el("small", "", p.name));
-    pitch.append(t);
-  });
+  // カードに渡すのと同じ中身（相手・名前は 👁️ 表示どおり）で描く
+  const data = lineupData();
+  const team = (list, color) =>
+    list.forEach(([number, name, x, y], i) => {
+      const t = el("span", "cp-token");
+      t.style.left = `${x}%`;
+      t.style.top = `${y}%`;
+      const n = el("b", "", number || "");
+      n.style.background = color;
+      n.style.color = inkOn(color);
+      n.style.borderColor = isLight(color) ? "#23302a" : "#ffffff";
+      t.append(n);
+      if (i === 0) t.append(el("i", "cp-gk", "🧤"));
+      if (name) t.append(el("small", "", name));
+      pitch.append(t);
+    });
+  if (data.op) team(data.op, data.oc);
+  team(data.pl, data.c);
   // 「タップすると さくせん盤 が開きます」の一文は、縮めると読めないのでプレビューには入れない（シートの説明に書く）
   return previewCard(q, [pitch]);
 }
