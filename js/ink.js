@@ -10,7 +10,8 @@ function drawInk() {
   ink.height = Math.round(rect.height * dpr);
   const ctx = ink.getContext("2d");
   ctx.scale(dpr, dpr);
-  for (const stroke of state.strokes) drawStroke(ctx, stroke, rect.width, rect.height, 3);
+  // 横のコートでは、線の点も回して描く（線は縦のコートの % で持っている）
+  for (const stroke of state.strokes) drawStroke(ctx, { ...stroke, points: stroke.points.map(([x, y]) => toView(x, y)) }, rect.width, rect.height, 3);
 }
 
 function drawStroke(ctx, stroke, w, h, width) {
@@ -69,7 +70,8 @@ ink.addEventListener("pointerdown", (event) => {
     // つかめなくても描ける
   }
   const rect = board.getBoundingClientRect();
-  const point = (e) => [Math.round(((e.clientX - rect.left) / rect.width) * 1000) / 10, Math.round(((e.clientY - rect.top) / rect.height) * 1000) / 10];
+  // 画面の位置 → 縦のコートの %（横のコートでは回して戻す）
+  const point = (e) => fromView(((e.clientX - rect.left) / rect.width) * 100, ((e.clientY - rect.top) / rect.height) * 100).map((v) => Math.round(v * 10) / 10);
   remember();
   const stroke = { color: state.penColor, points: [point(event)] };
   state.strokes.push(stroke);

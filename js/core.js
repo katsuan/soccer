@@ -325,6 +325,7 @@ const state = Object.assign(
     showBall: false,
     oppLayout: "full", // 相手を出したときの並べ方："full"＝フルコート（互い違い）・"half"＝コート別（半分ずつ）
     showNames: true, // 盤・画像・リンクに選手の名前を出すか（👁️ 表示で切りかえ）
+    courtView: "auto", // コートの向き（👁️ 表示）："auto"・"portrait"・"landscape"
     showMarks: true, // 盤・画像・リンクに得点・カードなどの印を出すか（👁️ 表示で切りかえ）
     ball: { x: 50, y: 50 },
     strokes: [],
@@ -356,6 +357,17 @@ const state = Object.assign(
   load(STORE_KEY, {})
 );
 let drawing = false; // ペンで描くモード（作戦盤の線）
+// コートの向き：データ（選手・ボールの位置、線）はいつも縦のコートの % で持つ。
+// 横のコートのときは、描くときとさわるときだけ 90° 回す（自陣が左、攻める向きが右）。
+// state.courtView："auto"（横に広い画面なら横）・"portrait"（縦）・"landscape"（横）
+let landscape = false;
+const toView = (x, y) => (landscape ? [100 - y, x] : [x, y]);
+const fromView = (vx, vy) => (landscape ? [vy, 100 - vx] : [vx, vy]);
+const wideScreen = () => window.matchMedia("(min-aspect-ratio: 5/4) and (min-width: 600px)").matches;
+function updateLandscape() {
+  landscape = state.courtView === "landscape" || ((state.courtView || "auto") === "auto" && wideScreen());
+  return landscape;
+}
 let viewMode = false; // 👁️ 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
 let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）

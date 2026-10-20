@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201604">
+<link rel="stylesheet" href="style.css?v=202610202232">
 </head>
 <body>
 <main class="wrap">
@@ -117,7 +117,13 @@
           <button class="chip" type="button" role="radio" data-marks="off">出さない</button>
           <button class="chip" type="button" role="radio" data-marks="on">出す</button>
         </div>
-        <p class="hint left">フルコートは両チームが互い違いに、コート別は半分ずつ並びます。選手名・得点などを出さないと、画像・カードのリンクからも外します（入れたものは消えません）。</p>
+        <span class="label">コート</span>
+        <div class="seg" role="radiogroup" aria-label="コートの向き">
+          <button class="chip" type="button" role="radio" data-court-view="auto">自動</button>
+          <button class="chip" type="button" role="radio" data-court-view="portrait">縦</button>
+          <button class="chip" type="button" role="radio" data-court-view="landscape">横</button>
+        </div>
+        <p class="hint left">コートの「自動」は、横に広い画面（スマホの横向き・パソコンなど）で横のコートになります。フルコートは両チームが互い違いに、コート別は半分ずつ並びます。選手名・得点などを出さないと、画像・カードのリンクからも外します（入れたものは消えません）。</p>
         <button id="clearMarks" class="link" type="button" hidden>カード・アシストの印をすべて消す（得点者・名前・背番号は残す）</button>
       </div>
       <div class="toolbar">
@@ -283,14 +289,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201604"></script>
-<script src="js/board.js?v=202610201604"></script>
-<script src="js/ink.js?v=202610201604"></script>
-<script src="js/tactics.js?v=202610201604"></script>
-<script src="js/sheets.js?v=202610201604"></script>
-<script src="js/share.js?v=202610201604"></script>
-<script src="js/events.js?v=202610201604"></script>
-<script src="app.js?v=202610201604"></script>
+<script src="js/core.js?v=202610202232"></script>
+<script src="js/board.js?v=202610202232"></script>
+<script src="js/ink.js?v=202610202232"></script>
+<script src="js/tactics.js?v=202610202232"></script>
+<script src="js/sheets.js?v=202610202232"></script>
+<script src="js/share.js?v=202610202232"></script>
+<script src="js/events.js?v=202610202232"></script>
+<script src="app.js?v=202610202232"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

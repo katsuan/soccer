@@ -64,6 +64,25 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .board.is-futsal .pitch-lines .is-box-top, .board.is-futsal .pitch-lines .is-box-bottom { display: none; }
 .board.is-futsal .pitch-lines .is-d-top, .board.is-futsal .pitch-lines .is-d-bottom { display: block; }
 .board.is-futsal .pitch-lines .is-circle { width: 18%; }
+/* 横のコート（横に広い画面）：縦のコートを 90° 回した形。自陣（GK）が左、攻める向きが右。
+   線は縦のコートの位置を回して置き直す（top↔left、縦のコートの上＝相手側が右） */
+.board.is-landscape { aspect-ratio: 4 / 3; }
+/* 横のコートのときは、広い画面（パソコンなど）ならページを広げて盤を大きく（縦の長さは画面に収める） */
+@media (min-width: 800px) {
+  body.has-landscape-board { --max-w: min(760px, calc((100vh - 120px) * 4 / 3 + 32px)); }
+}
+.board.is-landscape .pitch-lines .is-border { top: 5%; left: 4%; width: 92%; height: 90%; }
+.board.is-landscape .pitch-lines .is-half { top: 5%; left: 50%; width: 0; height: 90%; }
+.board.is-landscape .pitch-lines .is-circle { width: 16.5%; }
+.board.is-landscape.is-futsal .pitch-lines .is-circle { width: 13.5%; }
+.board.is-landscape .pitch-lines .is-box-top { top: 28%; left: 83%; width: 13%; height: 44%; }
+.board.is-landscape .pitch-lines .is-box-bottom { top: 28%; left: 4%; width: 13%; height: 44%; }
+.board.is-landscape .pitch-lines .is-d-top, .board.is-landscape .pitch-lines .is-d-bottom { top: 15%; width: 15%; height: 70%; }
+.board.is-landscape .pitch-lines .is-d-top { left: 81%; }
+.board.is-landscape .pitch-lines .is-d-bottom { left: 4%; }
+.board.is-landscape .pitch-lines .is-d-top span, .board.is-landscape .pitch-lines .is-d-bottom span { top: 0; bottom: auto; width: 200%; height: 100%; }
+.board.is-landscape .pitch-lines .is-d-top span { left: 0; }
+.board.is-landscape .pitch-lines .is-d-bottom span { left: auto; right: 0; }
 .ink { position: absolute; inset: 0; width: 100%; height: 100%; }
 .tokens { position: absolute; inset: 0; }
 .board.is-drawing .tokens { pointer-events: none; }

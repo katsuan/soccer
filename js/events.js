@@ -294,4 +294,15 @@ $("sendCards").addEventListener("click", (e) => {
   if ($("sendCards").getAttribute("aria-disabled") === "true") return e.preventDefault();
   updateSendCards();
 });
-window.addEventListener("resize", drawInk);
+// 画面の大きさ・向きが変わったら、コートの向き（自動のとき）と線を描き直す
+window.addEventListener("resize", () => {
+  if (board.classList.contains("is-landscape") !== updateLandscape()) render();
+  else drawInk();
+});
+// コートの向き（👁️ 表示）：自動・縦・横
+document.querySelectorAll("[data-court-view]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.courtView = b.dataset.courtView;
+    render();
+  })
+);

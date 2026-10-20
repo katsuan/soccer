@@ -9,6 +9,9 @@ const tokens = $("tokens");
 
 function render() {
   save(STORE_KEY, state);
+  // コートの向き（横に広い画面なら横のコート）
+  board.classList.toggle("is-landscape", updateLandscape());
+  document.body.classList.toggle("has-landscape-board", landscape);
   // コート（作戦盤の右上）
   $("courtSelect").replaceChildren(...FORMATION_GROUPS.map((g) => Object.assign(document.createElement("option"), { value: g.id, textContent: g.label })));
   $("courtSelect").value = state.court;
@@ -146,6 +149,7 @@ function render() {
   $("viewTools").hidden = !viewMode;
   $("ballOn").setAttribute("aria-checked", String(!!state.showBall));
   $("ballOff").setAttribute("aria-checked", String(!state.showBall));
+  document.querySelectorAll("[data-court-view]").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.courtView === (state.courtView || "auto"))));
   document.querySelectorAll("[data-marks]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.marks === "on") === (state.showMarks !== false))));
   board.classList.toggle("hide-marks", state.showMarks === false);
   document.querySelectorAll("[data-names]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.names === "on") === (state.showNames !== false))));
@@ -473,18 +477,23 @@ function fitMarks() {
     const match = /^([po])(\d+)$/.exec(el.dataset.key || "");
     if (!badge || !match) return;
     const p = (match[1] === "p" ? state.players : state.opp || [])[Number(match[2])];
+    // 盤の上の見た目の横（横のコートでは回したあとの横）で比べ、はみ出す分だけ見た目の左へずらす
     const max = Math.floor((1 - (7 + badge.offsetWidth + 2) / width) * 1000) / 10;
-    if (p && p.x > max) {
-      p.x = max;
+    if (!p) return;
+    const [vx, vy] = toView(p.x, p.y);
+    if (vx > max) {
+      [p.x, p.y] = fromView(max, vy);
       place(el, p);
       save(STORE_KEY, state);
     }
   });
 }
 
+// 盤に置く（横のコートでは回した位置に）
 const place = (el, p) => {
-  el.style.left = `${p.x}%`;
-  el.style.top = `${p.y}%`;
+  const [vx, vy] = toView(p.x, p.y);
+  el.style.left = `${vx}%`;
+  el.style.top = `${vy}%`;
 };
 
 function targetOf(key) {
@@ -558,12 +567,15 @@ function bindDrag(el, target) {
       if (!moved) remember();
       moved = true;
       el.classList.add("is-dragging");
+      // 動かした量は見た目（画面）の向きで測り、縦のコートの位置に直す
       const dx = ((e.clientX - start.x) / rect.width) * 100;
       const dy = ((e.clientY - start.y) / rect.height) * 100;
       for (const o of origin) {
         if (!o.item) continue;
-        o.item.x = clamp(o.x + dx);
-        o.item.y = clamp(o.y + dy);
+        const [vx, vy] = toView(o.x, o.y);
+        const [nx, ny] = fromView(vx + dx, vy + dy);
+        o.item.x = clamp(nx);
+        o.item.y = clamp(ny);
       }
       renderTokensKeepDrag(el, target);
     };
@@ -624,8 +636,9 @@ tokens.addEventListener("pointerdown", (event) => {
     if (!adding) selected.clear();
     if (box && (box.width >= 6 || box.height >= 6)) {
       const inBox = (item) => {
-        const x = (item.x / 100) * rect.width;
-        const y = (item.y / 100) * rect.height;
+        const [vx, vy] = toView(item.x, item.y);
+        const x = (vx / 100) * rect.width;
+        const y = (vy / 100) * rect.height;
         return x >= box.left && x <= box.left + box.width && y >= box.top && y <= box.top + box.height;
       };
       state.players.forEach((p, i) => inBox(p) && selected.add(`p${i}`));
