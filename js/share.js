@@ -200,21 +200,34 @@ async function boardCanvas() {
   };
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, p.name, inkOn(state.ourColor), i === 0));
-  // 印（イエロー・ゴールなど）：丸のすぐ上に、白い角丸の札に入れて
+  // 印（イエロー・ゴールなど）：丸のすぐ上に、白い角丸の札に入れて。オウンゴールのボールは赤く
   state.players.forEach((p) => {
-    const marks = markText(p.marks);
-    if (!marks) return;
+    const parts = markParts(p.marks);
+    if (!parts.length) return;
     const x = (p.x / 100) * W;
     const y = (p.y / 100) * H;
     ctx.font = font(26, 400);
-    const w = ctx.measureText(marks).width + 16;
+    const pieces = parts.flatMap((part) => [
+      ...Array.from({ length: part.count }, () => ({ text: part.icon, red: part.red })),
+      ...(part.label ? [{ text: part.label }] : [])
+    ]);
+    const widths = pieces.map((piece) => ctx.measureText(piece.text).width);
+    const w = widths.reduce((a, b) => a + b, 0) + 16;
     ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.beginPath();
     ctx.roundRect(x - w / 2, y - 76, w, 36, 18);
     ctx.fill();
-    ctx.fillStyle = "#23302a";
+    ctx.textAlign = "left";
+    let cx = x - w / 2 + 8;
+    pieces.forEach((piece, k) => {
+      if (piece.red) ctx.drawImage(redBall(piece.text, widths[k]), cx, y - 76);
+      else {
+        ctx.fillStyle = "#23302a";
+        ctx.fillText(piece.text, cx, y - 49);
+      }
+      cx += widths[k];
+    });
     ctx.textAlign = "center";
-    ctx.fillText(marks, x, y - 49);
   });
   if (state.showBall) {
     ctx.font = font(56, 400);
@@ -222,6 +235,32 @@ async function boardCanvas() {
   }
   ctx.restore();
   return canvas;
+}
+
+// オウンゴールの赤いボール：⚽ を小さなキャンバスに描き、ボールの形の上だけに赤を重ねる（白い所は薄い赤、黒い所は濃い赤）
+function redBall(icon, width) {
+  const c = document.createElement("canvas");
+  c.width = Math.ceil(width);
+  c.height = 36;
+  const g = c.getContext("2d");
+  g.font = '400 26px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif'; // boardCanvas の font(26, 400) と同じ
+  g.textAlign = "left";
+  g.fillText(icon, 0, 27);
+  g.globalCompositeOperation = "source-atop";
+  g.fillStyle = "rgba(229, 57, 53, 0.7)";
+  g.fillRect(0, 0, c.width, c.height);
+  return c;
+}
+
+// 盤の上で使う赤いボールの絵（data URL。1回作って使い回す）
+let redBallUrl = "";
+function redBallDataUrl() {
+  if (!redBallUrl) {
+    const probe = document.createElement("canvas").getContext("2d");
+    probe.font = '400 26px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif';
+    redBallUrl = redBall("⚽", probe.measureText("⚽").width).toDataURL();
+  }
+  return redBallUrl;
 }
 
 async function saveBoardImage() {

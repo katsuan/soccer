@@ -135,21 +135,25 @@ const MARKS = [
   { key: "y", icon: "🟨", label: "イエロー", max: 2 },
   { key: "r", icon: "🟥", label: "レッド", max: 1 },
   { key: "g", icon: "⚽", label: "ゴール", max: 9 },
-  { key: "a", icon: "👟", label: "アシスト", max: 9 }
+  { key: "a", icon: "👟", label: "アシスト", max: 9 },
+  { key: "o", icon: "⚽", label: "オウンゴール", max: 9, red: true } // ボールを赤く描く（markParts の red）
 ];
-// 盤・画像に出す文字（「🟨⚽⚽」。3つ以上は「⚽3」）
-function markText(marks) {
-  if (!marks) return "";
-  return MARKS.map(({ key, icon }) => {
+// 盤・画像に出す部品（[{ text: "⚽⚽", red: false }, ...]。3つ以上は「⚽3」）。red はオウンゴール（ボールを赤く描く）
+function markParts(marks) {
+  if (!marks) return [];
+  return MARKS.map(({ key, icon, red }) => {
     const n = Math.max(0, Math.floor(Number(marks[key]) || 0));
-    return n <= 0 ? "" : n <= 2 ? icon.repeat(n) : `${icon}${n}`;
-  }).join("");
+    if (n <= 0) return null;
+    return n <= 2 ? { icon, count: n, red: Boolean(red) } : { icon, count: 1, label: String(n), red: Boolean(red) };
+  }).filter(Boolean);
 }
+// 文字だけの形（「🟨⚽⚽」）。印があるかどうかの判定や、文字で出すときに使う
+const markText = (marks) => markParts(marks).map((part) => part.icon.repeat(part.count) + (part.label || "")).join("");
 // リンクに入れる短い形（「y1g2」）と、その読み戻し
 const encodeMarks = (marks) => MARKS.map(({ key }) => (Number(marks?.[key]) > 0 ? `${key}${Math.floor(Number(marks[key]))}` : "")).join("");
 function decodeMarks(text) {
   const marks = {};
-  for (const [, key, n] of String(text || "").matchAll(/([yrga])(\d+)/g)) {
+  for (const [, key, n] of String(text || "").matchAll(/([yrgao])(\d+)/g)) {
     const def = MARKS.find((m) => m.key === key);
     marks[key] = Math.min(def.max, Number(n));
   }

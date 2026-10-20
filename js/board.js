@@ -325,11 +325,25 @@ function tokenEl(p, extra, target) {
   number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
   el.querySelector("small").textContent = p.name || "";
   // 印（イエロー・レッド・ゴール・アシスト）：丸のすぐ上に
-  const marks = markText(p.marks);
-  if (marks) {
+  const parts = markParts(p.marks);
+  if (parts.length) {
     const badge = document.createElement("em");
     badge.className = "marks";
-    badge.textContent = marks;
+    badge.setAttribute("aria-label", markText(p.marks));
+    parts.forEach((part) => {
+      for (let k = 0; k < part.count; k += 1) {
+        if (part.red) {
+          // オウンゴール：⚽ に赤を重ねた絵（作戦盤の画像と同じ。share.js の redBallDataUrl）
+          const img = Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" });
+          badge.append(img);
+        } else {
+          const icon = document.createElement("span");
+          icon.textContent = part.icon;
+          badge.append(icon);
+        }
+      }
+      if (part.label) badge.append(part.label);
+    });
     el.append(badge);
   }
   place(el, p);

@@ -248,4 +248,6 @@ h1 .logo { width: 28px; height: 28px; }
 .mark-label { font-size: 14px; font-weight: 800; }
 .mark-stepper { gap: 6px; }
 .mark-count { min-width: 22px; text-align: center; font-weight: 800; }
+/* オウンゴールのボール：⚽ に赤を重ねた絵（ほかの絵文字と同じ大きさに） */
+.token .marks .is-own-goal { display: inline-block; height: 17px; width: auto; margin: -2px 0; vertical-align: -4px; }
 
