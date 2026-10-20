@@ -83,7 +83,12 @@ $("oppLayoutNone").addEventListener("click", () => {
 const showOppAs = (layout) => {
   if (state.showOpp) return setOppLayout(layout);
   remember();
+  // 出していない間に残っている相手は、前に出していたときの並べ方の位置。
+  // 並べ方を変えて出すときは、その並べ方の高さに直す（コート別なのに相手が自陣に入り込まないように）
+  const from = versusFrame();
   state.oppLayout = layout;
+  const to = versusFrame();
+  if (from !== to && Array.isArray(state.opp)) state.opp = state.opp.map((p) => ({ ...p, y: Math.min(98, Math.max(2, 100 - fitY(100 - p.y, from, to))) }));
   setShowOpp(true);
   render();
 };
@@ -127,7 +132,9 @@ $("addPlayer").addEventListener("click", () => {
   let number = 1;
   while (used.has(String(number))) number += 1;
   // 空いている所に置く（真ん中から左右へ）
-  const spot = [50, 35, 65, 20, 80].map((x) => ({ x, y: 50 })).find((c) => state.players.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 8)) || { x: 50, y: 50 };
+  // 足した選手は真ん中あたり。コート別で相手を出しているときは自陣（下半分）に置く
+  const y = state.showOpp && state.oppLayout === "half" ? 62 : 50;
+  const spot = [50, 35, 65, 20, 80].map((x) => ({ x, y })).find((c) => state.players.every((p) => Math.hypot(p.x - c.x, p.y - c.y) > 8)) || { x: 50, y };
   state.players.push({ number: String(number), name: "", ...spot });
   state.formation = "";
   render();
