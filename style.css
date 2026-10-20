@@ -395,3 +395,5 @@ h1 .logo { width: 28px; height: 28px; }
 .quick-actions .btn { width: auto; min-height: 38px; padding: 0 16px; }
 .token .sub-mark { position: absolute; top: -6px; left: calc(50% + 8px); display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 9px; font-style: normal; line-height: 1; pointer-events: none; }
 .cp-subs { white-space: pre-line; }
+/* 交代前の選手の得点：🔄 の右下に小さく */
+.token .sub-goals { position: absolute; top: 4px; left: calc(50% + 18px); padding: 0 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 8px; font-style: normal; line-height: 12px; white-space: nowrap; pointer-events: none; }

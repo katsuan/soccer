@@ -319,7 +319,7 @@ async function boardCanvas() {
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, state.showNames === false ? "" : p.name, inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
   // 交代して入った選手：丸の右上に小さく 🔄（盤と同じ）
-  [...state.players, ...(state.showOpp ? state.opp || [] : [])].forEach((p) => {
+  [...state.players.map((p) => [p, "u"]), ...(state.showOpp ? (state.opp || []).map((p) => [p, "t"]) : [])].forEach(([p, team]) => {
     if (!p.subs?.length) return;
     const x = (p.x / 100) * W + 30;
     const y = (p.y / 100) * H - 30;
@@ -330,6 +330,20 @@ async function boardCanvas() {
     ctx.font = font(20, 400);
     ctx.textAlign = "center";
     ctx.fillText("🔄", x, y + 7);
+    // 交代前の選手の得点：🔄 の右下に小さく ⚽
+    const goals = subGoalsOf(p, team);
+    if (!goals) return;
+    const text = goals > 2 ? `⚽${goals}` : "⚽".repeat(goals);
+    ctx.font = font(18, 400);
+    const w = ctx.measureText(text).width + 10;
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.beginPath();
+    ctx.roundRect(x + 10, y + 6, w, 26, 13);
+    ctx.fill();
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#23302a";
+    ctx.fillText(text, x + 15, y + 26);
+    ctx.textAlign = "center";
   });
   // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く。
   // 相手は、試合結果の得点者から数えた ⚽・OG（盤と同じ）
