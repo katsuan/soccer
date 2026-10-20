@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201438">
+<link rel="stylesheet" href="style.css?v=202610201446">
 </head>
 <body>
 <main class="wrap">
@@ -35,7 +35,7 @@
     <p class="brand-copy">描いて、伝えて、勝ちにいこう</p>
   </header>
 
-  <!-- 1ページ：作戦盤 → チーム → 試合結果 → 試合の情報 → 保存した作戦 → 選手名簿 → 共有 -->
+  <!-- 1ページ：作戦盤 → チーム・試合結果 → 会場情報 → 保存した作戦 → 選手名簿 → 共有 -->
   <section class="panel">
     <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手名・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
@@ -188,8 +188,8 @@
         <button id="addGoalUs" class="btn ghost small" type="button">＋ 自チームの得点</button>
         <button id="addGoalThem" class="btn ghost small" type="button">＋ 相手の得点</button>
       </div>
-      <!-- ひとことは2つ：作戦盤（メンバーのカード。📋 試合の情報）と、結果（試合結果のカード。ここ） -->
-      <label>ひとこと（結果）<input id="resultNote" maxlength="60" placeholder="例：MVP は山田！最後まで走りきりました"></label>
+      <!-- ひとことは2つ：作戦盤（メンバーのカード。🏟️ 会場情報）と、結果（試合結果のカード。ここ）。改行できる -->
+      <label>ひとこと（結果）<textarea id="resultNote" rows="2" maxlength="120" placeholder="例：MVP は山田！&#10;最後まで走りきりました"></textarea></label>
       <datalist id="rosterNames"></datalist>
     </details>
 
@@ -206,15 +206,15 @@
     </details>
 
     <details class="card fold">
-      <summary>📋 試合の情報 <span id="infoMeta" class="meta"></span></summary>
+      <summary>🏟️ 会場情報 <span id="infoMeta" class="meta"></span></summary>
       <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。</p>
       <div class="two">
         <label>日にち<input class="when-date" type="date"></label>
         <label>時間<input class="when-time" type="time"></label>
       </div>
       <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
-      <label>控え<input id="subs" maxlength="80" placeholder="例：佐藤、鈴木、田中"></label>
-      <label>ひとこと（作戦盤）<input id="lineupNote" maxlength="40" placeholder="例：集合は8:30です"></label>
+      <!-- 控え・集合時間などは、ひとことに改行して書く（メンバーのカードにそのまま入る） -->
+      <label>ひとこと（作戦盤）<textarea id="lineupNote" rows="3" maxlength="200" placeholder="例：集合は8:30です&#10;控え：佐藤、鈴木、田中"></textarea></label>
     </details>
 
     <details class="card fold">
@@ -272,14 +272,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201438"></script>
-<script src="js/board.js?v=202610201438"></script>
-<script src="js/ink.js?v=202610201438"></script>
-<script src="js/tactics.js?v=202610201438"></script>
-<script src="js/sheets.js?v=202610201438"></script>
-<script src="js/share.js?v=202610201438"></script>
-<script src="js/events.js?v=202610201438"></script>
-<script src="app.js?v=202610201438"></script>
+<script src="js/core.js?v=202610201446"></script>
+<script src="js/board.js?v=202610201446"></script>
+<script src="js/ink.js?v=202610201446"></script>
+<script src="js/tactics.js?v=202610201446"></script>
+<script src="js/sheets.js?v=202610201446"></script>
+<script src="js/share.js?v=202610201446"></script>
+<script src="js/events.js?v=202610201446"></script>
+<script src="app.js?v=202610201446"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

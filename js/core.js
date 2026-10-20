@@ -278,6 +278,12 @@ let roster = load(ROSTER_KEY, "");
 delete state.when;
 if (!/^\d{4}-\d{2}-\d{2}$/.test(state.whenDate || "")) state.whenDate = "";
 if (!/^\d{2}:\d{2}$/.test(state.whenTime || "")) state.whenTime = "";
+// 控えの欄はなくして、ひとこと（作戦盤）に書く形にした。前に入れた控えは、ひとことの最後の行へ移す
+const subsLine = (subs) => (subs ? `控え：${subs}` : "");
+if (state.subs) {
+  state.lineupNote = [state.lineupNote, subsLine(state.subs)].filter(Boolean).join("\n");
+  state.subs = "";
+}
 if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtDef(state.court).mode !== state.mode) state.court = courtOf(state.mode, state.formation, state.players.length);
 
 // おくるんの「さくせん盤で直す」から戻ってきたとき
@@ -297,7 +303,9 @@ function applyQuery() {
     });
     state.formation = fieldCount(data.f) === state.players.length - 1 ? data.f : "";
     state.court = courtOf(state.mode, state.formation, state.players.length);
-    Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent, subs: data.s || "" });
+    Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent, subs: "" });
+    // 前のリンクの控え（s）は、ひとこと（作戦盤）の行として入れる
+    if (data.s && !String(state.lineupNote).includes(subsLine(data.s))) state.lineupNote = [state.lineupNote, subsLine(data.s)].filter(Boolean).join("\n");
     const hex = (v) => (/^#[0-9a-f]{6}$/i.test(v || "") ? v.toLowerCase() : "");
     if (hex(data.c)) state.ourColor = hex(data.c);
     // 画像のリンクからは、相手・ボール・線も戻す（スタメンのカードからは選手だけ）

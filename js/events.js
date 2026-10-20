@@ -191,7 +191,7 @@ for (const [key, selector] of Object.entries(shared)) {
     });
   }
 }
-const single = { subs: "subs", lineupNote: "lineupNote", resultNote: "resultNote", scoreUs: "scoreUs", scoreThem: "scoreThem", halfUs: "halfUs", halfThem: "halfThem",
+const single = { lineupNote: "lineupNote", resultNote: "resultNote", scoreUs: "scoreUs", scoreThem: "scoreThem", halfUs: "halfUs", halfThem: "halfThem",
   secondUs: "secondUs", secondThem: "secondThem", extraUs: "extraUs", extraThem: "extraThem", pkUs: "pkUs", pkThem: "pkThem" };
 for (const [key, id] of Object.entries(single)) {
   $(id).value = state[key];
