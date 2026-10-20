@@ -179,6 +179,47 @@ function oppMarksOf(p) {
   const marks = { ...(g ? { g } : {}), ...(o ? { o } : {}) };
   return Object.keys(marks).length ? marks : undefined;
 }
+// 自チームの選手のゴール・OG も、試合結果の得点者から数える（得点者が正。長押しで足すと得点者に入り、− で消える）。
+// 選手の印 p.marks に持つのは、イエロー・レッド・アシストだけ
+const GOAL_KEYS = ["g", "o"];
+function goalMarksOf(p) {
+  const name = playerLabel(p);
+  const g = state.goals.filter((x) => x.side === "u" && x.name === name).length;
+  const o = state.goals.filter((x) => x.side === "t" && x.name === `${name}（OG）`).length;
+  return { ...(g ? { g } : {}), ...(o ? { o } : {}) };
+}
+// 盤・画像・リンクに出す印（イエロー・レッド・アシスト ＋ 得点者から数えたゴール・OG）
+function playerMarksOf(p) {
+  const marks = { ...(p.marks || {}) };
+  GOAL_KEYS.forEach((k) => delete marks[k]);
+  Object.assign(marks, goalMarksOf(p));
+  return Object.keys(marks).length ? marks : undefined;
+}
+// 前の形（選手の印にゴール・OG を持っていた）や、リンクで渡された印のゴール・OG は、得点者に移す（足りない分だけ）
+function moveGoalMarksToGoals() {
+  let moved = false;
+  state.players.forEach((p) => {
+    if (!p.marks) return;
+    const have = goalMarksOf(p);
+    const name = playerLabel(p);
+    for (let n = (Number(p.marks.g) || 0) - (have.g || 0); n > 0; n--) state.goals.push({ side: "u", min: "", name }), (moved = true);
+    for (let n = (Number(p.marks.o) || 0) - (have.o || 0); n > 0; n--) state.goals.push({ side: "t", min: "", name: `${name}（OG）` }), (moved = true);
+    GOAL_KEYS.forEach((k) => delete p.marks[k]);
+    if (!Object.keys(p.marks).length) delete p.marks;
+  });
+  if (moved) {
+    state.scoreUs = Math.max(Number(state.scoreUs) || 0, state.goals.filter((g) => g.side === "u").length);
+    state.scoreThem = Math.max(Number(state.scoreThem) || 0, state.goals.filter((g) => g.side === "t").length);
+  }
+}
+// 選手の呼び名が変わったら（背番号・名前を変えたとき）、得点者の名前もそろえる
+function renameGoals(oldName, newName) {
+  if (!oldName || oldName === newName) return;
+  state.goals.forEach((g) => {
+    if (g.side === "u" && g.name === oldName) g.name = newName;
+    if (g.side === "t" && g.name === `${oldName}（OG）`) g.name = `${newName}（OG）`;
+  });
+}
 // 結果に使う選手の呼び名（名前がなければ「7番」）
 const playerLabel = (p) => p.name || (p.number ? `${p.number}番` : "");
 // 作戦盤の印から、結果のカードに入れるアシスト・カード（[[名前, 数], ...]・[["y"|"r", 名前, 数], ...]）
@@ -299,6 +340,7 @@ if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtD
 // おくるんの「さくせん盤で直す」から戻ってきたとき
 let openResultOnLoad = false;
 applyQuery();
+moveGoalMarksToGoals();
 
 function applyQuery() {
   const q = new URLSearchParams(location.search);

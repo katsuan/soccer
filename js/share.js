@@ -22,7 +22,7 @@ function boardLinkUrl() {
   const players = (withNames) => ({
     ...lineupData(),
     pl: state.players.map((p) => {
-      const marks = state.showMarks === false ? "" : encodeMarks(p.marks);
+      const marks = state.showMarks === false ? "" : encodeMarks(playerMarksOf(p));
       const name = withNames && state.showNames !== false ? p.name : "";
       return marks ? [p.number, name, r(p.x), r(p.y), marks] : [p.number, name, r(p.x), r(p.y)];
     })
@@ -316,7 +316,7 @@ async function boardCanvas() {
   // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く。
   // 相手は、試合結果の得点者から数えた ⚽・OG（盤と同じ）
   const marked = [
-    ...state.players.map((p) => [p, p.marks]),
+    ...state.players.map((p) => [p, playerMarksOf(p)]),
     ...(state.showOpp ? (state.opp || []).map((p) => [p, oppMarksOf(p)]) : [])
   ];
   if (state.showMarks !== false) marked.forEach(([p, marks]) => {

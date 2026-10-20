@@ -30,7 +30,7 @@ const setShowNames = (on) => {
   state.showNames = on;
   render();
 };
-// 印だけを全員分消す（次の試合の前など）。名前・背番号・位置はそのまま。「戻す」で元に戻せる
+// カード・アシストの印だけを全員分消す（次の試合の前など）。名前・背番号・位置・得点者はそのまま。「戻す」で元に戻せる
 $("clearMarks").addEventListener("click", () => {
   remember();
   state.players.forEach((p) => delete p.marks);
@@ -209,37 +209,8 @@ $("roster").addEventListener("input", () => {
   save(ROSTER_KEY, roster);
   render();
 });
-// 作戦盤の印（ゴール・オウンゴール）から得点者を作り直す。
-// 前に入れた時間は、同じ名前の得点に引き継ぐ。相手の得点者（手で入れたもの。オウンゴール以外）は残す。
-// スコアは、得点者の数より少なければ増やす（名前のわからない得点を手で入れていることもあるので減らさない）
-$("goalsFromMarks").addEventListener("click", () => {
-  const old = state.goals;
-  const used = new Set();
-  const minOf = (side, name) => {
-    const i = old.findIndex((g, j) => !used.has(j) && g.side === side && g.name === name);
-    if (i < 0) return "";
-    used.add(i);
-    return old[i].min || "";
-  };
-  const goals = [];
-  state.players.forEach((p) => {
-    const name = playerLabel(p);
-    for (let n = Number(p.marks?.g) || 0; n > 0; n--) goals.push({ side: "u", min: minOf("u", name), name });
-    const og = `${name}（OG）`;
-    for (let n = Number(p.marks?.o) || 0; n > 0; n--) goals.push({ side: "t", min: minOf("t", og), name: og });
-  });
-  // 手で入れた相手の得点者（オウンゴール以外）と、相手のオウンゴール（「相手10番（OG）」。相手の長押しで入れたもの）は残す
-  old.forEach((g, j) => {
-    if (used.has(j)) return;
-    if (g.side === "t" && !/（OG）$/.test(g.name || "")) goals.push(g);
-    if (g.side === "u" && /^相手.*（OG）$/.test(g.name || "")) goals.push(g);
-  });
-  state.goals = goals;
-  syncScore(old);
-  render();
-});
-// 試合結果をリセット：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま）。
-// 作戦盤に得点・カードの印があれば、それも消すかを続けて聞く
+// 試合結果をリセット：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま。盤の ⚽ の印も消える）。
+// 作戦盤にカード・アシストの印があれば、それも消すかを続けて聞く
 $("resetResult").addEventListener("click", () => {
   if (!confirm("スコア・内訳・得点者・ひとこと（結果）を消しますか？（チーム名・色はそのまま）")) return;
   const fields = ["scoreUs", "scoreThem", "halfUs", "halfThem", "secondUs", "secondThem", "extraUs", "extraThem", "pkUs", "pkThem", "resultNote"];
@@ -248,7 +219,7 @@ $("resetResult").addEventListener("click", () => {
     $(k).value = state[k];
   });
   state.goals = [];
-  if (state.players.some((p) => p.marks) && confirm("作戦盤の得点・カードの印も消しますか？")) {
+  if (state.players.some((p) => p.marks) && confirm("作戦盤のカード・アシストの印も消しますか？")) {
     remember();
     state.players.forEach((p) => delete p.marks);
   }

@@ -17,7 +17,8 @@ function parseRoster() {
 // ---- 選手のポップアップ（自チームの選手を長押し）：選手のことはここだけで変える ----
 //   ・上の「10 たなか ✏️」をタップ → 背番号・名前を入れる（選手名簿からも選べる）
 //   ・印のボタンをタップ → 1つ足す（試合中の記録）。下の小さな − で1つ減らす（取り消し）
-// 変えるとすぐ盤に出る。「↩️ 戻す」でも戻せる。× か外を触ると閉じる
+//     ゴール・OG は試合結果の得点者そのもの（足すと得点者とスコアに入り、− で消える）
+// 変えるとすぐ盤に出る。× か外を触ると閉じる
 let quickIndex = -1;
 let quickEditing = false; // 背番号・名前を入れているところ
 let quickRemembered = false; // 背番号・名前は、開いている間に1回だけ「戻す」に残す
@@ -46,7 +47,7 @@ function renderQuickMarks() {
   const grid = Object.assign(document.createElement("div"), { className: "quick-grid" });
   grid.append(
     ...MARKS.map(({ key, icon, label, max, red }) => {
-      const n = Number(p.marks?.[key]) || 0;
+      const n = Number(playerMarksOf(p)?.[key]) || 0;
       const cell = Object.assign(document.createElement("div"), { className: "quick-cell" });
       const add = Object.assign(document.createElement("button"), { type: "button", className: "quick-mark", disabled: n >= max });
       add.setAttribute("aria-label", `${label}を足す（今 ${n}）`);
@@ -66,8 +67,21 @@ function renderQuickMarks() {
   $("quickMarks").replaceChildren(...parts);
 }
 
+// ゴール・OG は試合結果の得点者を足す・消す（スコアも合わせる）。イエロー・レッド・アシストは選手の印
 function stepMark(p, key, max, next) {
   remember();
+  if (GOAL_KEYS.includes(key)) {
+    const name = key === "g" ? playerLabel(p) : `${playerLabel(p)}（OG）`;
+    const side = key === "g" ? "u" : "t";
+    const before = [...state.goals];
+    const now = state.goals.filter((g) => g.side === side && g.name === name).length;
+    if (next > now) state.goals.push({ side, min: "", name });
+    else if (next < now) state.goals.splice(state.goals.map((g) => g.side === side && g.name === name).lastIndexOf(true), 1);
+    syncScore(before);
+    render();
+    renderQuickMarks();
+    return;
+  }
   const marks = { ...(p.marks || {}), [key]: Math.min(max, Math.max(0, next)) };
   Object.keys(marks).forEach((k) => !marks[k] && delete marks[k]);
   if (Object.keys(marks).length) p.marks = marks;
@@ -81,8 +95,10 @@ function quickEditRows(p) {
   const change = () => {
     if (!quickRemembered) remember();
     quickRemembered = true;
+    const before = playerLabel(p);
     p.number = $("quickNumber").value.trim().slice(0, 3);
     p.name = $("quickName").value.trim().slice(0, 8);
+    renameGoals(before, playerLabel(p)); // 得点者の名前もそろえる
     render();
   };
   const row = Object.assign(document.createElement("div"), { className: "quick-edit" });
@@ -236,6 +252,7 @@ function renderGoals() {
       });
       name.addEventListener("input", () => {
         g.name = name.value.trim();
+        renderTokens(); // 盤の ⚽ の印は得点者の名前から数えるので、こまだけ描き直す（入力中の欄は作り直さない）
         save(STORE_KEY, state);
       });
       const remove = Object.assign(document.createElement("button"), { type: "button", className: "remove", textContent: "×" });

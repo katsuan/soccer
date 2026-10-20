@@ -114,11 +114,16 @@ function render() {
     };
     const current = String(state[key]).toLowerCase();
     const isPreset = TEAM_COLORS.some((c) => c.hex === current);
-    const buttons = TEAM_COLORS.map((c) => {
+    // もう片方のチームと同じ色も選べるが、見分けにくいので薄くして後ろに回す
+    const other = String(key === "ourColor" ? state.oppColor : state.ourColor).toLowerCase();
+    const ordered = [...TEAM_COLORS.filter((c) => c.hex !== other), ...TEAM_COLORS.filter((c) => c.hex === other)];
+    const buttons = ordered.map((c) => {
       const b = chip("", current === c.hex, () => pick(c.hex));
       b.classList.add("color");
       b.style.background = c.hex;
-      b.setAttribute("aria-label", c.label);
+      const taken = c.hex === other;
+      b.classList.toggle("is-taken", taken);
+      b.setAttribute("aria-label", taken ? `${c.label}（${key === "ourColor" ? "相手" : "自チーム"}と同じ色）` : c.label);
       return b;
     });
     // カスタム：自由な色（選んでいる間は、その色で丸を塗る）
@@ -147,6 +152,7 @@ function render() {
   document.querySelectorAll("[data-names]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.names === "on") === (state.showNames !== false))));
   // 👁️ 表示を開いているときは、そちらに同じ切りかえがあるので出さない
   $("clearMarks").hidden = !state.players.some((p) => p.marks && Object.keys(p.marks).length);
+  // 得点者の行が変わると、盤の ⚽ の印も変わる（得点者から数えるので）
   $("togglePen").setAttribute("aria-pressed", String(drawing));
   $("undo").disabled = !undoStack.length;
   $("penTools").hidden = !drawing;
@@ -197,8 +203,7 @@ function render() {
   $("teamMeta").textContent = score
     ? [state.team, score, state.opponent].filter(Boolean).join(" ")
     : state.team && state.opponent ? `${state.team} vs ${state.opponent}` : state.team || state.opponent;
-  // 作戦盤の印：ゴールがあれば「印から入れる」、アシスト・カードがあれば「カードに入ります」
-  $("goalsFromMarks").hidden = !state.players.some((p) => Number(p.marks?.g) > 0 || Number(p.marks?.o) > 0);
+  // 作戦盤の印のアシスト・カードは、そのまま結果のカードに入る（ゴール・OG は得点者そのもの）
   const { assists, cards } = marksForResult();
   const noteParts = [
     assists.length ? `👟 ${assists.map(([n, c]) => (c > 1 ? `${n}×${c}` : n)).join("・")}` : "",
@@ -430,7 +435,7 @@ function tokenEl(p, extra, target) {
   el.querySelector("small").textContent = p.name || "";
   // 印（イエロー・レッド・ゴール・アシスト）：いつも丸の右下（盤からはみ出すときは fitMarks で選手をずらす）。
   // 相手は、試合結果の得点者から数えた ⚽・OG
-  const marks = target.kind === "opp" ? oppMarksOf(p) : p.marks;
+  const marks = target.kind === "opp" ? oppMarksOf(p) : playerMarksOf(p);
   const parts = markParts(marks);
   if (parts.length) {
     const badge = document.createElement("em");
