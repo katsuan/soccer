@@ -73,11 +73,11 @@ function cardsUrl({ lineup = true, result = false } = {}) {
   return OQRN.cardUrl(first);
 }
 
-// 試合結果を入れたか（スコア・得点者・内訳・MVP・ひとこと、作戦盤のゴールの印のどれか）
+// 試合結果を入れたか（スコア・得点者・内訳・ひとこと（結果）のどれか）
 function hasResult() {
   const filled = (v) => v !== "" && v !== null && v !== undefined;
   return Boolean(
-    Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length || state.mvp || state.resultNote ||
+    Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length || state.resultNote ||
     ["halfUs", "halfThem", "secondUs", "secondThem", "pkUs", "pkThem"].some((k) => filled(state[k]))
   );
 }
@@ -116,7 +116,7 @@ function resultCardQuery() {
     pu: num(state.pkUs),
     pt: num(state.pkThem),
     g: state.goals.map((g) => [g.side, g.min, g.name]),
-    mvp: state.mvp
+    mvp: "" // MVP の欄はなくした（ひとこと（結果）に書く）。前に入れた分は送らない
   };
   // 作戦盤の印のアシスト・カードも入れる（あるときだけ）
   const { assists, cards } = marksForResult();

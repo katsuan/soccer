@@ -192,9 +192,9 @@ function render() {
   $("rosterCount").textContent = people.length ? `${people.length}人` : "なし";
   $("rosterNames").replaceChildren(...people.map((p) => Object.assign(document.createElement("option"), { value: p.name })));
   renderGoals();
-  // 得点者・MVP の欄の見出しの右
+  // 得点者の見出しの右
   const goalCount = state.goals.length;
-  $("goalsMeta").textContent = [goalCount ? `${goalCount}点` : "", state.mvp ? "MVP あり" : ""].filter(Boolean).join("・");
+  $("goalsMeta").textContent = goalCount ? `${goalCount}点` : "";
   // 👕 チーム・試合結果の欄の見出し：チーム名、試合結果を入れていれば間にスコア（「FC青 2 - 1 赤SC」）
   const played = Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length;
   const score = played ? `${Number(state.scoreUs) || 0} - ${Number(state.scoreThem) || 0}` : "";
