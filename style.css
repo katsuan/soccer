@@ -35,7 +35,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .chip[aria-pressed="true"], .chip[aria-checked="true"] { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
 .chip.color { width: 36px; padding: 0; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
 .chip.color[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--ink); }
-/* もう片方のチームと同じ色：選べるが、薄くして後ろに */
+/* もう片方のチームと同じ色：選べるが、薄くする */
 .chip.color.is-taken { opacity: 0.3; }
 
 /* 見出しは1行：名前 … 中身の要約 › */

@@ -114,10 +114,9 @@ function render() {
     };
     const current = String(state[key]).toLowerCase();
     const isPreset = TEAM_COLORS.some((c) => c.hex === current);
-    // もう片方のチームと同じ色も選べるが、見分けにくいので薄くして後ろに回す
+    // もう片方のチームと同じ色も選べるが、見分けにくいので薄くする（並びは変えない）
     const other = String(key === "ourColor" ? state.oppColor : state.ourColor).toLowerCase();
-    const ordered = [...TEAM_COLORS.filter((c) => c.hex !== other), ...TEAM_COLORS.filter((c) => c.hex === other)];
-    const buttons = ordered.map((c) => {
+    const buttons = TEAM_COLORS.map((c) => {
       const b = chip("", current === c.hex, () => pick(c.hex));
       b.classList.add("color");
       b.style.background = c.hex;
