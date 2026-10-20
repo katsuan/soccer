@@ -171,7 +171,8 @@ function decodeMarks(text) {
 
 // 相手の得点は、試合結果の得点者（相手側「相手10番」）として残す。相手のオウンゴールは自チーム側「相手10番（OG）」。
 // 相手のこまの印は、イエロー・レッド・アシストは相手の選手の印（p.marks）、ゴール・OG は得点者から数える
-const oppLabel = (p) => `相手${p.number || ""}番`;
+// 相手の呼び名：名前を入れていれば名前（得点者の欄で名前を書き換えると、相手のこまにも入る）、なければ「相手10番」
+const oppLabel = (p) => p.name || `相手${p.number || ""}番`;
 function oppMarksOf(p) {
   const name = oppLabel(p);
   const g = state.goals.filter((x) => x.side === "t" && x.name === name).length;
@@ -214,20 +215,42 @@ function moveGoalMarksToGoals() {
     state.scoreThem = Math.max(Number(state.scoreThem) || 0, state.goals.filter((g) => g.side === "t").length);
   }
 }
-// 選手の呼び名が変わったら（背番号・名前を変えたとき）、得点者の名前もそろえる
-function renameGoals(oldName, newName) {
+// 選手の呼び名が変わったら（背番号・名前を変えたとき）、得点者の名前もそろえる。
+// side は選手のチーム（"u"＝自チーム・"t"＝相手）。その選手の得点（side 側）と、オウンゴール（反対側の「名前（OG）」）
+function renameGoals(oldName, newName, side = "u") {
   if (!oldName || oldName === newName) return;
+  const other = side === "u" ? "t" : "u";
   state.goals.forEach((g) => {
-    if (g.side === "u" && g.name === oldName) g.name = newName;
-    if (g.side === "t" && g.name === `${oldName}（OG）`) g.name = `${newName}（OG）`;
+    if (g.side === side && g.name === oldName) g.name = newName;
+    if (g.side === other && g.name === `${oldName}（OG）`) g.name = `${newName}（OG）`;
   });
 }
+
+// 得点者の欄で名前を書き換えたとき：その得点の選手（盤の自チーム・相手）の名前も変え、同じ選手のほかの得点もそろえる。
+// g は書き換えた得点、oldName は書き換える前の名前。盤にその名前の選手がいなければ、その得点だけ変わる
+function renameScorer(g, oldName) {
+  const og = /（OG）$/.test(oldName);
+  const base = (name) => String(name || "").replace(/（OG）$/, "");
+  const from = base(oldName);
+  const to = base(g.name);
+  if (!from || !to || from === to) return;
+  // OG はオウンゴールした選手のチーム（得点の反対側）、それ以外は得点した側
+  const team = og ? (g.side === "u" ? "t" : "u") : g.side;
+  const player = team === "u" ? state.players.find((p) => playerLabel(p) === from) : (state.opp || []).find((p) => oppLabel(p) === from);
+  if (!player) return;
+  g.name = og ? `${from}（OG）` : from; // いったん戻して、まとめてそろえる
+  player.name = to.slice(0, 8);
+  renameGoals(from, team === "u" ? playerLabel(player) : oppLabel(player), team);
+}
 // 交代（結果のカードに「🔄 60' たなか → すずき」）。[[分, 出た選手, 入った選手], ...] を時間の順に
+// 相手の交代は「相手 ジョン」「相手10番」のように、相手とわかる名前にする（相手を出しているときだけ）
 function subsForResult() {
   const name = (number, n) => n || (number ? `${number}番` : "");
-  return state.players
-    .flatMap((p) => (p.subs || []).map((s) => [s.min || "", name(s.outNumber, s.outName), name(s.inNumber, s.inName)]))
-    .sort((a, b) => (parseInt(a[0], 10) || 0) - (parseInt(b[0], 10) || 0));
+  const oppName = (number, n) => (n ? `相手 ${n}` : `相手${number || ""}番`);
+  return [
+    ...state.players.flatMap((p) => (p.subs || []).map((s) => [s.min || "", name(s.outNumber, s.outName), name(s.inNumber, s.inName)])),
+    ...(state.showOpp ? (state.opp || []).flatMap((p) => (p.subs || []).map((s) => [s.min || "", oppName(s.outNumber, s.outName), oppName(s.inNumber, s.inName)])) : [])
+  ].sort((a, b) => (parseInt(a[0], 10) || 0) - (parseInt(b[0], 10) || 0));
 }
 // 結果に使う選手の呼び名（名前がなければ「7番」）
 const playerLabel = (p) => p.name || (p.number ? `${p.number}番` : "");
@@ -244,8 +267,9 @@ function marksForResult() {
     if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);
     if (Number(p.marks?.r) > 0) cards.push(["r", name, 1]);
   });
-  // 相手のカード・アシストも「相手10番」で入れる（相手を出しているときだけ）
-  if (state.showOpp) (state.opp || []).forEach((p) => {
+  // 相手のカード・アシストも「相手10番」で入れる（相手を出しているときだけ。交代で出た相手の分も）
+  const oppOuts = (state.opp || []).flatMap((p) => (p.subs || []).filter((s) => s.outMarks).map((s) => ({ number: s.outNumber, name: s.outName, marks: s.outMarks })));
+  if (state.showOpp) [...oppOuts, ...(state.opp || [])].forEach((p) => {
     const name = oppLabel(p);
     if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);
     if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);

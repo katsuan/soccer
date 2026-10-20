@@ -56,9 +56,9 @@ function renderQuickMarks() {
   }
   const parts = [head];
   if (quickEditing) parts.push(...quickEditRows(p));
-  if (p.subs?.length) parts.push(subHistoryEl(p));
+  if (p.subs?.length) parts.push(subHistoryEl(p, "u"));
   if (quickSubbing) {
-    parts.push(subFormEl(p));
+    parts.push(subFormEl(p, "u"));
     $("quickMarks").replaceChildren(...parts);
     return;
   }
@@ -109,14 +109,16 @@ function stepMark(p, key, max, next) {
 }
 
 // 背番号・名前の欄と、選手名簿のボタン（ほかの選手が使っている名前は薄く）
-function quickEditRows(p) {
+// team は "u"＝自チーム・"t"＝相手（紅白戦などで相手にも名前を付ける）
+function quickEditRows(p, team = "u") {
+  const label = team === "t" ? oppLabel : playerLabel;
   const change = () => {
     if (!quickRemembered) remember();
     quickRemembered = true;
-    const before = playerLabel(p);
+    const before = label(p);
     p.number = $("quickNumber").value.trim().slice(0, 3);
     p.name = $("quickName").value.trim().slice(0, 8);
-    renameGoals(before, playerLabel(p)); // 得点者の名前もそろえる
+    renameGoals(before, label(p), team); // 得点者の名前もそろえる
     render();
   };
   const row = Object.assign(document.createElement("div"), { className: "quick-edit" });
@@ -129,7 +131,8 @@ function quickEditRows(p) {
     input.addEventListener("keydown", (e) => e.key === "Enter" && !e.isComposing && input.blur());
   });
   row.append(number, name);
-  const used = new Set(state.players.map((x) => x.name).filter(Boolean));
+  // 選手名簿は両チームで使える（紅白戦など）。どちらかのチームで盤にいる名前は薄く
+  const used = new Set([...state.players, ...(state.opp || [])].map((x) => x.name).filter(Boolean));
   const people = parseRoster();
   if (!people.length) return [row];
   const chips = Object.assign(document.createElement("div"), { className: "chips quick-roster" });
@@ -148,16 +151,18 @@ function quickEditRows(p) {
 }
 
 // ---- 交代 ----
-const subLabel = (number, name) => name || (number ? `${number}番` : "");
+// 呼び名：自チームは「たなか」か「10番」、相手は「ジョン」か「相手10番」（得点者の名前と同じ）
+const subLabel = (number, name, team = "u") => name || (number ? (team === "t" ? `相手${number}番` : `${number}番`) : "");
+const rerenderQuick = (team) => (team === "t" ? renderOppQuick() : renderQuickMarks());
 
 // これまでの交代（「🔄 60' たなか → すずき」）と、出た選手の記録（得点は得点者から、カード・アシストは残した印から）。最後の交代は取り消せる
-function subHistoryEl(p) {
+function subHistoryEl(p, team = "u") {
   const box = Object.assign(document.createElement("div"), { className: "quick-subs" });
   p.subs.forEach((s) => {
-    const out = subLabel(s.outNumber, s.outName);
-    const goals = state.goals.filter((g) => g.side === "u" && g.name === out).length;
+    const out = subLabel(s.outNumber, s.outName, team);
+    const goals = state.goals.filter((g) => g.side === team && g.name === out).length;
     const record = [goals ? "⚽".repeat(Math.min(goals, 3)) + (goals > 3 ? goals : "") : "", markText(s.outMarks)].filter(Boolean).join("");
-    box.append(Object.assign(document.createElement("p"), { textContent: `🔄 ${s.min ? `${s.min}' ` : ""}${out} → ${subLabel(s.inNumber, s.inName)}${record ? `（${out}：${record}）` : ""}` }));
+    box.append(Object.assign(document.createElement("p"), { textContent: `🔄 ${s.min ? `${s.min}' ` : ""}${out} → ${subLabel(s.inNumber, s.inName, team)}${record ? `（${out}：${record}）` : ""}` }));
   });
   const undoSub = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "最後の交代を取り消す" });
   undoSub.addEventListener("click", () => {
@@ -169,16 +174,16 @@ function subHistoryEl(p) {
     else delete p.marks;
     if (!p.subs.length) delete p.subs;
     render();
-    renderQuickMarks();
+    rerenderQuick(team);
   });
   box.append(undoSub);
   return box;
 }
 
 // 交代の入力：時間（分）・入る選手の背番号と名前（選手名簿のボタンからも。いま盤にいる選手は薄く）
-function subFormEl(p) {
+function subFormEl(p, team = "u") {
   const form = Object.assign(document.createElement("div"), { className: "quick-subform" });
-  form.append(Object.assign(document.createElement("p"), { className: "quick-subhead", textContent: `🔄 ${subLabel(p.number, p.name) || "この選手"} と交代で入る選手` }));
+  form.append(Object.assign(document.createElement("p"), { className: "quick-subhead", textContent: `🔄 ${subLabel(p.number, p.name, team) || "この選手"} と交代で入る選手` }));
   const row = Object.assign(document.createElement("div"), { className: "quick-edit is-sub" });
   const min = Object.assign(document.createElement("input"), { id: "subMin", inputMode: "numeric", maxLength: 4, placeholder: "分" });
   min.setAttribute("aria-label", "交代した時間（分）");
@@ -188,7 +193,8 @@ function subFormEl(p) {
   name.setAttribute("aria-label", "入る選手の名前");
   row.append(min, number, name);
   form.append(row);
-  const onPitch = new Set(state.players.map((x) => x.name).filter(Boolean));
+  // 選手名簿は両チームで使える（紅白戦など）。どちらかのチームで盤にいる名前は薄く
+  const onPitch = new Set([...state.players, ...(state.opp || [])].map((x) => x.name).filter(Boolean));
   const people = parseRoster();
   if (people.length) {
     const chips = Object.assign(document.createElement("div"), { className: "chips quick-roster" });
@@ -216,13 +222,15 @@ function subFormEl(p) {
     p.name = inName;
     delete p.marks;
     quickSubbing = false;
+    oppSubbing = false;
     render();
-    renderQuickMarks();
+    rerenderQuick(team);
   });
   const cancel = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "やめる" });
   cancel.addEventListener("click", () => {
     quickSubbing = false;
-    renderQuickMarks();
+    oppSubbing = false;
+    rerenderQuick(team);
   });
   const actions = Object.assign(document.createElement("div"), { className: "quick-actions" });
   actions.append(cancel, go);
@@ -243,6 +251,8 @@ function openQuickMarks(index, el) {
 // ゴールは試合結果の得点者の相手側に「相手10番」、OG（相手のオウンゴール）は自チーム側に「相手10番（OG）」として入り、スコアも合わせる。
 // イエロー・レッド・アシストは相手の選手の印（結果のカードにも「相手10番」で入る） ----
 let oppQuickIndex = -1;
+let oppSubbing = false; // 相手の交代を入れているところ
+let oppEditing = false; // 相手の背番号・名前を入れているところ
 
 function renderOppQuick() {
   const p = (state.opp || [])[oppQuickIndex];
@@ -252,7 +262,30 @@ function renderOppQuick() {
   close.setAttribute("aria-label", "閉じる");
   close.addEventListener("click", closeQuickMarks);
   const head = Object.assign(document.createElement("div"), { className: "quick-head" });
-  head.append(Object.assign(document.createElement("p"), { className: "quick-title", textContent: name }), close);
+  // 相手も選手の行に「🔄 交代」（入れ替えは自由）
+  const subOpen = Object.assign(document.createElement("button"), { type: "button", className: "quick-sub-open", textContent: "🔄 交代" });
+  subOpen.setAttribute("aria-pressed", String(oppSubbing));
+  subOpen.addEventListener("click", () => {
+    oppSubbing = !oppSubbing;
+    oppEditing = false;
+    renderOppQuick();
+    if (oppSubbing) $("subMin").focus();
+  });
+  // 相手も「相手10番 ✏️」をタップで背番号・名前を入れられる（紅白戦など）
+  const title = Object.assign(document.createElement("button"), { type: "button", className: "quick-title is-edit", textContent: `${p.name ? `${p.number || ""} ${p.name}`.trim() : name} ✏️` });
+  title.setAttribute("aria-label", "相手の背番号・名前を変える");
+  title.addEventListener("click", () => {
+    oppEditing = !oppEditing;
+    oppSubbing = false;
+    renderOppQuick();
+    if (oppEditing) $("quickName").focus();
+  });
+  head.append(title, subOpen, close);
+  const top = [head, ...(oppEditing ? quickEditRows(p, "t") : []), ...(p.subs?.length ? [subHistoryEl(p, "t")] : [])];
+  if (oppSubbing) {
+    $("quickMarks").replaceChildren(...top, subFormEl(p, "t"));
+    return;
+  }
   const goalOf = { g: { side: "t", goalName: name }, o: { side: "u", goalName: `${name}（OG）` } };
   const step = (key, max, n, next) => {
     if (goalOf[key]) {
@@ -290,12 +323,15 @@ function renderOppQuick() {
       return cell;
     })
   );
-  const note = Object.assign(document.createElement("p"), { className: "quick-note", textContent: "ゴール・OG は試合結果の得点者に入ります（時間や名前は「👕 チーム・試合結果」で）" });
-  $("quickMarks").replaceChildren(head, grid, note);
+  const note = Object.assign(document.createElement("p"), { className: "quick-note", textContent: "ゴール・OG は試合結果の得点者に入ります\n（時間は「👕 チーム・試合結果」で編集）" });
+  $("quickMarks").replaceChildren(...top, grid, note);
 }
 
 function openOppQuick(index, el) {
   oppQuickIndex = index;
+  oppSubbing = false;
+  oppEditing = false;
+  quickRemembered = false;
   renderOppQuick();
   placeQuick(el);
 }
@@ -354,10 +390,17 @@ function renderGoals() {
         g.min = min.value.trim();
         save(STORE_KEY, state);
       });
+      // 打っている間は得点だけを変え、打ち終わったら（欄を離れたら）盤の選手の名前とほかの得点もそろえる
+      let nameBefore = g.name || "";
+      name.addEventListener("focus", () => (nameBefore = g.name || ""));
       name.addEventListener("input", () => {
         g.name = name.value.trim();
-        renderTokens(); // 盤の ⚽ の印は得点者の名前から数えるので、こまだけ描き直す（入力中の欄は作り直さない）
         save(STORE_KEY, state);
+      });
+      name.addEventListener("change", () => {
+        renameScorer(g, nameBefore);
+        nameBefore = g.name;
+        render();
       });
       const remove = Object.assign(document.createElement("button"), { type: "button", className: "remove", textContent: "×" });
       remove.setAttribute("aria-label", "この得点を消す");

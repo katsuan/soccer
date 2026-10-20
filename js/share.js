@@ -315,10 +315,11 @@ async function boardCanvas() {
       ctx.fillText(text, x, y + 74);
     }
   };
-  if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
+  // 相手も、得点者の欄で名前を入れていれば名前を出す（盤と同じ）
+  if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, state.showNames === false ? "" : p.name, inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
   // 交代して入った選手：丸の左上に小さく 🔄（盤と同じ）
-  state.players.forEach((p) => {
+  [...state.players, ...(state.showOpp ? state.opp || [] : [])].forEach((p) => {
     if (!p.subs?.length) return;
     const x = (p.x / 100) * W - 30;
     const y = (p.y / 100) * H - 30;

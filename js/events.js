@@ -220,7 +220,7 @@ $("resetResult").addEventListener("click", () => {
   });
   state.goals = [];
   // 交代の記録も消す（いま盤にいる選手はそのまま）
-  state.players.forEach((p) => delete p.subs);
+  [...state.players, ...(state.opp || [])].forEach((p) => delete p.subs);
   if (anyCardMarks() && confirm("作戦盤のカード・アシストの印も消しますか？")) {
     remember();
     [...state.players, ...(state.opp || [])].forEach((p) => delete p.marks);

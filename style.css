@@ -310,7 +310,7 @@ h1 .logo { width: 28px; height: 28px; }
 .quick-close { width: 32px; height: 32px; border: 0; border-radius: 50%; background: #f3f5f4; color: var(--ink-soft); font: inherit; font-size: 16px; cursor: pointer; }
 .quick-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .quick-cell { display: grid; gap: 4px; }
-.quick-note { margin: 0; color: var(--ink-soft); font-size: 11px; }
+.quick-note { margin: 0; color: var(--ink-soft); font-size: 11px; white-space: pre-line; }
 /* 1つ減らす（取り消し）：ボタンの下の小さな − */
 .quick-minus { justify-self: center; width: 34px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink-soft); font: inherit; font-size: 13px; line-height: 1; cursor: pointer; }
 .quick-minus:disabled { visibility: hidden; }
