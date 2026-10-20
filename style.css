@@ -199,7 +199,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .count-vs:empty { display: none; }
 
 /* GK：チームと同じ色の丸の右下に 🧤 */
-.token .gk { position: absolute; top: 14px; left: calc(50% + 7px); display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 1; pointer-events: none; }
+.token .gk { position: absolute; top: 14px; right: calc(50% + 7px); display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 1; pointer-events: none; }
 
 /* 並べ直したときは、前の位置からなめらかに動く。新しく出たもの（相手など）はふわっと出す */
 .token.is-moving { transition: left 0.45s cubic-bezier(0.2, 0.7, 0.2, 1), top 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
@@ -257,10 +257,10 @@ h1 .logo { width: 28px; height: 28px; }
 .shape-tools { display: grid; gap: 10px; padding: 10px 2px 2px; }
 .shape-tools[hidden] { display: none; }
 
-/* 選手の印（イエロー・ゴールなど）：盤の丸のすぐ上 */
-/* 印（得点・カード）：丸の左下（GK の 🧤 の反対側）。名前の札とも背番号とも重ならないように */
-.token .marks.is-right { right: auto; left: calc(50% + 7px); }
-.token .marks { position: absolute; top: 14px; right: calc(50% + 7px); padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 16px; white-space: nowrap; pointer-events: none; }
+/* 印（得点・カード）：いつも丸の右下（GK の 🧤 は左下）。名前の札とも背番号とも重ならないように。
+   絵文字が続くところは前の絵文字に 1/3 重ねる（2/3 ずつ見せる） */
+.token .marks .mark-icon + .mark-icon { margin-left: -0.4em; }
+.token .marks { position: absolute; top: 14px; left: calc(50% + 7px); padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 16px; white-space: nowrap; pointer-events: none; }
 /* 選手のシートの印の欄：左に名前、右に − 数 ＋ */
 .player-marks { display: grid; gap: 6px; margin: 4px 0 10px; }
 .mark-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }

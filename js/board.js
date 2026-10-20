@@ -395,6 +395,7 @@ function renderTokens() {
     list.push(ball);
   }
   tokens.replaceChildren(...list);
+  fitMarks();
   if (!before || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const moving = [];
   for (const el of list) {
@@ -432,20 +433,20 @@ function tokenEl(p, extra, target) {
   number.style.color = inkOn(fill);
   number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
   el.querySelector("small").textContent = p.name || "";
-  // 印（イエロー・レッド・ゴール・アシスト）：丸の左下。左の端にいる選手は、盤からはみ出さないよう右下に
+  // 印（イエロー・レッド・ゴール・アシスト）：いつも丸の右下（盤からはみ出すときは fitMarks で選手をずらす）
   const parts = markParts(p.marks);
   if (parts.length) {
     const badge = document.createElement("em");
-    badge.className = marksOnRight(p) ? "marks is-right" : "marks";
+    badge.className = "marks";
     badge.setAttribute("aria-label", markText(p.marks));
     parts.forEach((part) => {
       for (let k = 0; k < part.count; k += 1) {
         if (part.red) {
           // オウンゴール：⚽ に赤を重ねた絵（作戦盤の画像と同じ。share.js の redBallDataUrl）
-          const img = Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" });
+          const img = Object.assign(document.createElement("img"), { className: "mark-icon is-own-goal", src: redBallDataUrl(), alt: "" });
           badge.append(img);
         } else {
-          const icon = document.createElement("span");
+          const icon = Object.assign(document.createElement("span"), { className: "mark-icon" });
           icon.textContent = part.icon;
           badge.append(icon);
         }
@@ -458,6 +459,25 @@ function tokenEl(p, extra, target) {
   el.classList.toggle("is-selected", selected.has(keyOf(target)));
   bindDrag(el, target);
   return el;
+}
+
+// 右下の印の札が盤の右からはみ出す選手は、はみ出さないところまで左へずらす（位置も残す）。
+// 札は丸の中心から 7px 右が左端（style.css の .token .marks）
+function fitMarks() {
+  const width = board.clientWidth;
+  if (!width) return;
+  [...tokens.children].forEach((el) => {
+    const badge = el.querySelector(".marks");
+    const match = /^p(\d+)$/.exec(el.dataset.key || "");
+    if (!badge || !match) return;
+    const p = state.players[Number(match[1])];
+    const max = Math.floor((1 - (7 + badge.offsetWidth + 2) / width) * 1000) / 10;
+    if (p && p.x > max) {
+      p.x = max;
+      place(el, p);
+      save(STORE_KEY, state);
+    }
+  });
 }
 
 const place = (el, p) => {

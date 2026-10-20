@@ -216,11 +216,11 @@ async function boardCanvas() {
     if (keeper) {
       // 緑のピッチでも見えるよう、白い丸の上に 🧤
       ctx.beginPath();
-      ctx.arc(x + 30, y + 28, 20, 0, Math.PI * 2);
+      ctx.arc(x - 30, y + 28, 20, 0, Math.PI * 2);
       ctx.fillStyle = "#ffffff";
       ctx.fill();
       ctx.font = font(24, 400);
-      ctx.fillText("🧤", x + 30, y + 36);
+      ctx.fillText("🧤", x - 30, y + 36);
     }
     if (text) {
       // 名前：白線と重なっても読めるよう、盤と同じ半透明の濃い札に入れる
@@ -236,7 +236,7 @@ async function boardCanvas() {
   };
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
-  // 印（イエロー・ゴールなど）：丸の左下（GK の 🧤 の反対側）に、白い角丸の札に入れて。オウンゴールのボールは赤く
+  // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く
   if (state.showMarks !== false) state.players.forEach((p) => {
     const parts = markParts(p.marks);
     if (!parts.length) return;
@@ -244,15 +244,17 @@ async function boardCanvas() {
     const y = (p.y / 100) * H;
     ctx.font = font(26, 400);
     const pieces = parts.flatMap((part) => [
-      ...Array.from({ length: part.count }, () => ({ text: part.icon, red: part.red })),
+      ...Array.from({ length: part.count }, () => ({ text: part.icon, red: part.red, icon: true })),
       ...(part.label ? [{ text: part.label }] : [])
     ]);
     const widths = pieces.map((piece) => ctx.measureText(piece.text).width);
-    const w = widths.reduce((a, b) => a + b, 0) + 16;
+    // 絵文字が続くところは、前の絵文字に 1/3 重ねる（2/3 ずつ見せて札を短く）
+    const steps = pieces.map((piece, k) => (piece.icon && pieces[k + 1]?.icon ? widths[k] * (2 / 3) : widths[k]));
+    const w = steps.reduce((a, b) => a + b, 0) + 16;
     ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.beginPath();
-    // 札の右端を丸の中心から 10 左に（🧤 の丸は中心から 10 右から）。左の端の選手は右下に
-    const left = marksOnRight(p) ? x + 10 : x - 10 - w;
+    // 札の左端を丸の中心から 10 右に（🧤 の丸は中心から 10 左まで）。はみ出す分は盤の上で選手をずらしてある
+    const left = Math.min(W - 4 - w, x + 10);
     ctx.roundRect(left, y + 10, w, 36, 18);
     ctx.fill();
     ctx.textAlign = "left";
@@ -263,7 +265,7 @@ async function boardCanvas() {
         ctx.fillStyle = "#23302a";
         ctx.fillText(piece.text, cx, y + 37);
       }
-      cx += widths[k];
+      cx += steps[k];
     });
     ctx.textAlign = "center";
   });
