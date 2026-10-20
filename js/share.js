@@ -116,7 +116,8 @@ function lineupPreviewEl() {
     if (p.name) t.append(el("small", "", p.name));
     pitch.append(t);
   });
-  return previewCard(q, [pitch, el("p", "cp-tap", "ピッチをタップすると さくせん盤 が開きます")]);
+  // 「タップすると さくせん盤 が開きます」の一文は、縮めると読めないのでプレビューには入れない（シートの説明に書く）
+  return previewCard(q, [pitch]);
 }
 
 function resultPreviewEl() {
@@ -158,7 +159,6 @@ function resultPreviewEl() {
   if (cards.length) parts.push(el("p", "cp-extra", cards.map(([k, n, c]) => `${(k === "r" ? "🟥" : "🟨").repeat(c)} ${n}`).join("　")));
   const subs = subsForResult();
   if (subs.length) parts.push(el("p", "cp-extra cp-subs", subs.map(([m, o, i]) => `🔄 ${m ? `${m}' ` : ""}${o} → ${i}`).join("\n")));
-  parts.push(el("p", "cp-tap", "タップすると さくせん盤 が開きます"));
   return previewCard(q, parts);
 }
 

@@ -166,7 +166,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .choice:disabled { opacity: 0.6; cursor: progress; }
 /* 送るカードを選ぶ（チェックの付いた札） */
 /* 送るカードは2枚を横に並べる（LINE でも横に並ぶので、同じ見え方に）。ボタンと説明は下に全幅 */
-.card-picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 8px; }
+/* 2枚のカードは、高いほうに高さをそろえる（札を縦いっぱいにし、カードを下まで伸ばす） */
+.card-picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; gap: 8px; }
+.card-picks > .pick { align-content: start; }
+.pick-preview > .cp { display: flex; flex-direction: column; }
+.pick-preview > .cp > .cp-body { flex: 1; align-content: start; }
 .card-picks > :not(.pick) { grid-column: 1 / -1; }
 .pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px 6px; padding: 8px; border: 2px solid var(--border); border-radius: 16px; background: #fff; cursor: pointer; }
 .pick:has(input:checked) { border-color: var(--accent); background: #efebff; }
@@ -350,7 +354,6 @@ h1 .logo { width: 28px; height: 28px; }
 .cp-body { display: grid; gap: 8px; padding: 12px 14px 10px; }
 .cp-title { margin: 0; font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
 .cp-detail { margin: 0; padding: 8px 10px; border-radius: 10px; background: #e8f3ec; color: #1f3d2b; white-space: pre-line; }
-.cp-tap { margin: 0; color: #9ca3af; font-size: 10px; text-align: center; }
 .cp-empty { margin: 0; padding: 10px; border-radius: 10px; background: #fff; color: var(--ink-soft); font-size: 12px; font-weight: 400; }
 /* ミニのピッチ（おくるんのスタメンカードと同じ緑と白線） */
 .cp-pitch { position: relative; height: 210px; border-radius: 10px; background: #2e8b4a; }

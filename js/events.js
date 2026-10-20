@@ -171,6 +171,17 @@ $("shareLineup").addEventListener("click", () => {
   // 送る前のプレビュー：それぞれのカードに入る中身を短く
   $("previewLineup").replaceChildren(lineupPreviewEl());
   $("previewResult").replaceChildren(hasResult() ? resultPreviewEl() : el("p", "cp-empty", "まだ入れていません（「👕 チーム・試合結果」の欄で入れます）"));
+  // 2枚のカードは、高いほうに高さをそろえる（縮めて描いているので、縮める前の大きさに直して下限にする）
+  const cardsShown = [...document.querySelectorAll(".pick-preview > .cp")];
+  cardsShown.forEach((c) => (c.style.minHeight = ""));
+  // シートを出したあと（大きさが測れるようになってから）
+  setTimeout(() => {
+    const tallest = Math.max(...cardsShown.map((c) => c.getBoundingClientRect().height));
+    cardsShown.forEach((c) => {
+      const shown = c.getBoundingClientRect().height;
+      if (shown && shown < tallest) c.style.minHeight = `${(c.offsetHeight * tallest) / shown}px`;
+    });
+  }, 0);
   updateSendCards();
   $("imageStatus").textContent = "";
   shareSheet.hidden = false;
