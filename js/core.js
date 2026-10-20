@@ -145,7 +145,7 @@ const MARKS = [
   { key: "r", icon: "🟥", label: "レッド", max: 1 },
   { key: "g", icon: "⚽", label: "ゴール", max: 9 },
   { key: "a", icon: "👟", label: "アシスト", max: 9 },
-  { key: "o", icon: "⚽", label: "オウンゴール", max: 9, red: true } // ボールを赤く描く（markParts の red）
+  { key: "o", icon: "⚽", label: "OG", max: 9, red: true } // ボールを赤く描く（markParts の red）
 ];
 // 盤・画像に出す部品（[{ text: "⚽⚽", red: false }, ...]。3つ以上は「⚽3」）。red はオウンゴール（ボールを赤く描く）
 function markParts(marks) {

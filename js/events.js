@@ -168,6 +168,9 @@ $("shareLineup").addEventListener("click", () => {
   // 試合結果を入れてあれば、最初から2枚（メンバー・試合結果）を選んでおく
   $("pickLineup").checked = true;
   $("pickResult").checked = hasResult();
+  // 送る前のプレビュー：それぞれのカードに入る中身を短く
+  $("previewLineup").textContent = lineupPreviewText();
+  $("previewResult").textContent = resultPreviewText();
   updateSendCards();
   $("imageStatus").textContent = "";
   shareSheet.hidden = false;
@@ -229,10 +232,7 @@ $("goalsFromMarks").addEventListener("click", () => {
     if (g.side === "t" && !used.has(j) && !/（OG）$/.test(g.name || "")) goals.push(g);
   });
   state.goals = goals;
-  state.scoreUs = Math.max(Number(state.scoreUs) || 0, goals.filter((g) => g.side === "u").length);
-  state.scoreThem = Math.max(Number(state.scoreThem) || 0, goals.filter((g) => g.side === "t").length);
-  $("scoreUs").value = state.scoreUs;
-  $("scoreThem").value = state.scoreThem;
+  syncScore(old);
   render();
 });
 // 試合結果をリセット：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま）。
@@ -255,17 +255,31 @@ $("venueAction").addEventListener("click", () => (venues.includes(String(state.w
 $("venueSelect").addEventListener("change", (e) => {
   if (e.target.value) applyVenue(e.target.value);
 });
-$("addGoalUs").addEventListener("click", () => {
-  state.goals.push({ side: "u", min: "", name: "" });
-  state.scoreUs = state.goals.filter((g) => g.side === "u").length;
-  $("scoreUs").value = state.scoreUs;
+const addGoal = (side) => {
+  const before = [...state.goals];
+  state.goals.push({ side, min: "", name: "" });
+  syncScore(before);
   render();
-});
-$("addGoalThem").addEventListener("click", () => {
-  state.goals.push({ side: "t", min: "", name: "" });
-  state.scoreThem = state.goals.filter((g) => g.side === "t").length;
-  $("scoreThem").value = state.scoreThem;
-  render();
+};
+$("addGoalUs").addEventListener("click", () => addGoal("u"));
+$("addGoalThem").addEventListener("click", () => addGoal("t"));
+// ひとことのひな形：タップで次の行に足し、そのまま続きを打てるようにする
+document.querySelectorAll("[data-note]").forEach((b) =>
+  b.addEventListener("click", () => {
+    const box = $(b.dataset.note);
+    const text = box.value.replace(/\s+$/, "");
+    box.value = text ? `${text}\n${b.dataset.text}` : b.dataset.text;
+    box.dispatchEvent(new Event("input"));
+    box.focus();
+    box.setSelectionRange(box.value.length, box.value.length);
+  })
+);
+// はじめて開いた人への案内（この端末で一度「わかった」を押したら出さない）
+const TIP_KEY = "soccer:tip-seen";
+$("firstTip").hidden = Boolean(load(TIP_KEY, false));
+$("firstTipClose").addEventListener("click", () => {
+  save(TIP_KEY, true);
+  $("firstTip").hidden = true;
 });
 // 送る直前に最新のリンクにする
 // 送るカードの選択：ボタンに枚数を出し、選んでいなければ押せなくする。押す直前に最新のリンクにする

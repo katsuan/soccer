@@ -511,7 +511,10 @@ document.addEventListener(
 );
 
 // ドラッグで移動、動かさずに離したらタップ（自分の選手なら入力シート）
+const LONG_PRESS_MS = 450; // 長押しとみなす長さ（ミリ秒）
 function bindDrag(el, target) {
+  // 長押しで出る OS のメニュー（画像の保存など）は出さない
+  el.addEventListener("contextmenu", (event) => event.preventDefault());
   el.addEventListener("pointerdown", (event) => {
     if (drawing) return;
     event.preventDefault();
@@ -528,8 +531,26 @@ function bindDrag(el, target) {
     const group = selected.has(keyOf(target)) && selected.size > 1 ? [...selected] : [keyOf(target)];
     const origin = group.map((key) => ({ key, item: itemOf(targetOf(key)), x: itemOf(targetOf(key))?.x, y: itemOf(targetOf(key))?.y }));
     const clamp = (v) => Math.round(Math.min(98, Math.max(2, v)));
+    // 自チームの選手を動かさずに長押しすると、印（ゴール・カードなど）をすぐ付けるメニュー（sheets.js の openQuickMarks）
+    let longPressed = false;
+    const timer = target.kind === "player" && !adding
+      ? setTimeout(() => {
+          longPressed = true;
+          if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(15); // 触れた合図（震えない端末は何もしない）
+          openQuickMarks(target.index, el);
+        }, LONG_PRESS_MS)
+      : 0;
     const onMove = (e) => {
-      if (!moved && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 6) return;
+      const far = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+      // 長押しでメニューが出たあとでも、押したまま動かしはじめたらメニューを閉じて移動にする
+      // （少し止まってから動かす人もいるので、長押しが移動のじゃまをしないように。ずれは大きめに 12px で判断）
+      if (longPressed) {
+        if (far < 12) return;
+        longPressed = false;
+        closeQuickMarks();
+      }
+      if (!moved && far < 6) return;
+      clearTimeout(timer);
       if (!moved) remember();
       moved = true;
       el.classList.add("is-dragging");
@@ -547,6 +568,8 @@ function bindDrag(el, target) {
       el.removeEventListener("pointerup", onUp);
       el.removeEventListener("pointercancel", onUp);
       el.classList.remove("is-dragging");
+      clearTimeout(timer);
+      if (longPressed) return; // メニューのボタンはすぐ押せるように、あとのクリックは止めない
       if (moved) swallowClickUntil = Date.now() + 400;
       if (moved) render();
       else if (editMode && !adding) {

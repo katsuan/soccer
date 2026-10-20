@@ -48,6 +48,80 @@ function renderPlayerMarks() {
   );
 }
 
+// ---- 長押しのメニュー：印をその場で増やす・減らす（試合中に片手で記録する用。得点の取り消しもここで）。
+// 選手のシートと同じ − 数 ＋ の並び。押すたびにすぐ盤に出る。「↩️ 戻す」でも戻せる ----
+let quickIndex = -1;
+
+function renderQuickMarks() {
+  const p = state.players[quickIndex];
+  if (!p) return closeQuickMarks();
+  const title = Object.assign(document.createElement("p"), { className: "quick-title", textContent: `${p.number || ""} ${p.name || ""}`.trim() || `${quickIndex + 1}人目` });
+  const close = Object.assign(document.createElement("button"), { type: "button", className: "quick-close", textContent: "×" });
+  close.setAttribute("aria-label", "閉じる");
+  close.addEventListener("click", closeQuickMarks);
+  const head = Object.assign(document.createElement("div"), { className: "quick-head" });
+  head.append(title, close);
+  const rows = MARKS.map(({ key, icon, label, max, red }) => {
+    const n = Number(p.marks?.[key]) || 0;
+    const row = Object.assign(document.createElement("div"), { className: "mark-row" });
+    const name = Object.assign(document.createElement("span"), { className: "mark-label", textContent: `${icon} ${label}` });
+    if (red) name.replaceChildren(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }), ` ${label}`);
+    const step = (delta) => {
+      remember();
+      const marks = { ...(p.marks || {}), [key]: Math.min(max, Math.max(0, n + delta)) };
+      Object.keys(marks).forEach((k) => !marks[k] && delete marks[k]);
+      if (Object.keys(marks).length) p.marks = marks;
+      else delete p.marks;
+      render();
+      renderQuickMarks();
+    };
+    const minus = Object.assign(document.createElement("button"), { type: "button", textContent: "−", disabled: n <= 0 });
+    minus.setAttribute("aria-label", `${label}を減らす`);
+    minus.addEventListener("click", () => step(-1));
+    const count = Object.assign(document.createElement("span"), { className: "mark-count", textContent: String(n) });
+    const plus = Object.assign(document.createElement("button"), { type: "button", textContent: "＋", disabled: n >= max });
+    plus.setAttribute("aria-label", `${label}を増やす`);
+    plus.addEventListener("click", () => step(1));
+    const stepper = Object.assign(document.createElement("div"), { className: "stepper mark-stepper" });
+    stepper.append(minus, count, plus);
+    row.append(name, stepper);
+    return row;
+  });
+  const more = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "✏️ 名前・背番号を変える" });
+  more.addEventListener("click", () => {
+    const index = quickIndex;
+    closeQuickMarks();
+    openPlayer(index);
+  });
+  $("quickMarks").replaceChildren(head, ...rows, more);
+}
+
+function openQuickMarks(index, el) {
+  quickIndex = index;
+  const menu = $("quickMarks");
+  renderQuickMarks();
+  // 丸の下（入らなければ上）に、画面からはみ出さないように置く
+  menu.hidden = false;
+  const r = el.getBoundingClientRect();
+  const w = menu.offsetWidth;
+  const h = menu.offsetHeight;
+  const left = Math.min(window.innerWidth - w - 8, Math.max(8, r.left + r.width / 2 - w / 2));
+  const below = r.top + 36;
+  const top = below + h + 8 <= window.innerHeight ? below : Math.max(8, Math.min(window.innerHeight - h - 8, r.top - h - 4));
+  menu.style.left = `${left}px`;
+  menu.style.top = `${top}px`;
+}
+
+function closeQuickMarks() {
+  quickIndex = -1;
+  $("quickMarks").hidden = true;
+}
+// メニューの外を触る・画面を動かすと閉じる
+document.addEventListener("pointerdown", (e) => {
+  if (!$("quickMarks").hidden && !$("quickMarks").contains(e.target)) closeQuickMarks();
+}, true);
+window.addEventListener("scroll", closeQuickMarks, { passive: true });
+
 function openPlayer(index) {
   editing = index;
   const p = state.players[index];
@@ -91,6 +165,19 @@ $("playerSheet").addEventListener("click", (e) => {
 });
 
 // ---- 結果の得点 ----
+// 得点者が増えた・減ったら、スコアも合わせる（before＝変える前の得点者）。
+// スコアが得点者の数とそろっていたときは、そのまま数に合わせる。そろっていなかったとき（名前のわからない得点を
+// スコアにだけ入れていたときなど）は、得点者の数より少なくならないようにだけする
+function syncScore(before) {
+  [["u", "scoreUs"], ["t", "scoreThem"]].forEach(([side, key]) => {
+    const was = before.filter((g) => g.side === side).length;
+    const now = state.goals.filter((g) => g.side === side).length;
+    const score = Number(state[key]) || 0;
+    if (score === was || score < now) state[key] = now;
+    $(key).value = state[key];
+  });
+}
+
 function renderGoals() {
   $("goals").replaceChildren(
     ...state.goals.map((g, i) => {
@@ -112,7 +199,9 @@ function renderGoals() {
       const remove = Object.assign(document.createElement("button"), { type: "button", className: "remove", textContent: "×" });
       remove.setAttribute("aria-label", "この得点を消す");
       remove.addEventListener("click", () => {
+        const before = [...state.goals];
         state.goals.splice(i, 1);
+        syncScore(before);
         render();
       });
       name.setAttribute("aria-label", g.side === "t" ? "相手の得点者" : "自チームの得点者");

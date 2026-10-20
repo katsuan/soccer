@@ -81,6 +81,30 @@ function hasResult() {
   );
 }
 
+// ---- 送る前のプレビュー（共有シートで、それぞれのカードに入る中身を短く） ----
+function lineupPreviewText() {
+  const head = [state.opponent ? `vs ${state.opponent}` : state.team || "スタメン", whenText(), state.where && `📍 ${state.where}`].filter(Boolean).join("・");
+  const players = state.players.map((p) => [p.number, p.name].filter(Boolean).join(" ")).filter(Boolean).join("／");
+  return [head, players, state.lineupNote].filter(Boolean).join("\n");
+}
+
+function resultPreviewText() {
+  if (!hasResult()) return "まだ入れていません";
+  const us = Number(state.scoreUs) || 0;
+  const them = Number(state.scoreThem) || 0;
+  const pk = state.pkUs !== "" && state.pkThem !== "" ? `（PK ${state.pkUs}-${state.pkThem}）` : "";
+  const outcome = us > them ? "勝ち" : us < them ? "負け" : pk ? (Number(state.pkUs) > Number(state.pkThem) ? "勝ち" : "負け") : "引き分け";
+  const head = `${state.team || "自チーム"} ${us} - ${them} ${state.opponent || "相手"}${pk}　${outcome}`;
+  // 自チームは「⚽ 12' たなか」、相手は「相手 25' 9番」（カードと同じく、名前がなければ「相手」だけ）
+  const goals = state.goals.map((g) => [g.side === "t" ? "相手" : "⚽", g.min && `${g.min}'`, g.name].filter(Boolean).join(" ")).join("／");
+  const { assists, cards } = marksForResult();
+  const extras = [
+    assists.length ? `👟 ${assists.map(([n, c]) => (c > 1 ? `${n}×${c}` : n)).join("・")}` : "",
+    cards.map(([k, n, c]) => `${(k === "r" ? "🟥" : "🟨").repeat(c)} ${n}`).join("　")
+  ].filter(Boolean).join("　");
+  return [head, goals, extras, state.resultNote].filter(Boolean).join("\n");
+}
+
 function lineupCardQuery() {
   const data = lineupData();
   return new URLSearchParams({

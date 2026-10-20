@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201456">
+<link rel="stylesheet" href="style.css?v=202610201504">
 </head>
 <body>
 <main class="wrap">
@@ -39,6 +39,16 @@
   <section class="panel">
     <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手名・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
+      <!-- はじめて開いた人にだけ出す短い案内（「わかった」で消え、この端末では次から出ない） -->
+      <div id="firstTip" class="first-tip" hidden>
+        <b>はじめての方へ</b>
+        <ul>
+          <li>選手はドラッグで動かせます。<b>長押し</b>で得点やカードを ＋／− できます。</li>
+          <li>「👁️ 表示」で相手・ボールを出し、「📐 並び」で人数とフォーメーションを決めます。</li>
+          <li>「💬 LINE で共有」から、メンバーと試合結果のカードを送れます。</li>
+        </ul>
+        <button id="firstTipClose" class="btn small" type="button">わかった</button>
+      </div>
       <div class="board-head">
         <span class="label">作戦盤</span>
         <label class="select"><span class="sr">コート</span><select id="courtSelect"></select></label>
@@ -202,6 +212,12 @@
       </div>
       <!-- ひとことは2つ：作戦盤（メンバーのカード。🏟️ 会場情報）と、結果（試合結果のカード。ここ）。改行できる -->
       <label>ひとこと（結果）<textarea id="resultNote" rows="2" maxlength="120" placeholder="例：MVP は山田！&#10;最後まで走りきりました"></textarea></label>
+      <!-- ひな形：タップで、ひとことの次の行に足す -->
+      <div class="chips note-presets" role="group" aria-label="ひとこと（結果）のひな形">
+        <button class="chip" type="button" data-note="resultNote" data-text="MVP：">＋ MVP</button>
+        <button class="chip" type="button" data-note="resultNote" data-text="よかったところ：">＋ よかったところ</button>
+        <button class="chip" type="button" data-note="resultNote" data-text="次の試合：">＋ 次の試合</button>
+      </div>
       <!-- 次の試合の前に：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま） -->
       <button id="resetResult" class="link reset" type="button">試合結果をリセット</button>
       <datalist id="rosterNames"></datalist>
@@ -225,6 +241,12 @@
       </div>
       <!-- 控え・集合時間などは、ひとことに改行して書く（メンバーのカードにそのまま入る） -->
       <label>ひとこと（作戦盤）<textarea id="lineupNote" rows="3" maxlength="200" placeholder="例：集合は8:30です&#10;控え：佐藤、鈴木、田中"></textarea></label>
+      <div class="chips note-presets" role="group" aria-label="ひとこと（作戦盤）のひな形">
+        <button class="chip" type="button" data-note="lineupNote" data-text="集合：">＋ 集合</button>
+        <button class="chip" type="button" data-note="lineupNote" data-text="控え：">＋ 控え</button>
+        <button class="chip" type="button" data-note="lineupNote" data-text="持ち物：">＋ 持ち物</button>
+        <button class="chip" type="button" data-note="lineupNote" data-text="ユニフォーム：">＋ ユニフォーム</button>
+      </div>
     </details>
 
     <details class="card fold">
@@ -245,6 +267,9 @@
   <!-- 「📤 さくせん盤を紹介する」：おくるんで紹介カードを送る窓口（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json） -->
   <div data-tool-share></div>
 </main>
+
+<!-- 長押しで出す、印をすぐ付けるメニュー（選手の丸のそば） -->
+<div id="quickMarks" class="quick-marks" role="menu" hidden></div>
 
 <!-- 選手をタップしたとき -->
 <div id="playerSheet" class="sheet" hidden>
@@ -268,10 +293,10 @@
     <p id="shareSheetTitle" class="sheet-title">LINE で共有</p>
     <!-- カードで送る：送るカードを選ぶ（2枚なら1つのメッセージに横に並ぶ）。試合結果は入れてあれば最初から選んでおく -->
     <div class="card-picks">
-      <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 メンバー（スタメン）</b><small>選手の位置をカードで描きます。ピッチをタップすると、さくせん盤で同じ配置が開きます。</small></span></label>
-      <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b><small>スコア・得点者・アシスト・カード・ひとこと。「👕 チーム・試合結果」の欄で入れます。</small></span></label>
+      <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 メンバー（スタメン）</b><span id="previewLineup" class="pick-preview"></span></span></label>
+      <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b><span id="previewResult" class="pick-preview"></span></span></label>
       <a id="sendCards" class="btn line" href="#">💬 カードで送る</a>
-      <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。</p>
+      <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。メンバーのカードのピッチをタップすると、さくせん盤で同じ配置が開きます。</p>
     </div>
     <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 作戦を画像で送る</b><small>相手・ボール・線も入った画像です。画像をタップすると、さくせん盤で同じ配置が開きます。画像は時間がたつと消えることがあります。</small></button>
     <p id="imageStatus" class="hint" aria-live="polite"></p>
@@ -282,14 +307,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201456"></script>
-<script src="js/board.js?v=202610201456"></script>
-<script src="js/ink.js?v=202610201456"></script>
-<script src="js/tactics.js?v=202610201456"></script>
-<script src="js/sheets.js?v=202610201456"></script>
-<script src="js/share.js?v=202610201456"></script>
-<script src="js/events.js?v=202610201456"></script>
-<script src="app.js?v=202610201456"></script>
+<script src="js/core.js?v=202610201504"></script>
+<script src="js/board.js?v=202610201504"></script>
+<script src="js/ink.js?v=202610201504"></script>
+<script src="js/tactics.js?v=202610201504"></script>
+<script src="js/sheets.js?v=202610201504"></script>
+<script src="js/share.js?v=202610201504"></script>
+<script src="js/events.js?v=202610201504"></script>
+<script src="app.js?v=202610201504"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>
