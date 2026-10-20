@@ -35,7 +35,7 @@
     <p class="brand-copy">描いて、伝えて、勝ちにいこう</p>
   </header>
 
-  <!-- 1ページ：作戦盤 → チーム・試合結果 → 会場情報 → 保存した作戦 → 選手名簿 → 共有 -->
+  <!-- 1ページ：作戦盤 → 保存した作戦 → チーム・試合結果 → 会場情報 → 選手名簿 → 共有 -->
   <section class="panel">
     <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手名・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
@@ -129,6 +129,18 @@
       <button id="resetPositions" class="link reset" type="button">位置をフォーメーションに戻す</button>
     </div>
 
+    <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
+    <details id="tacticsFold" class="card fold">
+      <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
+      <div class="save-row">
+        <input id="tacticName" maxlength="20" placeholder="例：ビルドアップ、コーナーキック" list="tacticPresets">
+        <button id="saveTactic" class="btn small" type="button">保存</button>
+      </div>
+      <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
+      <ul id="tacticList" class="tactic-list"></ul>
+      <p class="hint left">選手の位置・相手・ボール・線を保存します。開くと今の作戦盤に呼び出します（「戻す」で元に戻せます）。チームの色はそのままです。この端末に残ります。</p>
+    </details>
+
     <!-- チーム・試合結果：自チームと相手を左右に並べ、チーム名・色、その下にスコア・内訳・得点者・ひとこと（結果）。
          作戦盤の印（ゴール・アシスト・カード）とつながる。人数・フォーメーションは作戦盤の「📐 並び」 -->
     <details class="card fold" id="teamFold">
@@ -193,18 +205,6 @@
       <!-- 次の試合の前に：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま） -->
       <button id="resetResult" class="link reset" type="button">試合結果をリセット</button>
       <datalist id="rosterNames"></datalist>
-    </details>
-
-    <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
-    <details id="tacticsFold" class="card fold">
-      <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
-      <div class="save-row">
-        <input id="tacticName" maxlength="20" placeholder="例：ビルドアップ、コーナーキック" list="tacticPresets">
-        <button id="saveTactic" class="btn small" type="button">保存</button>
-      </div>
-      <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
-      <ul id="tacticList" class="tactic-list"></ul>
-      <p class="hint left">選手の位置・相手・ボール・線を保存します。開くと今の作戦盤に呼び出します（「戻す」で元に戻せます）。チームの色はそのままです。この端末に残ります。</p>
     </details>
 
     <details class="card fold">
