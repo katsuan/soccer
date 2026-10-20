@@ -281,7 +281,9 @@ h1 .logo { width: 28px; height: 28px; }
 .token .marks { position: absolute; top: 14px; left: calc(50% + 7px); padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 16px; white-space: nowrap; pointer-events: none; }
 /* 選手のシートの印の欄：左に名前、右に − 数 ＋ */
 /* オウンゴールのボール：⚽ に赤を重ねた絵（ほかの絵文字と同じ大きさに） */
-.token .marks .is-own-goal { display: inline-block; height: 17px; width: auto; margin: -2px 0; vertical-align: -4px; }
+/* 赤いボールの絵は 26px の字を高さ 36px の中に、下から 9px の所を文字の線（ベースライン）にして描いてある（share.js の redBall）。
+   字の大きさに合わせて 36/26 em にし、絵の下を文字の線より少し下に出す（キャンバスの絵文字は画面の絵文字より少し下に描かれるので、9/26 em より浅い -0.17em で ⚽ とそろう） */
+.token .marks .is-own-goal, .token .sub-goals .is-own-goal { display: inline-block; height: 1.385em; width: auto; margin: -0.19em 0; vertical-align: -0.17em; }
 
 /* 📐 並び：自チーム・相手のタブ（2つの切りかえ）、人数とフォーメーションのプルダウンを1行に */
 .shape-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px; background: #eaf4ed; }
@@ -398,4 +400,3 @@ h1 .logo { width: 28px; height: 28px; }
 .cp-subs { white-space: pre-line; }
 /* 交代前の選手の得点：🔄 の右下に小さく */
 .token .sub-goals { position: absolute; top: 4px; left: calc(50% + 18px); padding: 0 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 8px; font-style: normal; line-height: 12px; white-space: nowrap; pointer-events: none; }
-.token .sub-goals .is-own-goal { display: inline-block; height: 11px; width: auto; vertical-align: -2px; }
