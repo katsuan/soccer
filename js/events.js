@@ -255,6 +255,15 @@ $("venueAction").addEventListener("click", () => (venues.includes(String(state.w
 $("venueSelect").addEventListener("change", (e) => {
   if (e.target.value) applyVenue(e.target.value);
 });
+// スコアの − ＋（0〜99）。得点者は変えない（得点者を足す・消すと、スコアのほうが合わせて動く）
+document.querySelectorAll("[data-score]").forEach((b) =>
+  b.addEventListener("click", () => {
+    const key = b.dataset.score;
+    state[key] = Math.min(99, Math.max(0, (Number(state[key]) || 0) + Number(b.dataset.delta)));
+    $(key).value = state[key];
+    render();
+  })
+);
 const addGoal = (side) => {
   const before = [...state.goals];
   state.goals.push({ side, min: "", name: "" });

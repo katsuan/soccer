@@ -95,6 +95,14 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; }
 .score span { padding-bottom: 10px; font-size: 22px; font-weight: 800; }
 .score input { font-size: 22px; font-weight: 800; text-align: center; }
+/* スコアの − 数 ＋（キロっくの回数入力と同じ：1つの枠に、控えめな − ＋ と真ん中の数） */
+.score-stepper { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: stretch; overflow: hidden; border: 2px solid var(--border); border-radius: 12px; background: #fff; }
+.score-stepper:focus-within { border-color: var(--accent); }
+.score-stepper input { min-width: 0; padding: 0; border: 0; background: transparent; -moz-appearance: textfield; }
+.score-stepper input::-webkit-outer-spin-button, .score-stepper input::-webkit-inner-spin-button { margin: 0; -webkit-appearance: none; }
+.score-stepper input:focus { outline: none; }
+.stepper-button { min-height: 52px; padding: 0; border: 0; background: transparent; color: var(--ink-soft); font: inherit; font-size: 20px; font-weight: 400; cursor: pointer; touch-action: manipulation; }
+.stepper-button:active { background: #efebff; color: #4a2bc4; }
 .score.is-half input { font-size: 16px; }
 
 .goals { display: grid; gap: 6px; }
