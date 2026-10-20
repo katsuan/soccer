@@ -176,7 +176,8 @@ function render() {
   const vs = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
   $("oppCount").textContent = `${theirs}人`;
   $("countVs").textContent = state.showOpp ? vs : "";
-  $("teamMeta").textContent = [state.team && state.opponent ? `${state.team} vs ${state.opponent}` : state.team, state.formation || `${ours}人`].filter(Boolean).join("・");
+  // 見出しはチーム名だけ（人数・フォーメーションは 📐 並び）
+  $("teamMeta").textContent = state.team && state.opponent ? `${state.team} vs ${state.opponent}` : state.team || state.opponent;
   $("removeOpp").disabled = theirs <= MIN_PLAYERS;
   $("addOpp").disabled = theirs >= MAX_PLAYERS;
   $("infoMeta").textContent = [whenText(), state.where].filter(Boolean).join("・") || "なし";
