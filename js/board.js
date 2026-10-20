@@ -57,8 +57,9 @@ function render() {
   $("shapeTabOpp").setAttribute("aria-selected", String(opp));
   $("ourStepper").hidden = opp;
   $("oppLayoutRow").hidden = !opp;
-  $("oppLayoutFull").setAttribute("aria-checked", String(state.oppLayout !== "half"));
-  $("oppLayoutHalf").setAttribute("aria-checked", String(state.oppLayout === "half"));
+  $("oppLayoutNone").setAttribute("aria-checked", String(!state.showOpp));
+  $("oppLayoutFull").setAttribute("aria-checked", String(state.showOpp && state.oppLayout !== "half"));
+  $("oppLayoutHalf").setAttribute("aria-checked", String(state.showOpp && state.oppLayout === "half"));
   $("oppStepper").hidden = !opp;
   const current = opp ? (state.showOpp ? state.oppFormation : "") : state.formation;
   const count = opp ? oppTotal() : state.players.length;
@@ -106,7 +107,7 @@ function render() {
   customInput.onkeydown = (e) => {
     if (e.key === "Enter" && !e.isComposing) $("customApply").click();
   };
-  if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "フォーメーションか人数を選ぶと、相手を盤に出します。" : "";
+  if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "「フルコート」（互い違い）か「コート別」（半分ずつ）を選ぶと、相手を盤に出します。" : "";
   renderLineShapes(opp ? "opp" : "ours");
   // チームの色
   const swatches = (key) => {
@@ -142,7 +143,6 @@ function render() {
   renderTokens();
   drawInk();
   // 作戦盤の道具
-  $("toggleOpp").setAttribute("aria-pressed", String(state.showOpp));
   $("toggleBall").setAttribute("aria-pressed", String(state.showBall));
   $("togglePen").setAttribute("aria-pressed", String(drawing));
   $("toggleEdit").setAttribute("aria-pressed", String(editMode));

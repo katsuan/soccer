@@ -23,12 +23,6 @@ $("courtSelect").addEventListener("change", (event) => {
   selected.clear();
   render();
 });
-$("toggleOpp").addEventListener("click", () => {
-  remember();
-  // 前に並べた相手（人数・位置）はそのまま残す
-  setShowOpp(!state.showOpp);
-  render();
-});
 $("toggleBall").addEventListener("click", () => {
   remember();
   state.showBall = !state.showBall;
@@ -62,8 +56,22 @@ $("toggleEdit").addEventListener("click", () => {
   selected.clear();
   render();
 });
-$("oppLayoutFull").addEventListener("click", () => setOppLayout("full"));
-$("oppLayoutHalf").addEventListener("click", () => setOppLayout("half"));
+// 📐 並び →「相手」：出さない／フルコート／コート別。消しても、前に並べた相手（人数・位置）は残す
+$("oppLayoutNone").addEventListener("click", () => {
+  if (!state.showOpp) return;
+  remember();
+  setShowOpp(false);
+  render();
+});
+const showOppAs = (layout) => {
+  if (state.showOpp) return setOppLayout(layout);
+  remember();
+  state.oppLayout = layout;
+  setShowOpp(true);
+  render();
+};
+$("oppLayoutFull").addEventListener("click", () => showOppAs("full"));
+$("oppLayoutHalf").addEventListener("click", () => showOppAs("half"));
 $("toggleNames").addEventListener("click", () => {
   state.showNames = state.showNames === false;
   render();
