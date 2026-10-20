@@ -21,10 +21,6 @@ body { min-height: 100vh; font-family: var(--font); font-size: 16px; line-height
 .top { display: grid; gap: 10px; }
 h1 { font-size: 22px; font-weight: 800; text-align: center; }
 
-.tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border-radius: 999px; background: #dcebe1; }
-.tab { min-height: 40px; border: 0; border-radius: 999px; background: none; font: inherit; font-size: 14px; font-weight: 800; color: var(--ink-soft); cursor: pointer; }
-.tab[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); }
-
 .panel { display: grid; gap: 12px; }
 .card { display: grid; gap: 10px; padding: 14px; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
 .label, label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
@@ -208,9 +204,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 input[type="date"], input[type="time"] { appearance: none; -webkit-appearance: none; display: block; min-width: 0; min-height: 48px; text-align: left; }
 input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; }
 .score > i { display: block; }
-.score .team, .score .opponent { font-size: 16px; font-weight: 400; text-align: left; }
 .score { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
-.score .label { padding-bottom: 0; font-size: 13px; }
+/* スコアの上のチーム名（👕 チームの欄で入れた名前。長ければ「…」） */
+.score .label { overflow: hidden; padding-bottom: 0; font-size: 13px; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
+/* 🏆 試合結果の中の小見出し（得点者・MVP） */
+.sub-head { margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 14px; font-weight: 800; }
 
 /* スコアのカードの中でたたむ「得点の内訳」 */
 .fold.inner { display: grid; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); }

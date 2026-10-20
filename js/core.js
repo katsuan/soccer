@@ -281,13 +281,14 @@ if (!/^\d{2}:\d{2}$/.test(state.whenTime || "")) state.whenTime = "";
 if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtDef(state.court).mode !== state.mode) state.court = courtOf(state.mode, state.formation, state.players.length);
 
 // おくるんの「さくせん盤で直す」から戻ってきたとき
+let openResultOnLoad = false;
 applyQuery();
 
 function applyQuery() {
   const q = new URLSearchParams(location.search);
   const data = decode(q.get("data"));
-  if (q.get("tab") === "result") state.tab = "result";
-  if (q.get("tab") === "lineup") state.tab = "lineup";
+  // 試合結果のリンク（?tab=result）からは、🏆 試合結果の欄を開いて見せる（1ページになったのでタブはない）
+  openResultOnLoad = q.get("tab") === "result";
   if (data && Array.isArray(data.pl)) {
     state.mode = data.m === "futsal" ? "futsal" : "soccer";
     state.players = data.pl.slice(0, MAX_PLAYERS).map((p) => {

@@ -3,12 +3,6 @@
 "use strict";
 
 // ---- 操作 ----
-for (const tab of document.querySelectorAll(".tab")) {
-  tab.addEventListener("click", () => {
-    state.tab = tab.dataset.tab;
-    render();
-  });
-}
 $("courtSelect").addEventListener("change", (event) => {
   const court = courtDef(event.target.value);
   remember();
@@ -168,10 +162,11 @@ $("resetPositions").addEventListener("click", () => {
   selected.clear();
   render();
 });
-// LINE で共有：カードか画像かを選ぶシート
+// LINE で共有：スタメンのカード・作戦の画像・試合結果のカードから選ぶシート
 const shareSheet = $("shareSheet");
 $("shareLineup").addEventListener("click", () => {
   $("sendLineup").href = lineupCardUrl();
+  $("sendResult").href = resultCardUrl();
   $("imageStatus").textContent = "";
   shareSheet.hidden = false;
 });
@@ -182,7 +177,7 @@ shareSheet.addEventListener("click", (e) => {
 $("saveBoard").addEventListener("click", saveBoardImage);
 $("sendBoardImage").addEventListener("click", sendBoardImage);
 
-// 入力欄（チーム名などは2つのタブで共通。同じクラスの欄をそろえる）
+// 入力欄（同じクラスの欄があればそろえる）
 const shared = { team: ".team", opponent: ".opponent", whenDate: ".when-date", whenTime: ".when-time", where: ".where" };
 for (const [key, selector] of Object.entries(shared)) {
   for (const input of document.querySelectorAll(selector)) {

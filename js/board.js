@@ -9,10 +9,6 @@ const tokens = $("tokens");
 
 function render() {
   save(STORE_KEY, state);
-  // タブ
-  for (const tab of document.querySelectorAll(".tab")) tab.setAttribute("aria-selected", String(tab.dataset.tab === state.tab));
-  $("panelLineup").hidden = state.tab !== "lineup";
-  $("panelResult").hidden = state.tab !== "result";
   // コート（作戦盤の右上）
   $("courtSelect").replaceChildren(...FORMATION_GROUPS.map((g) => Object.assign(document.createElement("option"), { value: g.id, textContent: g.label })));
   $("courtSelect").value = state.court;
@@ -200,7 +196,12 @@ function render() {
   renderGoals();
   // 得点者・MVP の欄の見出しの右
   const goalCount = state.goals.length;
-  $("goalsMeta").textContent = [goalCount ? `${goalCount}点` : "", state.mvp ? "MVP あり" : ""].filter(Boolean).join("・") || "なし";
+  $("goalsMeta").textContent = [goalCount ? `${goalCount}点` : "", state.mvp ? "MVP あり" : ""].filter(Boolean).join("・");
+  // 🏆 試合結果の欄：見出しの右にスコア、スコアの上にチーム名（チーム名は 👕 チームの欄で入れる）
+  const played = Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length;
+  $("resultMeta").textContent = played ? `${Number(state.scoreUs) || 0} - ${Number(state.scoreThem) || 0}` : "なし";
+  $("scoreUsLabel").textContent = state.team || "自チーム";
+  $("scoreThemLabel").textContent = state.opponent || "相手";
   // 作戦盤の印：ゴールがあれば「印から入れる」、アシスト・カードがあれば「カードに入ります」
   $("goalsFromMarks").hidden = !state.players.some((p) => Number(p.marks?.g) > 0 || Number(p.marks?.o) > 0);
   const { assists, cards } = marksForResult();

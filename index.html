@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201412">
+<link rel="stylesheet" href="style.css?v=202610201419">
 </head>
 <body>
 <main class="wrap">
@@ -33,14 +33,10 @@
       <img class="brand" src="logo.svg" alt="SAQSEN" width="97" height="28">
     </div>
     <p class="brand-copy">描いて、伝えて、勝ちにいこう</p>
-    <div class="tabs" role="tablist">
-      <button id="tabLineup" class="tab" role="tab" aria-selected="true" data-tab="lineup">⚽ スタメン・作戦</button>
-      <button id="tabResult" class="tab" role="tab" aria-selected="false" data-tab="result">🏆 結果</button>
-    </div>
   </header>
 
-  <!-- ===== スタメン・作戦 ===== -->
-  <section id="panelLineup" class="panel">
+  <!-- 1ページ：作戦盤 → チーム → 試合結果 → 試合の情報 → 保存した作戦 → 選手名簿 → 共有 -->
+  <section class="panel">
     <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手名・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
       <div class="board-head">
@@ -148,52 +144,11 @@
       <p class="hint left">人数・フォーメーション・列ごとの形は、作戦盤の「📐 並び」で決めます。</p>
     </details>
 
-    <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
-    <details id="tacticsFold" class="card fold">
-      <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
-      <div class="save-row">
-        <input id="tacticName" maxlength="20" placeholder="例：ビルドアップ、コーナーキック" list="tacticPresets">
-        <button id="saveTactic" class="btn small" type="button">保存</button>
-      </div>
-      <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
-      <ul id="tacticList" class="tactic-list"></ul>
-      <p class="hint left">選手の位置・相手・ボール・線を保存します。開くと今の作戦盤に呼び出します（「戻す」で元に戻せます）。チームの色はそのままです。この端末に残ります。</p>
-    </details>
-
-    <details class="card fold">
-      <summary>📋 試合の情報 <span id="infoMeta" class="meta"></span></summary>
-      <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。</p>
-      <div class="two">
-        <label>日にち<input class="when-date" type="date"></label>
-        <label>時間<input class="when-time" type="time"></label>
-      </div>
-      <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
-      <label>控え<input id="subs" maxlength="80" placeholder="例：佐藤、鈴木、田中"></label>
-      <label>ひとこと<input id="lineupNote" maxlength="40" placeholder="例：集合は8:30です"></label>
-    </details>
-
-    <details class="card fold">
-      <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
-      <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
-      <p class="hint">「👤 選手情報」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
-    </details>
-
-    <!-- 共有（主）と画像の保存を横に並べる -->
-    <div class="share-row">
-      <button id="shareLineup" class="btn line" type="button">💬 LINE で共有</button>
-      <button id="saveBoard" class="btn ghost" type="button">📷 画像で保存</button>
-    </div>
-  </section>
-
-  <!-- ===== 結果 ===== -->
-  <section id="panelResult" class="panel" hidden>
-    <!-- チーム名とスコアは、スタメンのチームの欄と同じく左右に向かい合わせ（左が自チーム、右が相手） -->
-    <div class="card">
+    <!-- 🏆 試合結果：スコア（チーム名は 👕 チームの欄）・内訳・得点者・MVP。作戦盤の印（ゴール・アシスト・カード）とつながる -->
+    <details class="card fold" id="resultFold">
+      <summary>🏆 試合結果 <span id="resultMeta" class="meta"></span></summary>
       <div class="score">
-        <span class="label">自チーム</span><i></i><span class="label">相手</span>
-        <input class="team" maxlength="20" placeholder="チーム名" aria-label="チーム名">
-        <i></i>
-        <input class="opponent" maxlength="20" placeholder="対戦相手" aria-label="対戦相手">
+        <span id="scoreUsLabel" class="label">自チーム</span><i></i><span id="scoreThemLabel" class="label">相手</span>
         <input id="scoreUs" type="number" inputmode="numeric" min="0" max="99" value="0" aria-label="自チームの得点">
         <span>-</span>
         <input id="scoreThem" type="number" inputmode="numeric" min="0" max="99" value="0" aria-label="相手の得点">
@@ -227,11 +182,8 @@
           <input id="pkThem" type="number" inputmode="numeric" min="0" max="99" aria-label="PKの相手の得点">
         </div>
       </details>
-    </div>
-
-    <!-- 得点者・MVP（どちらも任意） -->
-    <details class="card fold">
-      <summary>⚽ 得点者・MVP <span id="goalsMeta" class="meta"></span></summary>
+      <!-- 得点者・MVP（どちらも任意） -->
+      <p class="sub-head">⚽ 得点者・MVP <span id="goalsMeta" class="meta"></span></p>
       <!-- 作戦盤の印（⚽ ゴール・オウンゴール）から得点者を入れる。アシスト・カードは印のままカードに入る -->
       <button id="goalsFromMarks" class="btn ghost small" type="button" hidden>⚽ 作戦盤の印から得点者を入れる</button>
       <p id="marksNote" class="hint left" hidden></p>
@@ -244,21 +196,44 @@
       <datalist id="rosterNames"></datalist>
     </details>
 
+    <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
+    <details id="tacticsFold" class="card fold">
+      <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
+      <div class="save-row">
+        <input id="tacticName" maxlength="20" placeholder="例：ビルドアップ、コーナーキック" list="tacticPresets">
+        <button id="saveTactic" class="btn small" type="button">保存</button>
+      </div>
+      <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
+      <ul id="tacticList" class="tactic-list"></ul>
+      <p class="hint left">選手の位置・相手・ボール・線を保存します。開くと今の作戦盤に呼び出します（「戻す」で元に戻せます）。チームの色はそのままです。この端末に残ります。</p>
+    </details>
+
     <details class="card fold">
-      <summary>📋 試合の情報</summary>
+      <summary>📋 試合の情報 <span id="infoMeta" class="meta"></span></summary>
       <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。</p>
       <div class="two">
         <label>日にち<input class="when-date" type="date"></label>
         <label>時間<input class="when-time" type="time"></label>
       </div>
       <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
-      <label>ひとこと<input id="resultNote" maxlength="60" placeholder="例：最後まで走りきりました！"></label>
+      <label>控え<input id="subs" maxlength="80" placeholder="例：佐藤、鈴木、田中"></label>
+      <label>ひとこと（スタメン）<input id="lineupNote" maxlength="40" placeholder="例：集合は8:30です"></label>
+      <label>ひとこと（試合結果）<input id="resultNote" maxlength="60" placeholder="例：最後まで走りきりました！"></label>
     </details>
 
-    <div class="actions">
-      <a id="sendResult" class="btn line" href="#">💬 LINE で共有</a>
+    <details class="card fold">
+      <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
+      <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
+      <p class="hint">「👤 選手情報」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
+    </details>
+
+    <!-- 共有（主）と画像の保存を横に並べる -->
+    <div class="share-row">
+      <button id="shareLineup" class="btn line" type="button">💬 LINE で共有</button>
+      <button id="saveBoard" class="btn ghost" type="button">📷 画像で保存</button>
     </div>
   </section>
+
 
   <p class="foot">送るカードは <a href="https://katsuan.github.io/line-share/">おくるん</a> で作ります。</p>
   <!-- 「📤 さくせん盤を紹介する」：おくるんで紹介カードを送る窓口（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json） -->
@@ -281,12 +256,13 @@
   </div>
 </div>
 
-<!-- LINE で共有：カードか画像かを選ぶ -->
+<!-- LINE で共有：スタメンのカード・作戦の画像・試合結果のカードから選ぶ -->
 <div id="shareSheet" class="sheet" hidden>
   <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="shareSheetTitle">
     <p id="shareSheetTitle" class="sheet-title">LINE で共有</p>
     <a id="sendLineup" class="choice" href="#"><b>💬 カードで送る（スタメン発表に）</b><small>選手の位置をカードで描きます。画像を使わないので確実に届き、あとで消えません。ピッチをタップすると、さくせん盤で同じ配置が開きます。</small></a>
     <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 画像で送る（作戦の共有に）</b><small>相手・ボール・線も入った画像です。画像をタップすると、さくせん盤で同じ配置が開きます。画像は時間がたつと消えることがあります。</small></button>
+    <a id="sendResult" class="choice" href="#"><b>🏆 試合結果を送る</b><small>スコア・得点者・アシスト・カード・MVP を1枚のカードにします。得点者は「🏆 試合結果」の欄で入れます（作戦盤の印からも入れられます）。</small></a>
     <p id="imageStatus" class="hint" aria-live="polite"></p>
     <button id="shareCancel" class="link" type="button">やめる</button>
   </div>
@@ -295,14 +271,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201412"></script>
-<script src="js/board.js?v=202610201412"></script>
-<script src="js/ink.js?v=202610201412"></script>
-<script src="js/tactics.js?v=202610201412"></script>
-<script src="js/sheets.js?v=202610201412"></script>
-<script src="js/share.js?v=202610201412"></script>
-<script src="js/events.js?v=202610201412"></script>
-<script src="app.js?v=202610201412"></script>
+<script src="js/core.js?v=202610201419"></script>
+<script src="js/board.js?v=202610201419"></script>
+<script src="js/ink.js?v=202610201419"></script>
+<script src="js/tactics.js?v=202610201419"></script>
+<script src="js/sheets.js?v=202610201419"></script>
+<script src="js/share.js?v=202610201419"></script>
+<script src="js/events.js?v=202610201419"></script>
+<script src="app.js?v=202610201419"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>
