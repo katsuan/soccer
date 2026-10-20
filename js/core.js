@@ -116,18 +116,20 @@ function formationPositions(mode, formation, versus = true, shapes = []) {
   const parsed = parseFormation(formation);
   const lines = parsed.length ? parsed : parseFormation(mode === "futsal" ? "1-2-1" : "4-4-2");
   // コート全体に並べてから、相手を出すときは GK と最前線の高さに合わせて縦に縮める
-  const spots = [{ x: 50, y: FULL.gk }];
+  // GK は少しゴール寄り（y=92）に置き、後ろの列（逆三角の頂点など）との間をあける
+  const spots = [{ x: 50, y: FULL.gk + 2 }];
   const back = 74;
   const gap = lines.length > 1 ? (back - FULL.front) / (lines.length - 1) : 20;
   lines.forEach((count, i) => {
     const y = lines.length === 1 ? 46 : Math.round(back - ((back - FULL.front) * i) / (lines.length - 1));
     // 横の広がりは人数で変える（2人は中央寄り、4人以上はサイドいっぱい）。列ごとの形（shapes[i]）があればその形に
-    // 前の端・後ろ（GK の前）の端にはみ出す形は、形を保ったまま列ごと内側へずらす
+    // 前の端にはみ出す形は、形を保ったまま列ごと内側へずらす。
+    // 後ろ（GK の前）にはみ出す選手（逆三角の頂点など）は、その選手だけ GK の手前（y=79）までにとどめる。
+    // 列ごと前にずらすと、ほかの選手が相手の FW とぶつかるため
     const line = lineSpots(mode, count, y, gap, shapes[i]);
     const top = Math.min(...line.map((spot) => spot.y));
-    const bottom = Math.max(...line.map((spot) => spot.y));
-    const shift = top < 12 ? 12 - top : bottom > 80 ? 80 - bottom : 0;
-    line.forEach((spot) => spots.push({ x: spot.x, y: Math.round((spot.y + shift) * 10) / 10 }));
+    const shift = top < 12 ? 12 - top : 0;
+    line.forEach((spot) => spots.push({ x: spot.x, y: Math.round(Math.min(79, spot.y + shift) * 10) / 10 }));
   });
   return versus ? spots.map((spot) => ({ x: spot.x, y: fitY(spot.y, FULL, VERSUS) })) : spots;
 }

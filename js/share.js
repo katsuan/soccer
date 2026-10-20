@@ -190,10 +190,13 @@ async function boardCanvas() {
       ctx.fillText("🧤", x + 30, y + 36);
     }
     if (text) {
+      // 名前：白線と重なっても読めるよう、盤と同じ半透明の濃い札に入れる
       ctx.font = font(26);
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = "rgba(0,0,0,0.45)";
-      ctx.strokeText(text, x, y + 74);
+      const w = ctx.measureText(text).width + 20;
+      ctx.fillStyle = "rgba(16, 36, 24, 0.72)";
+      ctx.beginPath();
+      ctx.roundRect(x - w / 2, y + 48, w, 36, 18);
+      ctx.fill();
       ctx.fillStyle = "#ffffff";
       ctx.fillText(text, x, y + 74);
     }
