@@ -330,7 +330,32 @@ const oppTotal = () => (Array.isArray(state.opp) && state.opp.length ? state.opp
 
 function opponents() {
   const formation = state.oppFormation || autoFormation(oppTotal() - 1);
-  return formationPositions(state.mode, formation, true, lineShapesOf(formation, "opp")).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
+  const list = formationPositions(state.mode, formation, true, lineShapesOf(formation, "opp")).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
+  return spreadFromOurs(list);
+}
+
+// 並べ直したとき、自チームの選手とほとんど重なる相手は、横に少しずらす（自チームはそのまま）。
+// 盤は 横3：縦4 なので、縦の差は 4/3 倍して見た目の距離で比べる。
+// ずらす先がほかの相手とも重ならないところを、真ん中寄り → 反対側 の順に探す。見つからなければ動かさない
+const OVERLAP = 8; // これより近いと「重なっている」（丸の大きさの7割ほど）
+const SPREAD = 10; // ずらしたあとの距離
+function spreadFromOurs(list) {
+  const dist = (a, b) => Math.hypot(a.x - b.x, ((a.y - b.y) * 4) / 3);
+  const out = list.map((o) => ({ ...o }));
+  out.forEach((o, i) => {
+    const p = state.players.find((q) => dist(o, q) < OVERLAP);
+    if (!p) return;
+    const others = out.filter((_, j) => j !== i);
+    const free = (c) => state.players.every((q) => dist(c, q) >= OVERLAP) && others.every((q) => dist(c, q) >= OVERLAP);
+    const dy = ((o.y - p.y) * 4) / 3;
+    const dx = Math.sqrt(Math.max(0, SPREAD * SPREAD - dy * dy));
+    const first = o.x === p.x ? (p.x <= 50 ? 1 : -1) : Math.sign(o.x - p.x);
+    // 横にずらす → 足りなければ少し縦にも（相手側＝上へ）
+    const tries = [first, -first].flatMap((dir) => [0, 4].map((up) => ({ x: Math.round(Math.min(96, Math.max(4, p.x + dir * dx)) * 10) / 10, y: o.y - up })));
+    const spot = tries.find(free);
+    if (spot) Object.assign(o, spot);
+  });
+  return out;
 }
 
 // 範囲で選んだもの（"p3"＝自チームの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
