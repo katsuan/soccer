@@ -189,6 +189,8 @@
         <button id="addGoalThem" class="btn ghost small" type="button">＋ 相手の得点</button>
       </div>
       <label>MVP<input id="mvp" maxlength="12" list="rosterNames" placeholder="例：山田"></label>
+      <!-- ひとことは2つ：作戦盤（メンバーのカード。📋 試合の情報）と、結果（試合結果のカード。ここ） -->
+      <label>ひとこと（結果）<input id="resultNote" maxlength="60" placeholder="例：最後まで走りきりました！"></label>
       <datalist id="rosterNames"></datalist>
     </details>
 
@@ -213,8 +215,7 @@
       </div>
       <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
       <label>控え<input id="subs" maxlength="80" placeholder="例：佐藤、鈴木、田中"></label>
-      <label>ひとこと（スタメン）<input id="lineupNote" maxlength="40" placeholder="例：集合は8:30です"></label>
-      <label>ひとこと（試合結果）<input id="resultNote" maxlength="60" placeholder="例：最後まで走りきりました！"></label>
+      <label>ひとこと（作戦盤）<input id="lineupNote" maxlength="40" placeholder="例：集合は8:30です"></label>
     </details>
 
     <details class="card fold">
