@@ -146,9 +146,12 @@ function render() {
   $("viewTools").hidden = !viewMode;
   $("ballOn").setAttribute("aria-checked", String(!!state.showBall));
   $("ballOff").setAttribute("aria-checked", String(!state.showBall));
+  document.querySelectorAll("[data-marks]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.marks === "on") === (state.showMarks !== false))));
+  board.classList.toggle("hide-marks", state.showMarks === false);
   document.querySelectorAll("[data-names]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.names === "on") === (state.showNames !== false))));
   // 👁 表示を開いているときは、そちらに同じ切りかえがあるので出さない
   $("editTools").hidden = !editMode || viewMode;
+  $("clearMarks").hidden = !state.players.some((p) => p.marks && Object.keys(p.marks).length);
   $("togglePen").setAttribute("aria-pressed", String(drawing));
   $("toggleEdit").setAttribute("aria-pressed", String(editMode));
   $("undo").disabled = !undoStack.length;
@@ -161,7 +164,7 @@ function render() {
   $("boardHint").textContent = drawing
     ? "指でなぞって線を描けます。"
     : viewMode
-      ? "盤に出すもの（相手・ボール・選手名）を選べます。"
+      ? "盤に出すもの（相手・ボール・選手名・得点やカード）を選べます。"
     : shapeMode
       ? "フォーメーションと列の形を選ぶと、その形に並べ直します（背番号・名前はそのまま）。"
     : editMode

@@ -36,6 +36,19 @@ const setShowNames = (on) => {
   state.showNames = on;
   render();
 };
+// 印だけを全員分消す（次の試合の前など）。名前・背番号・位置はそのまま。「戻す」で元に戻せる
+$("clearMarks").addEventListener("click", () => {
+  remember();
+  state.players.forEach((p) => delete p.marks);
+  render();
+});
+// 得点・アシスト・カードなどの印
+document.querySelectorAll("[data-marks]").forEach((b) =>
+  b.addEventListener("click", () => {
+    state.showMarks = b.dataset.marks === "on";
+    render();
+  })
+);
 // 👁 表示と 👤 選手名の両方にある（同じ設定）
 document.querySelectorAll("[data-names]").forEach((b) => b.addEventListener("click", () => setShowNames(b.dataset.names === "on")));
 // 📐 並びのタブ（自チーム・相手）

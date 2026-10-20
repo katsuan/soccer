@@ -23,7 +23,7 @@ function boardLinkUrl() {
   const players = (withNames) => ({
     ...lineupData(),
     pl: state.players.map((p) => {
-      const marks = encodeMarks(p.marks);
+      const marks = state.showMarks === false ? "" : encodeMarks(p.marks);
       const name = withNames && state.showNames !== false ? p.name : "";
       return marks ? [p.number, name, r(p.x), r(p.y), marks] : [p.number, name, r(p.x), r(p.y)];
     })
@@ -205,7 +205,7 @@ async function boardCanvas() {
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
   // 印（イエロー・ゴールなど）：丸のすぐ上に、白い角丸の札に入れて。オウンゴールのボールは赤く
-  state.players.forEach((p) => {
+  if (state.showMarks !== false) state.players.forEach((p) => {
     const parts = markParts(p.marks);
     if (!parts.length) return;
     const x = (p.x / 100) * W;

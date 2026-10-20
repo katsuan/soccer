@@ -203,7 +203,8 @@ const state = Object.assign(
     showOpp: false,
     showBall: false,
     oppLayout: "full", // 相手を出したときの並べ方："full"＝フルコート（互い違い）・"half"＝コート別（半分ずつ）
-    showNames: true, // 盤・画像・リンクに選手の名前を出すか（👤 選手でまとめて切りかえ）
+    showNames: true,
+    showMarks: true, // 盤・画像・リンクに印（得点・アシスト・カードなど）を出すか（👁 表示で切りかえ） // 盤・画像・リンクに選手の名前を出すか（👤 選手でまとめて切りかえ）
     ball: { x: 50, y: 50 },
     strokes: [],
     penColor: PEN_COLORS[0],
