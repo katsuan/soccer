@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201448">
+<link rel="stylesheet" href="style.css?v=202610201449">
 </head>
 <body>
 <main class="wrap">
@@ -209,20 +209,25 @@
 
     <details class="card fold">
       <summary>🏟️ 会場情報 <span id="infoMeta" class="meta"></span></summary>
-      <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。場所・時間・ひとことは「💾 保存」しておくと、次からタップで入れられます。</p>
-      <!-- よく使う会場：場所・時間・ひとこと（作戦盤）を保存して、タップで入れる（日にちは試合ごとに選ぶので入れない。この端末に残る） -->
-      <div id="venueRow" class="venue-row" hidden>
-        <span class="label">保存した会場</span>
-        <div id="venueChips" class="chips venue-chips"></div>
-      </div>
+      <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。場所は「保存」しておくと、次から選ぶだけで入れられます。</p>
       <div class="two">
         <label>日にち<input class="when-date" type="date"></label>
         <label>時間<input class="when-time" type="time"></label>
       </div>
-      <label>場所<input class="where" maxlength="30" placeholder="例：市民グラウンド"></label>
+      <!-- 場所：入れて「保存」しておくと、下のプルダウンから選べる。選んだものは「消す」で消せる（この端末に残る） -->
+      <div class="venue">
+        <label for="whereInput">場所</label>
+        <div class="save-row">
+          <input id="whereInput" class="where" maxlength="30" placeholder="例：市民グラウンド">
+          <button id="saveVenue" class="btn ghost small" type="button">保存</button>
+        </div>
+        <div id="venueRow" class="save-row" hidden>
+          <label class="select"><span class="sr">保存した場所</span><select id="venueSelect"></select></label>
+          <button id="removeVenue" class="btn ghost small" type="button" disabled>消す</button>
+        </div>
+      </div>
       <!-- 控え・集合時間などは、ひとことに改行して書く（メンバーのカードにそのまま入る） -->
       <label>ひとこと（作戦盤）<textarea id="lineupNote" rows="3" maxlength="200" placeholder="例：集合は8:30です&#10;控え：佐藤、鈴木、田中"></textarea></label>
-      <button id="saveVenue" class="btn ghost small" type="button">💾 この会場情報を保存</button>
     </details>
 
     <details class="card fold">
@@ -280,14 +285,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201448"></script>
-<script src="js/board.js?v=202610201448"></script>
-<script src="js/ink.js?v=202610201448"></script>
-<script src="js/tactics.js?v=202610201448"></script>
-<script src="js/sheets.js?v=202610201448"></script>
-<script src="js/share.js?v=202610201448"></script>
-<script src="js/events.js?v=202610201448"></script>
-<script src="app.js?v=202610201448"></script>
+<script src="js/core.js?v=202610201449"></script>
+<script src="js/board.js?v=202610201449"></script>
+<script src="js/ink.js?v=202610201449"></script>
+<script src="js/tactics.js?v=202610201449"></script>
+<script src="js/sheets.js?v=202610201449"></script>
+<script src="js/share.js?v=202610201449"></script>
+<script src="js/events.js?v=202610201449"></script>
+<script src="app.js?v=202610201449"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

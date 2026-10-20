@@ -63,58 +63,49 @@ function removeTactic(entry) {
   renderTactics();
 }
 
-// ---- よく使う会場（場所・時間・ひとこと（作戦盤）。日にちは試合ごとに選ぶので入れない。この端末に残す） ----
+// ---- よく使う場所（名前だけ。この端末に残す） ----
 const VENUES_KEY = "soccer:venues";
-const MAX_VENUES = 20;
+const MAX_VENUES = 30;
+// 前の形（{ name, where, … }）からは場所の名前だけを残す
 let venues = load(VENUES_KEY, []);
-if (!Array.isArray(venues)) venues = [];
-const VENUE_KEYS = ["where", "whenTime", "lineupNote"];
+venues = (Array.isArray(venues) ? venues : []).map((v) => String(typeof v === "string" ? v : v?.where || v?.name || "").trim()).filter(Boolean);
+venues = [...new Set(venues)];
 
 function saveVenue() {
-  if (!state.where && !state.whenTime && !state.lineupNote) return alert("場所・時間・ひとことのどれかを入れてから保存してください。");
-  const name = prompt("会場の名前（タップで入れるボタンの名前）", state.where || "")?.trim().slice(0, 20);
-  if (!name) return;
-  const same = venues.findIndex((v) => v.name === name);
-  if (same >= 0 && !confirm(`「${name}」を今の会場情報で上書きしますか？`)) return;
-  if (same < 0 && venues.length >= MAX_VENUES) return alert(`保存できるのは ${MAX_VENUES} 件までです。使わないものを消してください。`);
-  const entry = { name, ...Object.fromEntries(VENUE_KEYS.map((k) => [k, state[k] || ""])) };
-  if (same >= 0) venues.splice(same, 1);
-  venues.unshift(entry);
+  const place = String(state.where || "").trim();
+  if (!place) return alert("場所を入れてから保存してください。");
+  if (!venues.includes(place) && venues.length >= MAX_VENUES) return alert(`保存できるのは ${MAX_VENUES} 件までです。使わないものを消してください。`);
+  venues = [place, ...venues.filter((v) => v !== place)];
   save(VENUES_KEY, venues);
   renderVenues();
 }
 
-// 入れるときは、入力欄の表示もそろえる（場所は同じクラスの欄が複数ありうる）
-function applyVenue(entry) {
-  VENUE_KEYS.forEach((k) => (state[k] = entry[k] || ""));
-  document.querySelectorAll(".where").forEach((el) => (el.value = state.where));
-  document.querySelectorAll(".when-time").forEach((el) => (el.value = state.whenTime));
-  $("lineupNote").value = state.lineupNote;
+// 選んだ場所を入れる（同じクラスの場所の欄をそろえる）
+function applyVenue(place) {
+  state.where = place;
+  document.querySelectorAll(".where").forEach((el) => (el.value = place));
   render();
 }
 
-function removeVenue(entry) {
-  if (!confirm(`「${entry.name}」を消しますか？`)) return;
-  venues = venues.filter((v) => v !== entry);
+function removeVenue() {
+  const place = $("venueSelect").value;
+  if (!place || !confirm(`「${place}」を保存した場所から消しますか？`)) return;
+  venues = venues.filter((v) => v !== place);
   save(VENUES_KEY, venues);
   renderVenues();
 }
 
 function renderVenues() {
   $("venueRow").hidden = !venues.length;
-  $("venueChips").replaceChildren(
-    ...venues.map((entry) => {
-      const wrap = Object.assign(document.createElement("span"), { className: "venue-chip" });
-      const use = Object.assign(document.createElement("button"), { type: "button", className: "chip", textContent: entry.name });
-      use.title = [entry.where, entry.whenTime, entry.lineupNote].filter(Boolean).join(" / ");
-      use.addEventListener("click", () => applyVenue(entry));
-      const del = Object.assign(document.createElement("button"), { type: "button", className: "venue-remove", textContent: "×" });
-      del.setAttribute("aria-label", `${entry.name}を消す`);
-      del.addEventListener("click", () => removeVenue(entry));
-      wrap.append(use, del);
-      return wrap;
-    })
+  const select = $("venueSelect");
+  select.replaceChildren(
+    Object.assign(document.createElement("option"), { value: "", textContent: `保存した場所から選ぶ（${venues.length}件）` }),
+    ...venues.map((v) => Object.assign(document.createElement("option"), { value: v, textContent: v }))
   );
+  // 今の場所が保存した中にあれば、それを選んでおく（「消す」で消せる）
+  select.value = venues.includes(state.where) ? state.where : "";
+  $("removeVenue").disabled = !select.value;
+  $("saveVenue").disabled = !String(state.where || "").trim() || venues.includes(String(state.where).trim());
 }
 
 function renderTactics() {

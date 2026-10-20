@@ -175,6 +175,7 @@ function render() {
   $("removeOpp").disabled = theirs <= MIN_PLAYERS;
   $("addOpp").disabled = theirs >= MAX_PLAYERS;
   $("infoMeta").textContent = [whenText(), state.where].filter(Boolean).join("・") || "なし";
+  renderVenues(); // 保存した場所のプルダウン（今の場所を選んでおく・保存ボタンの押せる／押せない）
   $("penColors").replaceChildren(
     ...PEN_COLORS.map((color) => {
       const b = chip("", state.penColor === color, () => {

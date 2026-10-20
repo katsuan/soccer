@@ -252,6 +252,11 @@ $("resetResult").addEventListener("click", () => {
   render();
 });
 $("saveVenue").addEventListener("click", saveVenue);
+$("removeVenue").addEventListener("click", removeVenue);
+$("venueSelect").addEventListener("change", (e) => {
+  if (e.target.value) applyVenue(e.target.value);
+  else $("removeVenue").disabled = true;
+});
 $("addGoalUs").addEventListener("click", () => {
   state.goals.push({ side: "u", min: "", name: "" });
   state.scoreUs = state.goals.filter((g) => g.side === "u").length;
