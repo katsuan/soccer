@@ -20,6 +20,7 @@
 
 render();
 renderTactics();
+renderVenues();
 // 試合結果のリンク（?tab=result）から開いたときは、👕 チーム・試合結果の欄を開いてそこまで送る
 if (openResultOnLoad) {
   $("teamFold").open = true;

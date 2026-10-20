@@ -183,6 +183,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 /* 保存した作戦 */
 .save-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+/* 保存した会場：タップで入れるボタンと、右の小さな × */
+.venue-row { display: grid; gap: 6px; }
+.venue-row[hidden] { display: none; }
+.venue-chips { flex-wrap: wrap; }
+.venue-chip { display: inline-flex; align-items: center; gap: 2px; }
+.venue-remove { width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; cursor: pointer; }
 .save-row .btn { width: auto; min-height: 46px; padding: 0 18px; }
 .tactic-list { display: grid; gap: 6px; list-style: none; }
 .tactic { display: grid; gap: 6px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 14px; }

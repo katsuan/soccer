@@ -1,4 +1,4 @@
-// さくせん盤：作戦の保存（場面ごとの配置と線。この端末に残す）
+// さくせん盤：作戦の保存（場面ごとの配置と線）・よく使う会場の保存（どちらもこの端末に残す）
 // ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
 "use strict";
 
@@ -61,6 +61,60 @@ function removeTactic(entry) {
   tactics = tactics.filter((t) => t !== entry);
   saveTactics();
   renderTactics();
+}
+
+// ---- よく使う会場（場所・時間・ひとこと（作戦盤）。日にちは試合ごとに選ぶので入れない。この端末に残す） ----
+const VENUES_KEY = "soccer:venues";
+const MAX_VENUES = 20;
+let venues = load(VENUES_KEY, []);
+if (!Array.isArray(venues)) venues = [];
+const VENUE_KEYS = ["where", "whenTime", "lineupNote"];
+
+function saveVenue() {
+  if (!state.where && !state.whenTime && !state.lineupNote) return alert("場所・時間・ひとことのどれかを入れてから保存してください。");
+  const name = prompt("会場の名前（タップで入れるボタンの名前）", state.where || "")?.trim().slice(0, 20);
+  if (!name) return;
+  const same = venues.findIndex((v) => v.name === name);
+  if (same >= 0 && !confirm(`「${name}」を今の会場情報で上書きしますか？`)) return;
+  if (same < 0 && venues.length >= MAX_VENUES) return alert(`保存できるのは ${MAX_VENUES} 件までです。使わないものを消してください。`);
+  const entry = { name, ...Object.fromEntries(VENUE_KEYS.map((k) => [k, state[k] || ""])) };
+  if (same >= 0) venues.splice(same, 1);
+  venues.unshift(entry);
+  save(VENUES_KEY, venues);
+  renderVenues();
+}
+
+// 入れるときは、入力欄の表示もそろえる（場所は同じクラスの欄が複数ありうる）
+function applyVenue(entry) {
+  VENUE_KEYS.forEach((k) => (state[k] = entry[k] || ""));
+  document.querySelectorAll(".where").forEach((el) => (el.value = state.where));
+  document.querySelectorAll(".when-time").forEach((el) => (el.value = state.whenTime));
+  $("lineupNote").value = state.lineupNote;
+  render();
+}
+
+function removeVenue(entry) {
+  if (!confirm(`「${entry.name}」を消しますか？`)) return;
+  venues = venues.filter((v) => v !== entry);
+  save(VENUES_KEY, venues);
+  renderVenues();
+}
+
+function renderVenues() {
+  $("venueRow").hidden = !venues.length;
+  $("venueChips").replaceChildren(
+    ...venues.map((entry) => {
+      const wrap = Object.assign(document.createElement("span"), { className: "venue-chip" });
+      const use = Object.assign(document.createElement("button"), { type: "button", className: "chip", textContent: entry.name });
+      use.title = [entry.where, entry.whenTime, entry.lineupNote].filter(Boolean).join(" / ");
+      use.addEventListener("click", () => applyVenue(entry));
+      const del = Object.assign(document.createElement("button"), { type: "button", className: "venue-remove", textContent: "×" });
+      del.setAttribute("aria-label", `${entry.name}を消す`);
+      del.addEventListener("click", () => removeVenue(entry));
+      wrap.append(use, del);
+      return wrap;
+    })
+  );
 }
 
 function renderTactics() {

@@ -235,6 +235,23 @@ $("goalsFromMarks").addEventListener("click", () => {
   $("scoreThem").value = state.scoreThem;
   render();
 });
+// 試合結果をリセット：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま）。
+// 作戦盤に得点・カードの印があれば、それも消すかを続けて聞く
+$("resetResult").addEventListener("click", () => {
+  if (!confirm("スコア・内訳・得点者・ひとこと（結果）を消しますか？（チーム名・色はそのまま）")) return;
+  const fields = ["scoreUs", "scoreThem", "halfUs", "halfThem", "secondUs", "secondThem", "extraUs", "extraThem", "pkUs", "pkThem", "resultNote"];
+  fields.forEach((k) => {
+    state[k] = k === "scoreUs" || k === "scoreThem" ? 0 : "";
+    $(k).value = state[k];
+  });
+  state.goals = [];
+  if (state.players.some((p) => p.marks) && confirm("作戦盤の得点・カードの印も消しますか？")) {
+    remember();
+    state.players.forEach((p) => delete p.marks);
+  }
+  render();
+});
+$("saveVenue").addEventListener("click", saveVenue);
 $("addGoalUs").addEventListener("click", () => {
   state.goals.push({ side: "u", min: "", name: "" });
   state.scoreUs = state.goals.filter((g) => g.side === "u").length;
