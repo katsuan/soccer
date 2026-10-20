@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201508">
+<link rel="stylesheet" href="style.css?v=202610201515">
 </head>
 <body>
 <main class="wrap">
@@ -37,13 +37,13 @@
 
   <!-- 1ページ：作戦盤 → 保存した作戦 → チーム・試合結果 → 会場情報 → 選手名簿 → 共有 -->
   <section class="panel">
-    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・選手名・ペン・戻す）をひとまとめに。人数・色は下の「チーム」の欄 -->
+    <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・ペン・戻す。選手のことは長押し）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="card board-card">
       <!-- はじめて開いた人にだけ出す短い案内（「わかった」で消え、この端末では次から出ない） -->
       <div id="firstTip" class="first-tip" hidden>
         <b>はじめての方へ</b>
         <ul>
-          <li>選手はドラッグで動かせます。<b>長押し</b>で得点やカードを付けられます。</li>
+          <li>選手はドラッグで動かせます。<b>長押し</b>で背番号・名前を変えたり、得点やカードを記録できます。</li>
           <li>「👁️ 表示」で相手・ボールを出し、「📐 並び」で人数とフォーメーションを決めます。</li>
           <li>「💬 LINE で共有」から、メンバーと試合結果のカードを送れます。</li>
         </ul>
@@ -118,20 +118,11 @@
           <button class="chip" type="button" role="radio" data-marks="on">出す</button>
         </div>
         <p class="hint left">フルコートは両チームが互い違いに、コート別は半分ずつ並びます。選手名・得点などを出さないと、画像・カードのリンクからも外します（入れたものは消えません）。</p>
-      </div>
-      <!-- 👤 選手情報：名前を入れるときも、表示・非表示を切りかえられるように（👁️ 表示の「選手名」と同じ設定） -->
-      <div id="editTools" class="view-tools" hidden>
-        <span class="label">選手名</span>
-        <div class="seg" role="radiogroup" aria-label="選手名">
-          <button class="chip" type="button" role="radio" data-names="off">出さない</button>
-          <button class="chip" type="button" role="radio" data-names="on">出す</button>
-        </div>
         <button id="clearMarks" class="link" type="button" hidden>得点・カードなどの印をすべて消す（名前・背番号は残す）</button>
       </div>
       <div class="toolbar">
         <button id="toggleView" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👁️</i><span>表示</span></button>
         <button id="toggleShape" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">📐</i><span>並び</span></button>
-        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手情報</span></button>
         <button id="togglePen" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">✏️</i><span>ペン</span></button>
         <button id="undo" class="tool" type="button"><i class="emoji" aria-hidden="true">↩️</i><span>戻す</span></button>
       </div>
@@ -253,7 +244,7 @@
     <details class="card fold">
       <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
       <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
-      <p class="hint">「👤 選手情報」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
+      <p class="hint">選手を長押しして、上の「背番号・名前 ✏️」をタップすると、ここから選べます。この端末に残ります。</p>
     </details>
 
     <!-- 共有（主）と画像の保存を横に並べる -->
@@ -269,24 +260,8 @@
   <div data-tool-share></div>
 </main>
 
-<!-- 長押しで出す、印をすぐ付けるメニュー（選手の丸のそば） -->
+<!-- 自チームの選手を長押しすると出るポップアップ（背番号・名前・印。選手の丸のそば） -->
 <div id="quickMarks" class="quick-marks" role="menu" hidden></div>
-
-<!-- 選手をタップしたとき -->
-<div id="playerSheet" class="sheet" hidden>
-  <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="playerSheetTitle">
-    <p id="playerSheetTitle" class="sheet-title">選手</p>
-    <div class="two">
-      <label>背番号<input id="playerNumber" inputmode="numeric" maxlength="3"></label>
-      <label>名前<input id="playerName" maxlength="8"></label>
-    </div>
-    <div id="rosterChips" class="chips"></div>
-    <!-- 印：イエロー・レッド・ゴール・アシスト（盤・画像で丸のすぐ上に出る） -->
-    <div id="playerMarks" class="player-marks" role="group" aria-label="イエロー・ゴールなどの印"></div>
-    <button id="playerDone" class="btn" type="button">決定</button>
-    <button id="playerCancel" class="link" type="button">やめる</button>
-  </div>
-</div>
 
 <!-- LINE で共有：スタメンのカード・作戦の画像・試合結果のカードから選ぶ -->
 <div id="shareSheet" class="sheet" hidden>
@@ -308,14 +283,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201508"></script>
-<script src="js/board.js?v=202610201508"></script>
-<script src="js/ink.js?v=202610201508"></script>
-<script src="js/tactics.js?v=202610201508"></script>
-<script src="js/sheets.js?v=202610201508"></script>
-<script src="js/share.js?v=202610201508"></script>
-<script src="js/events.js?v=202610201508"></script>
-<script src="app.js?v=202610201508"></script>
+<script src="js/core.js?v=202610201515"></script>
+<script src="js/board.js?v=202610201515"></script>
+<script src="js/ink.js?v=202610201515"></script>
+<script src="js/tactics.js?v=202610201515"></script>
+<script src="js/sheets.js?v=202610201515"></script>
+<script src="js/share.js?v=202610201515"></script>
+<script src="js/events.js?v=202610201515"></script>
+<script src="app.js?v=202610201515"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

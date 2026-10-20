@@ -43,7 +43,7 @@ document.querySelectorAll("[data-marks]").forEach((b) =>
     render();
   })
 );
-// 👁️ 表示と 👤 選手情報の両方にある（同じ設定）
+// 👁️ 表示の「選手名」
 document.querySelectorAll("[data-names]").forEach((b) => b.addEventListener("click", () => setShowNames(b.dataset.names === "on")));
 // 📐 並びのタブ（自チーム・相手）
 $("shapeTabOurs").addEventListener("click", () => {
@@ -68,16 +68,9 @@ $("toggleShape").addEventListener("click", () => {
 $("togglePen").addEventListener("click", () => {
   drawing = !drawing;
   if (drawing) {
-    editMode = false;
     shapeMode = false;
     viewMode = false;
   }
-  render();
-});
-$("toggleEdit").addEventListener("click", () => {
-  editMode = !editMode;
-  if (editMode) drawing = false;
-  selected.clear();
   render();
 });
 // 👁️ 表示 →「相手」：出さない／フルコート／コート別。消しても、前に並べた相手（人数・位置）は残す

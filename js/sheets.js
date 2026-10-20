@@ -1,10 +1,8 @@
-// さくせん盤：選手の入力シート・結果の得点
+// さくせん盤：選手のポップアップ（長押し）・結果の得点
 // ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
 "use strict";
 
-// ---- 選手の入力シート ----
-let editing = -1;
-
+// ---- 選手の名簿 ----
 function parseRoster() {
   return String(roster)
     .split(/\n/)
@@ -16,82 +14,109 @@ function parseRoster() {
     });
 }
 
-// 選手のシートで入れている印（決定まで state には書かない）
-let editingMarks = {};
-
-function renderPlayerMarks() {
-  $("playerMarks").replaceChildren(
-    ...MARKS.map(({ key, icon, label, max, red }) => {
-      const row = document.createElement("div");
-      row.className = "mark-row";
-      const name = Object.assign(document.createElement("span"), { className: "mark-label", textContent: `${icon} ${label}` });
-      // オウンゴールは盤・画像と同じ赤いボール（share.js の redBallDataUrl）
-      if (red) name.replaceChildren(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }), ` ${label}`);
-      const n = Number(editingMarks[key]) || 0;
-      const step = (delta) => {
-        editingMarks[key] = Math.min(max, Math.max(0, n + delta));
-        renderPlayerMarks();
-      };
-      const minus = Object.assign(document.createElement("button"), { type: "button", textContent: "−", disabled: n <= 0 });
-      minus.setAttribute("aria-label", `${label}を減らす`);
-      minus.addEventListener("click", () => step(-1));
-      const count = Object.assign(document.createElement("span"), { className: "mark-count", textContent: String(n) });
-      const plus = Object.assign(document.createElement("button"), { type: "button", textContent: "＋", disabled: n >= max });
-      plus.setAttribute("aria-label", `${label}を増やす`);
-      plus.addEventListener("click", () => step(1));
-      const stepper = document.createElement("div");
-      stepper.className = "stepper mark-stepper";
-      stepper.append(minus, count, plus);
-      row.append(name, stepper);
-      return row;
-    })
-  );
-}
-
-// ---- 長押しのメニュー：印を1つ足す（試合中に片手で記録する用）。押すと足して閉じる。
-// 減らす・取り消すは「くわしく」（選手のシートの − 数 ＋）か「↩️ 戻す」で ----
+// ---- 選手のポップアップ（自チームの選手を長押し）：選手のことはここだけで変える ----
+//   ・上の「10 たなか ✏️」をタップ → 背番号・名前を入れる（選手名簿からも選べる）
+//   ・印のボタンをタップ → 1つ足す（試合中の記録）。下の小さな − で1つ減らす（取り消し）
+// 変えるとすぐ盤に出る。「↩️ 戻す」でも戻せる。× か外を触ると閉じる
 let quickIndex = -1;
+let quickEditing = false; // 背番号・名前を入れているところ
+let quickRemembered = false; // 背番号・名前は、開いている間に1回だけ「戻す」に残す
 
 function renderQuickMarks() {
   const p = state.players[quickIndex];
   if (!p) return closeQuickMarks();
-  const title = Object.assign(document.createElement("p"), { className: "quick-title", textContent: `${p.number || ""} ${p.name || ""}`.trim() || `${quickIndex + 1}人目` });
   const close = Object.assign(document.createElement("button"), { type: "button", className: "quick-close", textContent: "×" });
   close.setAttribute("aria-label", "閉じる");
   close.addEventListener("click", closeQuickMarks);
   const head = Object.assign(document.createElement("div"), { className: "quick-head" });
-  head.append(title, close);
+  if (quickEditing) {
+    head.append(Object.assign(document.createElement("p"), { className: "quick-title", textContent: quickIndex === 0 ? "GK" : `${quickIndex + 1}人目` }), close);
+  } else {
+    const title = Object.assign(document.createElement("button"), { type: "button", className: "quick-title is-edit", textContent: `${`${p.number || ""} ${p.name || ""}`.trim() || "背番号・名前"} ✏️` });
+    title.setAttribute("aria-label", "背番号・名前を変える");
+    title.addEventListener("click", () => {
+      quickEditing = true;
+      renderQuickMarks();
+      $("quickName").focus();
+    });
+    head.append(title, close);
+  }
+  const parts = [head];
+  if (quickEditing) parts.push(...quickEditRows(p));
   const grid = Object.assign(document.createElement("div"), { className: "quick-grid" });
   grid.append(
     ...MARKS.map(({ key, icon, label, max, red }) => {
       const n = Number(p.marks?.[key]) || 0;
-      const b = Object.assign(document.createElement("button"), { type: "button", className: "quick-mark", disabled: n >= max });
-      b.setAttribute("role", "menuitem");
-      b.setAttribute("aria-label", `${label}を足す（今 ${n}）`);
-      if (red) b.append(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }));
-      else b.append(icon);
-      b.append(Object.assign(document.createElement("small"), { textContent: `＋${label}` }));
-      if (n) b.append(Object.assign(document.createElement("i"), { className: "quick-count", textContent: String(n) }));
-      b.addEventListener("click", () => {
-        remember();
-        p.marks = { ...(p.marks || {}), [key]: Math.min(max, n + 1) };
-        closeQuickMarks();
-        render();
+      const cell = Object.assign(document.createElement("div"), { className: "quick-cell" });
+      const add = Object.assign(document.createElement("button"), { type: "button", className: "quick-mark", disabled: n >= max });
+      add.setAttribute("aria-label", `${label}を足す（今 ${n}）`);
+      if (red) add.append(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }));
+      else add.append(icon);
+      add.append(Object.assign(document.createElement("small"), { textContent: label }));
+      if (n) add.append(Object.assign(document.createElement("i"), { className: "quick-count", textContent: String(n) }));
+      add.addEventListener("click", () => stepMark(p, key, max, n + 1));
+      const minus = Object.assign(document.createElement("button"), { type: "button", className: "quick-minus", textContent: "−", disabled: n <= 0 });
+      minus.setAttribute("aria-label", `${label}を1つ減らす`);
+      minus.addEventListener("click", () => stepMark(p, key, max, n - 1));
+      cell.append(add, minus);
+      return cell;
+    })
+  );
+  parts.push(grid);
+  $("quickMarks").replaceChildren(...parts);
+}
+
+function stepMark(p, key, max, next) {
+  remember();
+  const marks = { ...(p.marks || {}), [key]: Math.min(max, Math.max(0, next)) };
+  Object.keys(marks).forEach((k) => !marks[k] && delete marks[k]);
+  if (Object.keys(marks).length) p.marks = marks;
+  else delete p.marks;
+  render();
+  renderQuickMarks();
+}
+
+// 背番号・名前の欄と、選手名簿のボタン（ほかの選手が使っている名前は薄く）
+function quickEditRows(p) {
+  const change = () => {
+    if (!quickRemembered) remember();
+    quickRemembered = true;
+    p.number = $("quickNumber").value.trim().slice(0, 3);
+    p.name = $("quickName").value.trim().slice(0, 8);
+    render();
+  };
+  const row = Object.assign(document.createElement("div"), { className: "quick-edit" });
+  const number = Object.assign(document.createElement("input"), { id: "quickNumber", value: p.number || "", inputMode: "numeric", maxLength: 3, placeholder: "番号" });
+  number.setAttribute("aria-label", "背番号");
+  const name = Object.assign(document.createElement("input"), { id: "quickName", value: p.name || "", maxLength: 8, placeholder: "名前" });
+  name.setAttribute("aria-label", "名前");
+  [number, name].forEach((input) => {
+    input.addEventListener("input", change);
+    input.addEventListener("keydown", (e) => e.key === "Enter" && !e.isComposing && input.blur());
+  });
+  row.append(number, name);
+  const used = new Set(state.players.map((x) => x.name).filter(Boolean));
+  const people = parseRoster();
+  if (!people.length) return [row];
+  const chips = Object.assign(document.createElement("div"), { className: "chips quick-roster" });
+  chips.append(
+    ...people.map((person) => {
+      const b = chip(`${person.number ? `${person.number} ` : ""}${person.name}`, false, () => {
+        number.value = person.number || number.value;
+        name.value = person.name;
+        change();
       });
+      if (used.has(person.name) && person.name !== p.name) b.style.opacity = "0.45";
       return b;
     })
   );
-  const more = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "✏️ 減らす・名前や背番号はくわしく" });
-  more.addEventListener("click", () => {
-    const index = quickIndex;
-    closeQuickMarks();
-    openPlayer(index);
-  });
-  $("quickMarks").replaceChildren(head, grid, more);
+  return [row, chips];
 }
 
 function openQuickMarks(index, el) {
   quickIndex = index;
+  quickEditing = false;
+  quickRemembered = false;
   const menu = $("quickMarks");
   renderQuickMarks();
   // 丸の下（入らなければ上）に、画面からはみ出さないように置く
@@ -108,55 +133,14 @@ function openQuickMarks(index, el) {
 
 function closeQuickMarks() {
   quickIndex = -1;
+  quickEditing = false;
   $("quickMarks").hidden = true;
 }
-// メニューの外を触る・画面を動かすと閉じる
+// メニューの外を触る・画面を動かすと閉じる（文字を入れているとき、キーボードで画面が動くのでは閉じない）
 document.addEventListener("pointerdown", (e) => {
   if (!$("quickMarks").hidden && !$("quickMarks").contains(e.target)) closeQuickMarks();
 }, true);
-window.addEventListener("scroll", closeQuickMarks, { passive: true });
-
-function openPlayer(index) {
-  editing = index;
-  const p = state.players[index];
-  editingMarks = { ...(p.marks || {}) };
-  renderPlayerMarks();
-  $("playerSheetTitle").textContent = index === 0 ? "GK" : `${index + 1}人目`;
-  $("playerNumber").value = p.number;
-  $("playerName").value = p.name;
-  const used = new Set(state.players.map((x) => x.name).filter(Boolean));
-  $("rosterChips").replaceChildren(
-    ...parseRoster().map((person) => {
-      const b = chip(`${person.number ? `${person.number} ` : ""}${person.name}`, false, () => {
-        $("playerNumber").value = person.number;
-        $("playerName").value = person.name;
-      });
-      if (used.has(person.name) && person.name !== p.name) b.style.opacity = "0.45";
-      return b;
-    })
-  );
-  $("playerSheet").hidden = false;
-  $("playerName").focus();
-}
-
-$("playerDone").addEventListener("click", () => {
-  // 入力中に人数を変えたときなど、もういない選手には書かない
-  if (state.players[editing]) {
-    remember();
-    state.players[editing].number = $("playerNumber").value.trim().slice(0, 3);
-    state.players[editing].name = $("playerName").value.trim().slice(0, 8);
-    // 印は、1つでもあれば残す（全部 0 なら消す）
-    const marks = Object.fromEntries(Object.entries(editingMarks).filter(([, n]) => Number(n) > 0));
-    if (Object.keys(marks).length) state.players[editing].marks = marks;
-    else delete state.players[editing].marks;
-  }
-  $("playerSheet").hidden = true;
-  render();
-});
-$("playerCancel").addEventListener("click", () => ($("playerSheet").hidden = true));
-$("playerSheet").addEventListener("click", (e) => {
-  if (e.target === $("playerSheet")) $("playerSheet").hidden = true;
-});
+window.addEventListener("scroll", () => !$("quickMarks").contains(document.activeElement) && closeQuickMarks(), { passive: true });
 
 // ---- 結果の得点 ----
 // 得点者が増えた・減ったら、スコアも合わせる（before＝変える前の得点者）。

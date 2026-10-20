@@ -34,7 +34,6 @@ function openTactic(entry) {
   Object.assign(state, JSON.parse(JSON.stringify(entry.board)));
   selected.clear();
   drawing = false;
-  editMode = false;
   render();
   board.scrollIntoView({ behavior: "smooth", block: "center" });
 }

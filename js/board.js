@@ -146,26 +146,21 @@ function render() {
   board.classList.toggle("hide-marks", state.showMarks === false);
   document.querySelectorAll("[data-names]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.names === "on") === (state.showNames !== false))));
   // 👁️ 表示を開いているときは、そちらに同じ切りかえがあるので出さない
-  $("editTools").hidden = !editMode || viewMode;
   $("clearMarks").hidden = !state.players.some((p) => p.marks && Object.keys(p.marks).length);
   $("togglePen").setAttribute("aria-pressed", String(drawing));
-  $("toggleEdit").setAttribute("aria-pressed", String(editMode));
   $("undo").disabled = !undoStack.length;
   $("penTools").hidden = !drawing;
   board.classList.toggle("hide-names", state.showNames === false);
   $("toggleShape").setAttribute("aria-pressed", String(shapeMode));
   $("shapeTools").hidden = !shapeMode;
   board.classList.toggle("is-drawing", drawing);
-  board.classList.toggle("is-editing", editMode);
   $("boardHint").textContent = drawing
     ? "指でなぞって線を描けます。"
     : viewMode
       ? "盤に出すもの（相手・ボール・選手名・得点など）を選べます。"
     : shapeMode
       ? "フォーメーションと列の形を選ぶと、その形に並べ直します（背番号・名前はそのまま）。"
-    : editMode
-      ? "選手をタップすると、名前・背番号・印を変えられます。"
-      : "ドラッグで移動。タップや、何もない所をなぞって選ぶと、まとめて動かせます。";
+      : "ドラッグで移動。長押しで背番号・名前・得点やカード。タップや、何もない所をなぞって選ぶと、まとめて動かせます。";
   // チームの欄：人数（相手を出しているときは差も）
   const ours = state.players.length;
   const theirs = oppTotal();
@@ -572,9 +567,7 @@ function bindDrag(el, target) {
       if (longPressed) return; // メニューのボタンはすぐ押せるように、あとのクリックは止めない
       if (moved) swallowClickUntil = Date.now() + 400;
       if (moved) render();
-      else if (editMode && !adding) {
-        if (target.kind === "player") openPlayer(target.index);
-      } else {
+      else {
         // タップは選ぶ・外す（選んだものはまとめて動く）
         const key = keyOf(target);
         if (selected.has(key)) selected.delete(key);

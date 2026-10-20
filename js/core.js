@@ -219,7 +219,7 @@ const state = Object.assign(
     showOpp: false,
     showBall: false,
     oppLayout: "full", // 相手を出したときの並べ方："full"＝フルコート（互い違い）・"half"＝コート別（半分ずつ）
-    showNames: true, // 盤・画像・リンクに選手の名前を出すか（👁️ 表示・👤 選手情報で切りかえ）
+    showNames: true, // 盤・画像・リンクに選手の名前を出すか（👁️ 表示で切りかえ）
     showMarks: true, // 盤・画像・リンクに得点・カードなどの印を出すか（👁️ 表示で切りかえ）
     ball: { x: 50, y: 50 },
     strokes: [],
@@ -251,7 +251,6 @@ const state = Object.assign(
   load(STORE_KEY, {})
 );
 let drawing = false; // ペンで描くモード（作戦盤の線）
-let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
 let viewMode = false; // 👁️ 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
 let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
