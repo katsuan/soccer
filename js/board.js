@@ -150,7 +150,7 @@ function render() {
   board.classList.toggle("hide-marks", state.showMarks === false);
   document.querySelectorAll("[data-names]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.names === "on") === (state.showNames !== false))));
   // 👁️ 表示を開いているときは、そちらに同じ切りかえがあるので出さない
-  $("clearMarks").hidden = !state.players.some((p) => p.marks && Object.keys(p.marks).length);
+  $("clearMarks").hidden = !anyCardMarks();
   // 得点者の行が変わると、盤の ⚽ の印も変わる（得点者から数えるので）
   $("togglePen").setAttribute("aria-pressed", String(drawing));
   $("undo").disabled = !undoStack.length;

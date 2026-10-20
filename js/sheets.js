@@ -137,8 +137,9 @@ function openQuickMarks(index, el) {
   placeQuick(el);
 }
 
-// ---- 相手の長押し：相手の得点を記録する（試合結果の得点者の相手側に「相手10番」として入る。スコアも合わせる）。
-// OG（相手のオウンゴール）は自チームの得点として「相手10番（OG）」 ----
+// ---- 相手の長押し：相手の印を記録する（自チームと同じボタン。下の小さな − で取り消し）。
+// ゴールは試合結果の得点者の相手側に「相手10番」、OG（相手のオウンゴール）は自チーム側に「相手10番（OG）」として入り、スコアも合わせる。
+// イエロー・レッド・アシストは相手の選手の印（結果のカードにも「相手10番」で入る） ----
 let oppQuickIndex = -1;
 
 function renderOppQuick() {
@@ -150,43 +151,44 @@ function renderOppQuick() {
   close.addEventListener("click", closeQuickMarks);
   const head = Object.assign(document.createElement("div"), { className: "quick-head" });
   head.append(Object.assign(document.createElement("p"), { className: "quick-title", textContent: name }), close);
-  const kinds = [
-    { side: "t", goalName: name, label: "ゴール", icon: "⚽" },
-    { side: "u", goalName: `${name}（OG）`, label: "OG", red: true }
-  ];
-  const grid = Object.assign(document.createElement("div"), { className: "quick-grid is-opp" });
+  const goalOf = { g: { side: "t", goalName: name }, o: { side: "u", goalName: `${name}（OG）` } };
+  const step = (key, max, n, next) => {
+    if (goalOf[key]) {
+      const { side, goalName } = goalOf[key];
+      const before = [...state.goals];
+      if (next > n) state.goals.push({ side, min: "", name: goalName });
+      else state.goals.splice(state.goals.map((g) => g.side === side && g.name === goalName).lastIndexOf(true), 1);
+      syncScore(before);
+    } else {
+      remember();
+      const marks = { ...(p.marks || {}), [key]: Math.min(max, Math.max(0, next)) };
+      Object.keys(marks).forEach((k) => !marks[k] && delete marks[k]);
+      if (Object.keys(marks).length) p.marks = marks;
+      else delete p.marks;
+    }
+    render();
+    renderOppQuick();
+  };
+  const grid = Object.assign(document.createElement("div"), { className: "quick-grid" });
   grid.append(
-    ...kinds.map(({ side, goalName, label, icon, red }) => {
-      const n = state.goals.filter((g) => g.side === side && g.name === goalName).length;
+    ...MARKS.map(({ key, icon, label, max, red }) => {
+      const n = Number(oppMarksOf(p)?.[key]) || 0;
       const cell = Object.assign(document.createElement("div"), { className: "quick-cell" });
-      const add = Object.assign(document.createElement("button"), { type: "button", className: "quick-mark" });
+      const add = Object.assign(document.createElement("button"), { type: "button", className: "quick-mark", disabled: !goalOf[key] && n >= max });
       add.setAttribute("aria-label", `${name}の${label}を足す（今 ${n}）`);
       if (red) add.append(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }));
       else add.append(icon);
       add.append(Object.assign(document.createElement("small"), { textContent: label }));
       if (n) add.append(Object.assign(document.createElement("i"), { className: "quick-count", textContent: String(n) }));
-      add.addEventListener("click", () => {
-        const before = [...state.goals];
-        state.goals.push({ side, min: "", name: goalName });
-        syncScore(before);
-        render();
-        renderOppQuick();
-      });
+      add.addEventListener("click", () => step(key, max, n, n + 1));
       const minus = Object.assign(document.createElement("button"), { type: "button", className: "quick-minus", textContent: "−", disabled: n <= 0 });
       minus.setAttribute("aria-label", `${name}の${label}を1つ減らす`);
-      minus.addEventListener("click", () => {
-        const before = [...state.goals];
-        const i = state.goals.map((g) => g.side === side && g.name === goalName).lastIndexOf(true);
-        if (i >= 0) state.goals.splice(i, 1);
-        syncScore(before);
-        render();
-        renderOppQuick();
-      });
+      minus.addEventListener("click", () => step(key, max, n, n - 1));
       cell.append(add, minus);
       return cell;
     })
   );
-  const note = Object.assign(document.createElement("p"), { className: "quick-note", textContent: "試合結果の得点者に入ります（時間や名前は「👕 チーム・試合結果」で）" });
+  const note = Object.assign(document.createElement("p"), { className: "quick-note", textContent: "ゴール・OG は試合結果の得点者に入ります（時間や名前は「👕 チーム・試合結果」で）" });
   $("quickMarks").replaceChildren(head, grid, note);
 }
 

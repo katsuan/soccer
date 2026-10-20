@@ -170,15 +170,17 @@ function decodeMarks(text) {
 }
 
 // 相手の得点は、試合結果の得点者（相手側「相手10番」）として残す。相手のオウンゴールは自チーム側「相手10番（OG）」。
-// 相手のこまの印（⚽・赤いボール）は、そこから数える（相手の選手には印を持たせない）
+// 相手のこまの印は、イエロー・レッド・アシストは相手の選手の印（p.marks）、ゴール・OG は得点者から数える
 const oppLabel = (p) => `相手${p.number || ""}番`;
 function oppMarksOf(p) {
   const name = oppLabel(p);
   const g = state.goals.filter((x) => x.side === "t" && x.name === name).length;
   const o = state.goals.filter((x) => x.side === "u" && x.name === `${name}（OG）`).length;
-  const marks = { ...(g ? { g } : {}), ...(o ? { o } : {}) };
+  const marks = { ...(p.marks || {}), ...(g ? { g } : {}), ...(o ? { o } : {}) };
   return Object.keys(marks).length ? marks : undefined;
 }
+// 印（カード・アシスト）を持っている選手がいるか（自チーム・相手）
+const anyCardMarks = () => [...state.players, ...(state.opp || [])].some((p) => p.marks && Object.keys(p.marks).length);
 // 自チームの選手のゴール・OG も、試合結果の得点者から数える（得点者が正。長押しで足すと得点者に入り、− で消える）。
 // 選手の印 p.marks に持つのは、イエロー・レッド・アシストだけ
 const GOAL_KEYS = ["g", "o"];
@@ -229,6 +231,13 @@ function marksForResult() {
   state.players.forEach((p) => {
     const name = playerLabel(p);
     if (!name) return;
+    if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);
+    if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);
+    if (Number(p.marks?.r) > 0) cards.push(["r", name, 1]);
+  });
+  // 相手のカード・アシストも「相手10番」で入れる（相手を出しているときだけ）
+  if (state.showOpp) (state.opp || []).forEach((p) => {
+    const name = oppLabel(p);
     if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);
     if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);
     if (Number(p.marks?.r) > 0) cards.push(["r", name, 1]);

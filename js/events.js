@@ -33,7 +33,7 @@ const setShowNames = (on) => {
 // カード・アシストの印だけを全員分消す（次の試合の前など）。名前・背番号・位置・得点者はそのまま。「戻す」で元に戻せる
 $("clearMarks").addEventListener("click", () => {
   remember();
-  state.players.forEach((p) => delete p.marks);
+  [...state.players, ...(state.opp || [])].forEach((p) => delete p.marks);
   render();
 });
 // 得点・アシスト・カードなどの印
@@ -219,9 +219,9 @@ $("resetResult").addEventListener("click", () => {
     $(k).value = state[k];
   });
   state.goals = [];
-  if (state.players.some((p) => p.marks) && confirm("作戦盤のカード・アシストの印も消しますか？")) {
+  if (anyCardMarks() && confirm("作戦盤のカード・アシストの印も消しますか？")) {
     remember();
-    state.players.forEach((p) => delete p.marks);
+    [...state.players, ...(state.opp || [])].forEach((p) => delete p.marks);
   }
   render();
 });
