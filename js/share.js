@@ -81,28 +81,83 @@ function hasResult() {
   );
 }
 
-// ---- 送る前のプレビュー（共有シートで、それぞれのカードに入る中身を短く） ----
-function lineupPreviewText() {
-  const head = [state.opponent ? `vs ${state.opponent}` : state.team || "スタメン", whenText(), state.where && `📍 ${state.where}`].filter(Boolean).join("・");
-  const players = state.players.map((p) => [p.number, p.name].filter(Boolean).join(" ")).filter(Boolean).join("／");
-  return [head, players, state.lineupNote].filter(Boolean).join("\n");
+// ---- 送る前のプレビュー：おくるんのカードと同じ並び（色の帯に見出し・日時 → タイトル → ひとことの枠 → ピッチ／スコア）を小さく描く ----
+const el = (tag, className, text) => Object.assign(document.createElement(tag), className ? { className } : {}, text != null ? { textContent: text } : {});
+
+// カードの外側（見出しの帯・タイトル・ひとこと）。中身（ピッチ・スコア）は parts で足す
+function previewCard(q, parts) {
+  const card = el("div", "cp");
+  const head = el("div", "cp-head");
+  head.style.background = q.get("customColor");
+  head.append(el("b", "", q.get("headerTitle")));
+  if (q.get("showDate") === "true" && q.get("date")) head.append(el("small", "", q.get("date")));
+  const body = el("div", "cp-body");
+  body.append(el("p", "cp-title", q.get("title")));
+  if (q.get("showDetail") === "true" && q.get("detail")) body.append(el("p", "cp-detail", q.get("detail")));
+  body.append(...parts);
+  card.append(head, body);
+  return card;
 }
 
-function resultPreviewText() {
-  if (!hasResult()) return "まだ入れていません";
+function lineupPreviewEl() {
+  const q = lineupCardQuery();
+  const pitch = el("div", `cp-pitch${state.mode === "futsal" ? " is-futsal" : ""}`);
+  pitch.innerHTML = '<i class="is-half"></i><i class="is-circle"></i><i class="is-box-top"></i><i class="is-box-bottom"></i>';
+  const ink = inkOn(state.ourColor);
+  state.players.forEach((p, i) => {
+    const t = el("span", "cp-token");
+    t.style.left = `${p.x}%`;
+    t.style.top = `${p.y}%`;
+    const n = el("b", "", p.number || "");
+    n.style.background = state.ourColor;
+    n.style.color = ink;
+    t.append(n);
+    if (i === 0) t.append(el("i", "cp-gk", "🧤"));
+    if (p.name) t.append(el("small", "", p.name));
+    pitch.append(t);
+  });
+  return previewCard(q, [pitch, el("p", "cp-tap", "ピッチをタップすると さくせん盤 が開きます")]);
+}
+
+function resultPreviewEl() {
+  const q = resultCardQuery();
   const us = Number(state.scoreUs) || 0;
   const them = Number(state.scoreThem) || 0;
-  const pk = state.pkUs !== "" && state.pkThem !== "" ? `（PK ${state.pkUs}-${state.pkThem}）` : "";
-  const outcome = us > them ? "勝ち" : us < them ? "負け" : pk ? (Number(state.pkUs) > Number(state.pkThem) ? "勝ち" : "負け") : "引き分け";
-  const head = `${state.team || "自チーム"} ${us} - ${them} ${state.opponent || "相手"}${pk}　${outcome}`;
-  // 自チームは「⚽ 12' たなか」、相手は「相手 25' 9番」（カードと同じく、名前がなければ「相手」だけ）
-  const goals = state.goals.map((g) => [g.side === "t" ? "相手" : "⚽", g.min && `${g.min}'`, g.name].filter(Boolean).join(" ")).join("／");
+  const pk = state.pkUs !== "" && state.pkThem !== "";
+  const win = us > them || (us === them && pk && Number(state.pkUs) > Number(state.pkThem));
+  const lose = us < them || (us === them && pk && Number(state.pkUs) < Number(state.pkThem));
+  const badge = (label, cls) => el("span", `cp-badge ${cls}`, label);
+  const side = (name, mine) => {
+    const box = el("div", "cp-team");
+    box.append(el("b", "", name));
+    if (win || lose) box.append(mine === win ? badge(pk && us === them ? "勝ち（PK）" : "勝ち", "is-win") : badge(pk && us === them ? "負け（PK）" : "負け", "is-lose"));
+    return box;
+  };
+  const teams = el("div", "cp-teams");
+  teams.append(side(state.team || "自チーム", true), el("span", "cp-vs", "vs"), side(state.opponent || "相手", false));
+  const parts = [teams, el("p", "cp-score", `${us} - ${them}`)];
+  if (!win && !lose) parts.push(badge("引き分け", "is-draw"));
+  if (pk) parts.push(el("p", "cp-pk", `PK ${state.pkUs} - ${state.pkThem}`));
+  const periods = [["前半", "halfUs", "halfThem"], ["後半", "secondUs", "secondThem"], ["延長", "extraUs", "extraThem"]]
+    .filter(([, a, b]) => state[a] !== "" && state[b] !== "")
+    .map(([label, a, b]) => `${label} ${state[a]} - ${state[b]}`)
+    .join("・");
+  if (periods) parts.push(el("p", "cp-periods", periods));
+  // 得点：時間の順に、自チームは左「⚽ 12' たなか」、相手は右「25' 相手 ⚽」（おくるんと同じ）
+  const goals = [...state.goals].sort((a, b) => (parseInt(a.min, 10) || 0) - (parseInt(b.min, 10) || 0));
+  if (goals.length) {
+    const list = el("ul", "cp-goals");
+    goals.forEach((g) => {
+      const min = g.min ? `${g.min}'` : "";
+      list.append(el("li", g.side === "t" ? "is-them" : "", g.side === "t" ? [min, g.name || state.opponent || "相手", "⚽"].filter(Boolean).join(" ") : ["⚽", min, g.name].filter(Boolean).join(" ")));
+    });
+    parts.push(list);
+  }
   const { assists, cards } = marksForResult();
-  const extras = [
-    assists.length ? `👟 ${assists.map(([n, c]) => (c > 1 ? `${n}×${c}` : n)).join("・")}` : "",
-    cards.map(([k, n, c]) => `${(k === "r" ? "🟥" : "🟨").repeat(c)} ${n}`).join("　")
-  ].filter(Boolean).join("　");
-  return [head, goals, extras, state.resultNote].filter(Boolean).join("\n");
+  if (assists.length) parts.push(el("p", "cp-extra", `👟 アシスト ${assists.map(([n, c]) => (c > 1 ? `${n}×${c}` : n)).join("・")}`));
+  if (cards.length) parts.push(el("p", "cp-extra", cards.map(([k, n, c]) => `${(k === "r" ? "🟥" : "🟨").repeat(c)} ${n}`).join("　")));
+  parts.push(el("p", "cp-tap", "タップすると さくせん盤 が開きます"));
+  return previewCard(q, parts);
 }
 
 function lineupCardQuery() {

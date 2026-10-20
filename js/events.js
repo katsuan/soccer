@@ -162,8 +162,8 @@ $("shareLineup").addEventListener("click", () => {
   $("pickLineup").checked = true;
   $("pickResult").checked = hasResult();
   // 送る前のプレビュー：それぞれのカードに入る中身を短く
-  $("previewLineup").textContent = lineupPreviewText();
-  $("previewResult").textContent = resultPreviewText();
+  $("previewLineup").replaceChildren(lineupPreviewEl());
+  $("previewResult").replaceChildren(hasResult() ? resultPreviewEl() : el("p", "cp-empty", "まだ入れていません（「👕 チーム・試合結果」の欄で入れます）"));
   updateSendCards();
   $("imageStatus").textContent = "";
   shareSheet.hidden = false;

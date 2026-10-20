@@ -164,12 +164,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .choice:disabled { opacity: 0.6; cursor: progress; }
 /* 送るカードを選ぶ（チェックの付いた札） */
 .card-picks { display: grid; gap: 8px; }
-.pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 10px; padding: 12px 14px; border: 2px solid var(--border); border-radius: 16px; background: #fff; cursor: pointer; }
+.pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 10px; padding: 12px 14px; border: 2px solid var(--border); border-radius: 16px; background: #fff; cursor: pointer; }
 .pick:has(input:checked) { border-color: var(--accent); background: #efebff; }
 .pick input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); }
-.pick span { display: grid; gap: 2px; }
-.pick b { font-size: 15px; }
-.pick small { font-size: 12px; color: var(--ink-soft); }
+.pick > span:not(.pick-preview) { display: grid; gap: 2px; }
+.pick > span > b { font-size: 15px; }
 .card-picks .hint { margin: 0; }
 .btn.is-disabled { opacity: 0.5; pointer-events: auto; }
 .sheet-card .link { justify-self: center; }
@@ -331,5 +330,46 @@ h1 .logo { width: 28px; height: 28px; }
 .note-presets .chip { min-height: 30px; padding: 0 10px; font-size: 12px; }
 
 /* 送る前のプレビュー（共有シートの、それぞれのカードの中身） */
-.pick-preview { display: block; margin-top: 4px; padding: 6px 8px; border-radius: 10px; background: #fff; color: var(--ink); font-size: 11px; font-weight: 400; line-height: 1.5; white-space: pre-line; max-height: 7.5em; overflow: hidden; }
+/* 送る前のプレビュー：おくるんのカード（Flex）と同じ並びを小さく。チェックの下に全幅で */
+.pick-preview { grid-column: 1 / -1; display: block; }
 .pick-preview:empty { display: none; }
+.cp { overflow: hidden; border-radius: 14px; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); color: #111827; font-size: 12px; font-weight: 400; }
+.cp-head { display: grid; gap: 2px; padding: 10px 14px; color: #fff; }
+.cp-head b { font-size: 15px; }
+.cp-head small { font-size: 10px; opacity: 0.95; }
+.cp-body { display: grid; gap: 8px; padding: 12px 14px 10px; }
+.cp-title { margin: 0; font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
+.cp-detail { margin: 0; padding: 8px 10px; border-radius: 10px; background: #e8f3ec; color: #1f3d2b; white-space: pre-line; }
+.cp-tap { margin: 0; color: #9ca3af; font-size: 10px; text-align: center; }
+.cp-empty { margin: 0; padding: 10px; border-radius: 10px; background: #fff; color: var(--ink-soft); font-size: 12px; font-weight: 400; }
+/* ミニのピッチ（おくるんのスタメンカードと同じ緑と白線） */
+.cp-pitch { position: relative; height: 210px; border-radius: 10px; background: #2e8b4a; }
+.cp-pitch::before { content: ""; position: absolute; inset: 4% 5%; border: 1.5px solid rgba(255, 255, 255, 0.67); border-radius: 3px; }
+.cp-pitch i { position: absolute; display: block; border: 1.5px solid rgba(255, 255, 255, 0.67); }
+.cp-pitch .is-half { top: 50%; left: 5%; right: 5%; height: 0; border-width: 1.5px 0 0; }
+.cp-pitch .is-circle { top: 50%; left: 50%; width: 40px; height: 40px; border-radius: 50%; transform: translate(-50%, -50%); }
+.cp-pitch .is-box-top { top: 4%; left: 28%; width: 44%; height: 13%; border-top: 0; }
+.cp-pitch .is-box-bottom { bottom: 4%; left: 28%; width: 44%; height: 13%; border-bottom: 0; }
+.cp-pitch.is-futsal .is-box-top, .cp-pitch.is-futsal .is-box-bottom { left: 15%; width: 70%; height: 15%; border-radius: 0 0 40px 40px; }
+.cp-pitch.is-futsal .is-box-bottom { border-radius: 40px 40px 0 0; }
+.cp-token { position: absolute; display: grid; justify-items: center; width: 52px; margin-left: -26px; margin-top: -9px; }
+.cp-token b { display: grid; place-items: center; width: 18px; height: 18px; border: 1px solid #fff; border-radius: 50%; font-size: 9px; }
+.cp-token small { max-width: 52px; overflow: hidden; color: #fff; font-size: 8px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; }
+.cp-gk { position: absolute; top: 8px; right: calc(50% + 4px); width: 11px; height: 11px; border-radius: 50%; background: #fff; font-size: 7px; font-style: normal; line-height: 11px; text-align: center; }
+/* 試合結果（チーム名と勝ち負け・スコア・得点） */
+.cp-teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; text-align: center; }
+.cp-team { display: grid; justify-items: center; gap: 4px; }
+.cp-team b { font-size: 13px; overflow-wrap: anywhere; }
+.cp-vs { color: #9ca3af; font-size: 11px; }
+.cp-badge { justify-self: center; padding: 1px 12px; border-radius: 999px; color: #fff; font-size: 10px; font-weight: 800; }
+.cp-badge.is-win { background: #2e8b4a; }
+.cp-badge.is-lose { background: #6b7280; }
+.cp-badge.is-draw { background: #9ca3af; }
+.cp-score { margin: 0; color: #2e8b4a; font-size: 28px; font-weight: 800; line-height: 1.1; text-align: center; }
+.cp-pk { margin: 0; color: #2e8b4a; font-size: 13px; font-weight: 800; text-align: center; }
+.cp-periods { margin: 0; color: #6b7280; font-size: 11px; text-align: center; }
+.cp-goals { display: grid; gap: 2px; margin: 0; padding: 6px 0 0; border-top: 1px solid #e5e7eb; list-style: none; font-size: 12px; }
+.cp-goals .is-them { color: #6b7280; text-align: right; }
+.cp-extra { margin: 0; color: #4b5563; font-size: 11px; }
+/* プレビューで共有シートが長くなるので、「カードで送る」はシートの下に付いてくる */
+.card-picks #sendCards { position: sticky; bottom: 8px; z-index: 1; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); }
