@@ -99,10 +99,13 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .score.is-half input { font-size: 16px; }
 
 .goals { display: grid; gap: 6px; }
-.goal { display: grid; grid-template-columns: auto 64px 1fr auto; align-items: center; gap: 6px; }
-.goal .side { font-size: 12px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
-.goal input { padding: 8px; font-size: 15px; }
-.goal .remove { width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink-soft); cursor: pointer; }
+/* 得点者：左に自チーム、右に相手、真ん中に時間（スコア・＋ボタンと同じ左右） */
+.goal { display: grid; grid-template-columns: minmax(0, 1fr) 46px minmax(0, 1fr); align-items: center; gap: 4px; }
+.goal .scorer { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px; }
+.goal.is-them .scorer { grid-template-columns: minmax(0, 1fr) auto; }
+.goal input { min-width: 0; padding: 8px; font-size: 15px; }
+.goal .min { text-align: center; }
+.goal .remove { width: 26px; height: 26px; padding: 0; font-size: 12px; border: 1px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink-soft); cursor: pointer; }
 
 .foot { font-size: 12px; color: var(--ink-soft); text-align: center; }
 .foot a { color: inherit; }

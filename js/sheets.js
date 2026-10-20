@@ -94,10 +94,11 @@ $("playerSheet").addEventListener("click", (e) => {
 function renderGoals() {
   $("goals").replaceChildren(
     ...state.goals.map((g, i) => {
+      // 1行に 自チームの得点者 | 時間 | 相手の得点者（得点した側にだけ名前の欄、もう片方は空ける）
       const row = document.createElement("div");
-      row.className = "goal";
-      const side = Object.assign(document.createElement("span"), { className: "side", textContent: g.side === "t" ? "相手" : "自チーム" });
-      const min = Object.assign(document.createElement("input"), { value: g.min || "", placeholder: "分", inputMode: "numeric", maxLength: 4 });
+      row.className = g.side === "t" ? "goal is-them" : "goal";
+      const min = Object.assign(document.createElement("input"), { className: "min", value: g.min || "", placeholder: "分", inputMode: "numeric", maxLength: 4 });
+      min.setAttribute("aria-label", "時間（分）");
       const name = Object.assign(document.createElement("input"), { value: g.name || "", placeholder: g.side === "t" ? "（任意）" : "名前", maxLength: 12 });
       name.setAttribute("list", "rosterNames");
       min.addEventListener("input", () => {
@@ -114,7 +115,14 @@ function renderGoals() {
         state.goals.splice(i, 1);
         render();
       });
-      row.append(side, min, name, remove);
+      name.setAttribute("aria-label", g.side === "t" ? "相手の得点者" : "自チームの得点者");
+      const scorer = document.createElement("div");
+      scorer.className = "scorer";
+      // × は外側（自チームは左端、相手は右端）
+      if (g.side === "t") scorer.append(name, remove);
+      else scorer.append(remove, name);
+      const blank = document.createElement("span");
+      row.append(...(g.side === "t" ? [blank, min, scorer] : [scorer, min, blank]));
       return row;
     })
   );
