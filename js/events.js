@@ -209,6 +209,35 @@ $("roster").addEventListener("input", () => {
   save(ROSTER_KEY, roster);
   render();
 });
+// 作戦盤の印（ゴール・オウンゴール）から得点者を作り直す。
+// 前に入れた時間は、同じ名前の得点に引き継ぐ。相手の得点者（手で入れたもの。オウンゴール以外）は残す。
+// スコアは、得点者の数より少なければ増やす（名前のわからない得点を手で入れていることもあるので減らさない）
+$("goalsFromMarks").addEventListener("click", () => {
+  const old = state.goals;
+  const used = new Set();
+  const minOf = (side, name) => {
+    const i = old.findIndex((g, j) => !used.has(j) && g.side === side && g.name === name);
+    if (i < 0) return "";
+    used.add(i);
+    return old[i].min || "";
+  };
+  const goals = [];
+  state.players.forEach((p) => {
+    const name = playerLabel(p);
+    for (let n = Number(p.marks?.g) || 0; n > 0; n--) goals.push({ side: "u", min: minOf("u", name), name });
+    const og = `${name}（OG）`;
+    for (let n = Number(p.marks?.o) || 0; n > 0; n--) goals.push({ side: "t", min: minOf("t", og), name: og });
+  });
+  old.forEach((g, j) => {
+    if (g.side === "t" && !used.has(j) && !/（OG）$/.test(g.name || "")) goals.push(g);
+  });
+  state.goals = goals;
+  state.scoreUs = Math.max(Number(state.scoreUs) || 0, goals.filter((g) => g.side === "u").length);
+  state.scoreThem = Math.max(Number(state.scoreThem) || 0, goals.filter((g) => g.side === "t").length);
+  $("scoreUs").value = state.scoreUs;
+  $("scoreThem").value = state.scoreThem;
+  render();
+});
 $("addGoalUs").addEventListener("click", () => {
   state.goals.push({ side: "u", min: "", name: "" });
   state.scoreUs = state.goals.filter((g) => g.side === "u").length;

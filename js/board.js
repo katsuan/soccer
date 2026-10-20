@@ -201,6 +201,15 @@ function render() {
   // 得点者・MVP の欄の見出しの右
   const goalCount = state.goals.length;
   $("goalsMeta").textContent = [goalCount ? `${goalCount}点` : "", state.mvp ? "MVP あり" : ""].filter(Boolean).join("・") || "なし";
+  // 作戦盤の印：ゴールがあれば「印から入れる」、アシスト・カードがあれば「カードに入ります」
+  $("goalsFromMarks").hidden = !state.players.some((p) => Number(p.marks?.g) > 0 || Number(p.marks?.o) > 0);
+  const { assists, cards } = marksForResult();
+  const noteParts = [
+    assists.length ? `👟 ${assists.map(([n, c]) => (c > 1 ? `${n}×${c}` : n)).join("・")}` : "",
+    cards.length ? cards.map(([k, n, c]) => `${(k === "r" ? "🟥" : "🟨").repeat(c)} ${n}`).join("　") : ""
+  ].filter(Boolean);
+  $("marksNote").hidden = !noteParts.length;
+  $("marksNote").textContent = noteParts.length ? `作戦盤の印から、カードにも入ります：${noteParts.join("　")}` : "";
   // 内訳の欄の見出しの右：入っているもの（例：前半・後半・PK）、なければ「なし」
   const periods = [["前半", "halfUs", "halfThem"], ["後半", "secondUs", "secondThem"], ["延長", "extraUs", "extraThem"], ["PK", "pkUs", "pkThem"]]
     .filter(([, a, b]) => state[a] !== "" && state[b] !== "")

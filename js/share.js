@@ -89,6 +89,10 @@ function resultCardUrl() {
     g: state.goals.map((g) => [g.side, g.min, g.name]),
     mvp: state.mvp
   };
+  // 作戦盤の印のアシスト・カードも入れる（あるときだけ）
+  const { assists, cards } = marksForResult();
+  if (assists.length) data.as = assists;
+  if (cards.length) data.cd = cards;
   const q = new URLSearchParams({
     kind: "match",
     headerTitle: "試合結果",

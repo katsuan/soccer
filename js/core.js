@@ -168,6 +168,22 @@ function decodeMarks(text) {
   return Object.keys(marks).length ? marks : undefined;
 }
 
+// 結果に使う選手の呼び名（名前がなければ「7番」）
+const playerLabel = (p) => p.name || (p.number ? `${p.number}番` : "");
+// 作戦盤の印から、結果のカードに入れるアシスト・カード（[[名前, 数], ...]・[["y"|"r", 名前, 数], ...]）
+function marksForResult() {
+  const assists = [];
+  const cards = [];
+  state.players.forEach((p) => {
+    const name = playerLabel(p);
+    if (!name) return;
+    if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);
+    if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);
+    if (Number(p.marks?.r) > 0) cards.push(["r", name, 1]);
+  });
+  return { assists, cards };
+}
+
 function freshPlayers(mode, formation, old = [], versus = state.showOpp, shapes = lineShapesOf(formation)) {
   return formationPositions(mode, formation, versus, shapes).map((spot, i) => ({
     number: old[i]?.number ?? String(i + 1),

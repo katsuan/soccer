@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201404">
+<link rel="stylesheet" href="style.css?v=202610201412">
 </head>
 <body>
 <main class="wrap">
@@ -232,6 +232,9 @@
     <!-- 得点者・MVP（どちらも任意） -->
     <details class="card fold">
       <summary>⚽ 得点者・MVP <span id="goalsMeta" class="meta"></span></summary>
+      <!-- 作戦盤の印（⚽ ゴール・オウンゴール）から得点者を入れる。アシスト・カードは印のままカードに入る -->
+      <button id="goalsFromMarks" class="btn ghost small" type="button" hidden>⚽ 作戦盤の印から得点者を入れる</button>
+      <p id="marksNote" class="hint left" hidden></p>
       <div id="goals" class="goals"></div>
       <div class="two">
         <button id="addGoalUs" class="btn ghost small" type="button">＋ 自チームの得点</button>
@@ -292,14 +295,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201404"></script>
-<script src="js/board.js?v=202610201404"></script>
-<script src="js/ink.js?v=202610201404"></script>
-<script src="js/tactics.js?v=202610201404"></script>
-<script src="js/sheets.js?v=202610201404"></script>
-<script src="js/share.js?v=202610201404"></script>
-<script src="js/events.js?v=202610201404"></script>
-<script src="app.js?v=202610201404"></script>
+<script src="js/core.js?v=202610201412"></script>
+<script src="js/board.js?v=202610201412"></script>
+<script src="js/ink.js?v=202610201412"></script>
+<script src="js/tactics.js?v=202610201412"></script>
+<script src="js/sheets.js?v=202610201412"></script>
+<script src="js/share.js?v=202610201412"></script>
+<script src="js/events.js?v=202610201412"></script>
+<script src="app.js?v=202610201412"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>
