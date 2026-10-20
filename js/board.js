@@ -428,7 +428,8 @@ function marksBadge(marks, className, label) {
       if (part.red) badge.append(Object.assign(document.createElement("img"), { className: "mark-icon is-own-goal", src: redBallDataUrl(), alt: "" }));
       else badge.append(Object.assign(document.createElement("span"), { className: "mark-icon", textContent: part.icon }));
     }
-    if (part.label) badge.append(part.label);
+    // 数（「⚽2」の 2）は要素にしておく。文字のままだと、次の絵文字が「絵文字が続く」とみなされて数に重なるため
+    if (part.label) badge.append(Object.assign(document.createElement("span"), { className: "mark-num", textContent: part.label }));
   });
   return badge;
 }
