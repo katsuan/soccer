@@ -198,6 +198,7 @@ const state = Object.assign(
     players: freshPlayers("soccer", "4-4-2", [], false),
     showOpp: false,
     showBall: false,
+    showNames: true, // 盤・画像・リンクに選手の名前を出すか（👤 選手でまとめて切りかえ）
     ball: { x: 50, y: 50 },
     strokes: [],
     penColor: PEN_COLORS[0],

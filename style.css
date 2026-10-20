@@ -74,7 +74,9 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .token b { display: grid; place-items: center; width: 30px; height: 30px; border: 2px solid #fff; border-radius: 50%; background: var(--accent); color: #fff; font-size: 13px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
 /* 名前：白い文字がピッチの白線と重なっても読めるよう、半透明の濃い札に入れる */
 .token small { max-width: 64px; overflow: hidden; padding: 0 5px; border-radius: 999px; background: rgba(16, 36, 24, 0.72); color: #fff; font-size: 11px; font-weight: 800; line-height: 15px; white-space: nowrap; text-overflow: ellipsis; }
-.token small:empty { display: none; }
+.token small:empty, .hide-names .token small { display: none; }
+.edit-tools { align-items: center; gap: 8px; }
+.edit-tools .hint { flex: 1 1 160px; margin: 0; text-align: left; }
 .token.is-ball { width: 28px; margin-left: -14px; margin-top: -14px; font-size: 22px; line-height: 1; }
 .token.is-dragging { cursor: grabbing; z-index: 2; }
 

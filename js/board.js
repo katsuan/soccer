@@ -142,6 +142,10 @@ function render() {
   $("toggleEdit").setAttribute("aria-pressed", String(editMode));
   $("undo").disabled = !undoStack.length;
   $("penTools").hidden = !drawing;
+  $("editTools").hidden = !editMode;
+  $("toggleNames").setAttribute("aria-pressed", String(state.showNames !== false));
+  $("toggleNames").textContent = state.showNames !== false ? "🏷️ 名前：表示中" : "🏷️ 名前：かくし中";
+  board.classList.toggle("hide-names", state.showNames === false);
   $("toggleShape").setAttribute("aria-pressed", String(shapeMode));
   $("shapeTools").hidden = !shapeMode;
   board.classList.toggle("is-drawing", drawing);

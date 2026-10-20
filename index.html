@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201335">
+<link rel="stylesheet" href="style.css?v=202610201337">
 </head>
 <body>
 <main class="wrap">
@@ -85,6 +85,10 @@
       <div id="penTools" class="chips pen-tools" hidden>
         <div id="penColors" class="chips"></div>
         <button id="inkClear" class="link" type="button">線を全部消す</button>
+      </div>
+      <div id="editTools" class="chips edit-tools" hidden>
+        <button id="toggleNames" class="chip" type="button" aria-pressed="true">名前を表示</button>
+        <span class="hint">オフにすると、盤・画像・カードのリンクから名前を外します（名前は消えません）。</span>
       </div>
       <div class="toolbar">
         <button id="toggleOpp" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👥</i><span>相手</span></button>
@@ -258,14 +262,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201335"></script>
-<script src="js/board.js?v=202610201335"></script>
-<script src="js/ink.js?v=202610201335"></script>
-<script src="js/tactics.js?v=202610201335"></script>
-<script src="js/sheets.js?v=202610201335"></script>
-<script src="js/share.js?v=202610201335"></script>
-<script src="js/events.js?v=202610201335"></script>
-<script src="app.js?v=202610201335"></script>
+<script src="js/core.js?v=202610201337"></script>
+<script src="js/board.js?v=202610201337"></script>
+<script src="js/ink.js?v=202610201337"></script>
+<script src="js/tactics.js?v=202610201337"></script>
+<script src="js/sheets.js?v=202610201337"></script>
+<script src="js/share.js?v=202610201337"></script>
+<script src="js/events.js?v=202610201337"></script>
+<script src="app.js?v=202610201337"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

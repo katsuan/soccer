@@ -24,7 +24,8 @@ function boardLinkUrl() {
     ...lineupData(),
     pl: state.players.map((p) => {
       const marks = encodeMarks(p.marks);
-      return marks ? [p.number, withNames ? p.name : "", r(p.x), r(p.y), marks] : [p.number, withNames ? p.name : "", r(p.x), r(p.y)];
+      const name = withNames && state.showNames !== false ? p.name : "";
+      return marks ? [p.number, name, r(p.x), r(p.y), marks] : [p.number, name, r(p.x), r(p.y)];
     })
   });
   // 相手の背番号は、1・2・3… の順のままなら省く（[x, y] だけ）
@@ -202,7 +203,7 @@ async function boardCanvas() {
     }
   };
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
-  state.players.forEach((p, i) => drawToken(p, state.ourColor, p.name, inkOn(state.ourColor), i === 0));
+  state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
   // 印（イエロー・ゴールなど）：丸のすぐ上に、白い角丸の札に入れて。オウンゴールのボールは赤く
   state.players.forEach((p) => {
     const parts = markParts(p.marks);

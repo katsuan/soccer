@@ -62,6 +62,10 @@ $("toggleEdit").addEventListener("click", () => {
   selected.clear();
   render();
 });
+$("toggleNames").addEventListener("click", () => {
+  state.showNames = state.showNames === false;
+  render();
+});
 $("undo").addEventListener("click", undo);
 // 相手の人数を1人ずつ変える（ほかの相手の位置はそのまま）
 $("addOpp").addEventListener("click", () => {
