@@ -2,8 +2,9 @@
 // 試合結果も同じように渡す。作戦盤として、相手・ボール・ペンの線も使える（線と相手はカードには入れず、画像で保存できる）。
 //
 // おくるんへの渡し方: https://liff.line.me/<LIFF ID>/card/?kind=lineup|match&data=<JSON を UTF-8 → base64url>&…
-//   lineup: { m: "futsal"|"soccer"（ピッチの描き方）, f（決まった並びでなければ ""）, t, o, s, c, pl: [[背番号, 名前, x, y], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
-//   match:  { t, o, us, th, hu, ht, g: [["u"|"t", 分, 名前], ...], mvp }
+//   lineup: { m: "futsal"|"soccer"（ピッチの描き方）, f（決まった並びでなければ ""）, t, o, c, pl: [[背番号, 名前, x, y, 印（「y1g2」。あれば）], ...] }   x・y は 0〜100（左上から。上が攻める向き。先頭は GK）
+//   match:  { t, o, us, th, hu, ht, su, st, eu, et, pu, pt, g: [["u"|"t", 分, 名前], ...], as（アシスト）, cd（カード） }
+//   2枚（メンバー＋試合結果）のときは、2枚目のパラメータをまるごと card= に入れる（share.js の cardsUrl）
 // おくるんの「さくせん盤で直す」からは ?tab=lineup|result&data=… で戻ってくる（1ページなので、result のときは 👕 チーム・試合結果の欄を開く）。
 // 作戦盤の画像カードの画像をタップすると ?tab=lineup&data=… で開く。lineup に op（相手 [[背番号, x, y]]。背番号が順番どおりなら [x, y]）・of・oc・b（ボール [x, y]）・k（線 [[色, [x, y, x, y, …]]]）も入る。
 //
@@ -11,7 +12,7 @@
 //   js/core.js    定数・フォーメーションの位置・状態（この端末に残す）・戻す・リンクからの読み込み
 //   js/board.js   画面：ピッチの描き直し・相手・選手のこま・ドラッグ・範囲選択
 //   js/ink.js     ペン（作戦盤の線）
-//   js/tactics.js 作戦の保存
+//   js/tactics.js 作戦の保存・場所の保存
 //   js/sheets.js  選手の入力シート・結果の得点
 //   js/share.js   おくるんへのリンク・作戦盤の画像
 //   js/events.js  操作（ボタン・入力）

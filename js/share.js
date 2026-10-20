@@ -9,7 +9,6 @@ const lineupData = () => ({
   f: state.formation,
   t: state.team,
   o: state.opponent,
-  s: state.subs,
   c: state.ourColor,
   pl: state.players.map((p) => [p.number, p.name, p.x, p.y])
 });
@@ -115,8 +114,7 @@ function resultCardQuery() {
     et: num(state.extraThem),
     pu: num(state.pkUs),
     pt: num(state.pkThem),
-    g: state.goals.map((g) => [g.side, g.min, g.name]),
-    mvp: "" // MVP の欄はなくした（ひとこと（結果）に書く）。前に入れた分は送らない
+    g: state.goals.map((g) => [g.side, g.min, g.name])
   };
   // 作戦盤の印のアシスト・カードも入れる（あるときだけ）
   const { assists, cards } = marksForResult();

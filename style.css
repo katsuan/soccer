@@ -83,7 +83,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .token.is-ball { width: 28px; margin-left: -14px; margin-top: -14px; font-size: 22px; line-height: 1; }
 .token.is-dragging { cursor: grabbing; z-index: 2; }
 
-.tools .link { justify-self: start; }
 .link { border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer; }
 
 .actions { display: grid; gap: 8px; }
@@ -123,10 +122,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .hint.left { text-align: left; }
 
 /* フォーメーション：自チームと相手を左右に並べ、縦に選ぶ */
-.formations { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
-.formations > div { display: grid; gap: 6px; }
-.chips.col { flex-direction: column; }
-.chips.col .chip { width: 100%; }
 .fold[open] { gap: 10px; }
 
 /* チームの色の丸（自チーム・相手の欄の上） */
@@ -138,7 +133,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .chip.color.is-custom input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
 
 /* フォーメーションの欄の下の「位置を戻す」は、左右の列をまたいで置く */
-.formations .reset { grid-column: 1 / -1; justify-self: start; }
 
 /* 作戦盤のカード：見出し（人数・フォーメーション）・ピッチ・操作をひとまとめに */
 .board-card { gap: 10px; }

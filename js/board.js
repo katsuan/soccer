@@ -102,7 +102,7 @@ function render() {
   customInput.onkeydown = (e) => {
     if (e.key === "Enter" && !e.isComposing) $("customApply").click();
   };
-  if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "相手はいま出していません。「👁 表示」で出すか、ここでフォーメーションを選ぶと出ます。" : "";
+  if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "相手はいま出していません。「👁️ 表示」で出すか、ここでフォーメーションを選ぶと出ます。" : "";
   renderLineShapes(opp ? "opp" : "ours");
   // チームの色
   const swatches = (key) => {
@@ -145,7 +145,7 @@ function render() {
   document.querySelectorAll("[data-marks]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.marks === "on") === (state.showMarks !== false))));
   board.classList.toggle("hide-marks", state.showMarks === false);
   document.querySelectorAll("[data-names]").forEach((b) => b.setAttribute("aria-checked", String((b.dataset.names === "on") === (state.showNames !== false))));
-  // 👁 表示を開いているときは、そちらに同じ切りかえがあるので出さない
+  // 👁️ 表示を開いているときは、そちらに同じ切りかえがあるので出さない
   $("editTools").hidden = !editMode || viewMode;
   $("clearMarks").hidden = !state.players.some((p) => p.marks && Object.keys(p.marks).length);
   $("togglePen").setAttribute("aria-pressed", String(drawing));
@@ -160,7 +160,7 @@ function render() {
   $("boardHint").textContent = drawing
     ? "指でなぞって線を描けます。"
     : viewMode
-      ? "盤に出すもの（相手・ボール・選手名・得点やカード）を選べます。"
+      ? "盤に出すもの（相手・ボール・選手名・得点など）を選べます。"
     : shapeMode
       ? "フォーメーションと列の形を選ぶと、その形に並べ直します（背番号・名前はそのまま）。"
     : editMode

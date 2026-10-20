@@ -212,7 +212,6 @@ const save = (key, value) => {
 
 const state = Object.assign(
   {
-    tab: "lineup",
     court: "soccer11",
     mode: "soccer",
     formation: "4-4-2",
@@ -220,8 +219,8 @@ const state = Object.assign(
     showOpp: false,
     showBall: false,
     oppLayout: "full", // 相手を出したときの並べ方："full"＝フルコート（互い違い）・"half"＝コート別（半分ずつ）
-    showNames: true,
-    showMarks: true, // 盤・画像・リンクに印（得点・アシスト・カードなど）を出すか（👁 表示で切りかえ） // 盤・画像・リンクに選手の名前を出すか（👤 選手でまとめて切りかえ）
+    showNames: true, // 盤・画像・リンクに選手の名前を出すか（👁️ 表示・👤 選手情報で切りかえ）
+    showMarks: true, // 盤・画像・リンクに得点・カードなどの印を出すか（👁️ 表示で切りかえ）
     ball: { x: 50, y: 50 },
     strokes: [],
     penColor: PEN_COLORS[0],
@@ -230,7 +229,6 @@ const state = Object.assign(
     whenDate: "",
     whenTime: "",
     where: "",
-    subs: "",
     lineupNote: "",
     scoreUs: 0,
     scoreThem: 0,
@@ -248,14 +246,13 @@ const state = Object.assign(
     ourColor: "#6c47ff",
     oppColor: "#ffffff",
     goals: [],
-    mvp: "",
     resultNote: ""
   },
   load(STORE_KEY, {})
 );
 let drawing = false; // ペンで描くモード（作戦盤の線）
 let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
-let viewMode = false; // 👁 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
+let viewMode = false; // 👁️ 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
 let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 
@@ -279,12 +276,15 @@ let roster = load(ROSTER_KEY, "");
 delete state.when;
 if (!/^\d{4}-\d{2}-\d{2}$/.test(state.whenDate || "")) state.whenDate = "";
 if (!/^\d{2}:\d{2}$/.test(state.whenTime || "")) state.whenTime = "";
-// 控えの欄はなくして、ひとこと（作戦盤）に書く形にした。前に入れた控えは、ひとことの最後の行へ移す
+// なくした欄の中身は、ひとことの行へ移す（控え → ひとこと（作戦盤）、MVP → ひとこと（結果））。タブもなくした
 const subsLine = (subs) => (subs ? `控え：${subs}` : "");
-if (state.subs) {
-  state.lineupNote = [state.lineupNote, subsLine(state.subs)].filter(Boolean).join("\n");
-  state.subs = "";
-}
+const mvpLine = (mvp) => (mvp ? `MVP：${mvp}` : "");
+const addLine = (text, line) => (line && !String(text || "").includes(line) ? [text, line].filter(Boolean).join("\n") : text || "");
+state.lineupNote = addLine(state.lineupNote, subsLine(state.subs));
+state.resultNote = addLine(state.resultNote, mvpLine(state.mvp));
+delete state.subs;
+delete state.mvp;
+delete state.tab;
 if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtDef(state.court).mode !== state.mode) state.court = courtOf(state.mode, state.formation, state.players.length);
 
 // おくるんの「さくせん盤で直す」から戻ってきたとき
@@ -304,9 +304,9 @@ function applyQuery() {
     });
     state.formation = fieldCount(data.f) === state.players.length - 1 ? data.f : "";
     state.court = courtOf(state.mode, state.formation, state.players.length);
-    Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent, subs: "" });
+    Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent });
     // 前のリンクの控え（s）は、ひとこと（作戦盤）の行として入れる
-    if (data.s && !String(state.lineupNote).includes(subsLine(data.s))) state.lineupNote = [state.lineupNote, subsLine(data.s)].filter(Boolean).join("\n");
+    state.lineupNote = addLine(state.lineupNote, subsLine(data.s));
     const hex = (v) => (/^#[0-9a-f]{6}$/i.test(v || "") ? v.toLowerCase() : "");
     if (hex(data.c)) state.ourColor = hex(data.c);
     // 画像のリンクからは、相手・ボール・線も戻す（スタメンのカードからは選手だけ）
@@ -344,9 +344,10 @@ function applyQuery() {
       extraThem: data.et ?? "",
       pkUs: data.pu ?? "",
       pkThem: data.pt ?? "",
-      goals: (data.g || []).map((g) => ({ side: g[0], min: g[1], name: g[2] })),
-      mvp: data.mvp || ""
+      goals: (data.g || []).map((g) => ({ side: g[0], min: g[1], name: g[2] }))
     });
+    // 前のリンクの MVP は、ひとこと（結果）の行として入れる
+    state.resultNote = addLine(state.resultNote, mvpLine(data.mvp));
   }
   if (q.has("data")) history.replaceState(null, "", location.pathname);
 }

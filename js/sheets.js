@@ -99,7 +99,7 @@ function renderGoals() {
       row.className = g.side === "t" ? "goal is-them" : "goal";
       const min = Object.assign(document.createElement("input"), { className: "min", value: g.min || "", placeholder: "分", inputMode: "numeric", maxLength: 4 });
       min.setAttribute("aria-label", "時間（分）");
-      const name = Object.assign(document.createElement("input"), { value: g.name || "", placeholder: g.side === "t" ? "（任意）" : "名前", maxLength: 12 });
+      const name = Object.assign(document.createElement("input"), { value: g.name || "", placeholder: "名前", maxLength: 12 });
       name.setAttribute("list", "rosterNames");
       min.addEventListener("input", () => {
         g.min = min.value.trim();
