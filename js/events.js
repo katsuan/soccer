@@ -165,8 +165,10 @@ $("resetPositions").addEventListener("click", () => {
 // LINE で共有：スタメンのカード・作戦の画像・試合結果のカードから選ぶシート
 const shareSheet = $("shareSheet");
 $("shareLineup").addEventListener("click", () => {
-  $("sendLineup").href = lineupCardUrl();
-  $("sendResult").href = resultCardUrl();
+  // 試合結果を入れてあれば、最初から2枚（メンバー・試合結果）を選んでおく
+  $("pickLineup").checked = true;
+  $("pickResult").checked = hasResult();
+  updateSendCards();
   $("imageStatus").textContent = "";
   shareSheet.hidden = false;
 });
@@ -246,6 +248,20 @@ $("addGoalThem").addEventListener("click", () => {
   render();
 });
 // 送る直前に最新のリンクにする
-$("sendLineup").addEventListener("click", () => ($("sendLineup").href = lineupCardUrl()));
-$("sendResult").addEventListener("click", () => ($("sendResult").href = resultCardUrl()));
+// 送るカードの選択：ボタンに枚数を出し、選んでいなければ押せなくする。押す直前に最新のリンクにする
+function updateSendCards() {
+  const picks = { lineup: $("pickLineup").checked, result: $("pickResult").checked };
+  const count = Object.values(picks).filter(Boolean).length;
+  const send = $("sendCards");
+  send.textContent = count ? `💬 カードで送る（${count}枚）` : "💬 送るカードを選んでください";
+  send.classList.toggle("is-disabled", !count);
+  send.setAttribute("aria-disabled", String(!count));
+  send.href = count ? cardsUrl(picks) : "#";
+}
+$("pickLineup").addEventListener("change", updateSendCards);
+$("pickResult").addEventListener("change", updateSendCards);
+$("sendCards").addEventListener("click", (e) => {
+  if ($("sendCards").getAttribute("aria-disabled") === "true") return e.preventDefault();
+  updateSendCards();
+});
 window.addEventListener("resize", drawInk);

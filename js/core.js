@@ -168,6 +168,8 @@ function decodeMarks(text) {
   return Object.keys(marks).length ? marks : undefined;
 }
 
+// 印の札を右下に出すか（左の端にいる選手は、左下だと盤からはみ出すため）。盤と画像で同じ決め方
+const marksOnRight = (p) => p.x < 25;
 // 結果に使う選手の呼び名（名前がなければ「7番」）
 const playerLabel = (p) => p.name || (p.number ? `${p.number}番` : "");
 // 作戦盤の印から、結果のカードに入れるアシスト・カード（[[名前, 数], ...]・[["y"|"r", 名前, 数], ...]）

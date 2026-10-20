@@ -158,6 +158,16 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .choice b { font-size: 16px; }
 .choice small { font-size: 12px; color: var(--ink-soft); }
 .choice:disabled { opacity: 0.6; cursor: progress; }
+/* 送るカードを選ぶ（チェックの付いた札） */
+.card-picks { display: grid; gap: 8px; }
+.pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 10px; padding: 12px 14px; border: 2px solid var(--border); border-radius: 16px; background: #fff; cursor: pointer; }
+.pick:has(input:checked) { border-color: var(--accent); background: #efebff; }
+.pick input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--accent); }
+.pick span { display: grid; gap: 2px; }
+.pick b { font-size: 15px; }
+.pick small { font-size: 12px; color: var(--ink-soft); }
+.card-picks .hint { margin: 0; }
+.btn.is-disabled { opacity: 0.5; pointer-events: auto; }
 .sheet-card .link { justify-self: center; }
 .fold:not([open]) { gap: 0; }
 
@@ -248,7 +258,9 @@ h1 .logo { width: 28px; height: 28px; }
 .shape-tools[hidden] { display: none; }
 
 /* 選手の印（イエロー・ゴールなど）：盤の丸のすぐ上 */
-.token .marks { position: absolute; top: -17px; left: 50%; transform: translateX(-50%); padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 16px; white-space: nowrap; pointer-events: none; }
+/* 印（得点・カード）：丸の左下（GK の 🧤 の反対側）。名前の札とも背番号とも重ならないように */
+.token .marks.is-right { right: auto; left: calc(50% + 7px); }
+.token .marks { position: absolute; top: 14px; right: calc(50% + 7px); padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 16px; white-space: nowrap; pointer-events: none; }
 /* 選手のシートの印の欄：左に名前、右に − 数 ＋ */
 .player-marks { display: grid; gap: 6px; margin: 4px 0 10px; }
 .mark-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }

@@ -53,8 +53,38 @@ function boardLinkUrl() {
 }
 
 function lineupCardUrl() {
+  return OQRN.cardUrl(lineupCardQuery());
+}
+
+function resultCardUrl() {
+  return OQRN.cardUrl(resultCardQuery());
+}
+
+// 何枚かまとめて送る（スタメン → 試合結果 の順。1枚の LINE メッセージに横に並ぶ）。
+// 2枚目からは、おくるんの card パラメータに、そのカードのパラメータをまるごと入れて渡す
+function cardsUrl({ lineup = true, result = false } = {}) {
+  const queries = [lineup && lineupCardQuery(), result && resultCardQuery()].filter(Boolean);
+  if (!queries.length) return "";
+  const [first, ...rest] = queries;
+  rest.forEach((q) => {
+    q.delete("from");
+    first.append("card", q.toString());
+  });
+  return OQRN.cardUrl(first);
+}
+
+// 試合結果を入れたか（スコア・得点者・内訳・MVP・ひとこと、作戦盤のゴールの印のどれか）
+function hasResult() {
+  const filled = (v) => v !== "" && v !== null && v !== undefined;
+  return Boolean(
+    Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length || state.mvp || state.resultNote ||
+    ["halfUs", "halfThem", "secondUs", "secondThem", "pkUs", "pkThem"].some((k) => filled(state[k]))
+  );
+}
+
+function lineupCardQuery() {
   const data = lineupData();
-  const q = new URLSearchParams({
+  return new URLSearchParams({
     kind: "lineup",
     headerTitle: "スタメン発表",
     date: whenText(),
@@ -68,10 +98,9 @@ function lineupCardUrl() {
     data: encode(data),
     from: "soccer"
   });
-  return OQRN.cardUrl(q);
 }
 
-function resultCardUrl() {
+function resultCardQuery() {
   const num = (v) => (v === "" || v === null || v === undefined ? "" : Number(v) || 0);
   const data = {
     t: state.team,
@@ -93,7 +122,7 @@ function resultCardUrl() {
   const { assists, cards } = marksForResult();
   if (assists.length) data.as = assists;
   if (cards.length) data.cd = cards;
-  const q = new URLSearchParams({
+  return new URLSearchParams({
     kind: "match",
     headerTitle: "試合結果",
     date: whenText(),
@@ -107,7 +136,6 @@ function resultCardUrl() {
     data: encode(data),
     from: "soccer"
   });
-  return OQRN.cardUrl(q);
 }
 
 // ---- 作戦盤の画像（線・相手・ボールも入る）。保存にも、カードの写真にも使う ----
@@ -208,7 +236,7 @@ async function boardCanvas() {
   };
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
-  // 印（イエロー・ゴールなど）：丸のすぐ上に、白い角丸の札に入れて。オウンゴールのボールは赤く
+  // 印（イエロー・ゴールなど）：丸の左下（GK の 🧤 の反対側）に、白い角丸の札に入れて。オウンゴールのボールは赤く
   if (state.showMarks !== false) state.players.forEach((p) => {
     const parts = markParts(p.marks);
     if (!parts.length) return;
@@ -223,15 +251,17 @@ async function boardCanvas() {
     const w = widths.reduce((a, b) => a + b, 0) + 16;
     ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.beginPath();
-    ctx.roundRect(x - w / 2, y - 76, w, 36, 18);
+    // 札の右端を丸の中心から 10 左に（🧤 の丸は中心から 10 右から）。左の端の選手は右下に
+    const left = marksOnRight(p) ? x + 10 : x - 10 - w;
+    ctx.roundRect(left, y + 10, w, 36, 18);
     ctx.fill();
     ctx.textAlign = "left";
-    let cx = x - w / 2 + 8;
+    let cx = left + 8;
     pieces.forEach((piece, k) => {
-      if (piece.red) ctx.drawImage(redBall(piece.text, widths[k]), cx, y - 76);
+      if (piece.red) ctx.drawImage(redBall(piece.text, widths[k]), cx, y + 10);
       else {
         ctx.fillStyle = "#23302a";
-        ctx.fillText(piece.text, cx, y - 49);
+        ctx.fillText(piece.text, cx, y + 37);
       }
       cx += widths[k];
     });

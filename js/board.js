@@ -217,8 +217,6 @@ function render() {
     .map(([label]) => label);
   $("periodMeta").textContent = periods.join("・") || "なし";
   // おくるんへのリンク（押したときに最新を作る）
-  $("sendLineup").href = lineupCardUrl();
-  $("sendResult").href = resultCardUrl();
 }
 
 // 列ごとの形（自チームの今のフォーメーション）。2〜5人の列だけ、形のボタンを並べる。選ぶとその形で並べ直す
@@ -434,11 +432,11 @@ function tokenEl(p, extra, target) {
   number.style.color = inkOn(fill);
   number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
   el.querySelector("small").textContent = p.name || "";
-  // 印（イエロー・レッド・ゴール・アシスト）：丸のすぐ上に
+  // 印（イエロー・レッド・ゴール・アシスト）：丸の左下。左の端にいる選手は、盤からはみ出さないよう右下に
   const parts = markParts(p.marks);
   if (parts.length) {
     const badge = document.createElement("em");
-    badge.className = "marks";
+    badge.className = marksOnRight(p) ? "marks is-right" : "marks";
     badge.setAttribute("aria-label", markText(p.marks));
     parts.forEach((part) => {
       for (let k = 0; k < part.count; k += 1) {

@@ -101,12 +101,10 @@ function renderGoals() {
       min.addEventListener("input", () => {
         g.min = min.value.trim();
         save(STORE_KEY, state);
-        $("sendResult").href = resultCardUrl();
       });
       name.addEventListener("input", () => {
         g.name = name.value.trim();
         save(STORE_KEY, state);
-        $("sendResult").href = resultCardUrl();
       });
       const remove = Object.assign(document.createElement("button"), { type: "button", className: "remove", textContent: "×" });
       remove.setAttribute("aria-label", "この得点を消す");
