@@ -357,6 +357,9 @@ h1 .logo { width: 28px; height: 28px; }
 .cp-empty { margin: 0; padding: 10px; border-radius: 10px; background: #fff; color: var(--ink-soft); font-size: 12px; font-weight: 400; }
 /* ミニのピッチ（おくるんのスタメンカードと同じ緑と白線） */
 .cp-pitch { position: relative; height: 210px; border-radius: 10px; background: #2e8b4a; }
+.cp-pitch.is-vs { height: 280px; }
+.cp-pitch.is-futsal { height: 175px; }
+.cp-pitch.is-futsal.is-vs { height: 222px; }
 .cp-pitch::before { content: ""; position: absolute; inset: 4% 5%; border: 1.5px solid rgba(255, 255, 255, 0.67); border-radius: 3px; }
 .cp-pitch i { position: absolute; display: block; border: 1.5px solid rgba(255, 255, 255, 0.67); }
 .cp-pitch .is-half { top: 50%; left: 5%; right: 5%; height: 0; border-width: 1.5px 0 0; }
@@ -367,7 +370,7 @@ h1 .logo { width: 28px; height: 28px; }
 .cp-pitch.is-futsal .is-box-bottom { border-radius: 40px 40px 0 0; }
 .cp-token { position: absolute; display: grid; justify-items: center; width: 52px; margin-left: -26px; margin-top: -9px; }
 .cp-token b { display: grid; place-items: center; width: 18px; height: 18px; border: 1px solid #fff; border-radius: 50%; font-size: 9px; }
-.cp-token small { max-width: 52px; overflow: hidden; color: #fff; font-size: 8px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; }
+.cp-token small { max-width: 52px; overflow: hidden; padding: 0 3px; border-radius: 999px; background: rgba(16, 36, 24, 0.72); color: #fff; font-size: 8px; font-weight: 800; white-space: nowrap; text-overflow: ellipsis; }
 .cp-gk { position: absolute; top: 8px; right: calc(50% + 4px); width: 11px; height: 11px; border-radius: 50%; background: #fff; font-size: 7px; font-style: normal; line-height: 11px; text-align: center; }
 /* 試合結果（チーム名と勝ち負け・スコア・得点） */
 .cp-teams { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 6px; text-align: center; }

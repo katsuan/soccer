@@ -111,6 +111,7 @@ function lineupPreviewEl() {
   pitch.innerHTML = '<i class="is-half"></i><i class="is-circle"></i><i class="is-box-top"></i><i class="is-box-bottom"></i>';
   // カードに渡すのと同じ中身（相手・名前は 👁️ 表示どおり）で描く
   const data = lineupData();
+  pitch.classList.toggle("is-vs", Boolean(data.op)); // 相手も描くときは縦に長く（おくるんのカードと同じ）
   const team = (list, color) =>
     list.forEach(([number, name, x, y], i) => {
       const t = el("span", "cp-token");
