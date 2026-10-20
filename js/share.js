@@ -156,6 +156,8 @@ function resultPreviewEl() {
   const { assists, cards } = marksForResult();
   if (assists.length) parts.push(el("p", "cp-extra", `👟 アシスト ${assists.map(([n, c]) => (c > 1 ? `${n}×${c}` : n)).join("・")}`));
   if (cards.length) parts.push(el("p", "cp-extra", cards.map(([k, n, c]) => `${(k === "r" ? "🟥" : "🟨").repeat(c)} ${n}`).join("　")));
+  const subs = subsForResult();
+  if (subs.length) parts.push(el("p", "cp-extra cp-subs", subs.map(([m, o, i]) => `🔄 ${m ? `${m}' ` : ""}${o} → ${i}`).join("\n")));
   parts.push(el("p", "cp-tap", "タップすると さくせん盤 が開きます"));
   return previewCard(q, parts);
 }
@@ -199,6 +201,8 @@ function resultCardQuery() {
   const { assists, cards } = marksForResult();
   if (assists.length) data.as = assists;
   if (cards.length) data.cd = cards;
+  const subs = subsForResult();
+  if (subs.length) data.sb = subs;
   return new URLSearchParams({
     kind: "match",
     headerTitle: "試合結果",
@@ -313,6 +317,19 @@ async function boardCanvas() {
   };
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
+  // 交代して入った選手：丸の左上に小さく 🔄（盤と同じ）
+  state.players.forEach((p) => {
+    if (!p.subs?.length) return;
+    const x = (p.x / 100) * W - 30;
+    const y = (p.y / 100) * H - 30;
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.font = font(20, 400);
+    ctx.textAlign = "center";
+    ctx.fillText("🔄", x, y + 7);
+  });
   // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く。
   // 相手は、試合結果の得点者から数えた ⚽・OG（盤と同じ）
   const marked = [

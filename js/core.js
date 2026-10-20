@@ -222,13 +222,22 @@ function renameGoals(oldName, newName) {
     if (g.side === "t" && g.name === `${oldName}（OG）`) g.name = `${newName}（OG）`;
   });
 }
+// 交代（結果のカードに「🔄 60' たなか → すずき」）。[[分, 出た選手, 入った選手], ...] を時間の順に
+function subsForResult() {
+  const name = (number, n) => n || (number ? `${number}番` : "");
+  return state.players
+    .flatMap((p) => (p.subs || []).map((s) => [s.min || "", name(s.outNumber, s.outName), name(s.inNumber, s.inName)]))
+    .sort((a, b) => (parseInt(a[0], 10) || 0) - (parseInt(b[0], 10) || 0));
+}
 // 結果に使う選手の呼び名（名前がなければ「7番」）
 const playerLabel = (p) => p.name || (p.number ? `${p.number}番` : "");
 // 作戦盤の印から、結果のカードに入れるアシスト・カード（[[名前, 数], ...]・[["y"|"r", 名前, 数], ...]）
 function marksForResult() {
   const assists = [];
   const cards = [];
-  state.players.forEach((p) => {
+  // 交代で出た選手のカード・アシストも（交代のときに残した印から）
+  const outs = state.players.flatMap((p) => (p.subs || []).filter((s) => s.outMarks).map((s) => ({ number: s.outNumber, name: s.outName, marks: s.outMarks })));
+  [...outs, ...state.players].forEach((p) => {
     const name = playerLabel(p);
     if (!name) return;
     if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);

@@ -212,13 +212,15 @@ $("roster").addEventListener("input", () => {
 // 試合結果をリセット：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま。盤の ⚽ の印も消える）。
 // 作戦盤にカード・アシストの印があれば、それも消すかを続けて聞く
 $("resetResult").addEventListener("click", () => {
-  if (!confirm("スコア・内訳・得点者・ひとこと（結果）を消しますか？（チーム名・色はそのまま）")) return;
+  if (!confirm("スコア・内訳・得点者・交代・ひとこと（結果）を消しますか？（チーム名・色・いまの選手はそのまま）")) return;
   const fields = ["scoreUs", "scoreThem", "halfUs", "halfThem", "secondUs", "secondThem", "extraUs", "extraThem", "pkUs", "pkThem", "resultNote"];
   fields.forEach((k) => {
     state[k] = k === "scoreUs" || k === "scoreThem" ? 0 : "";
     $(k).value = state[k];
   });
   state.goals = [];
+  // 交代の記録も消す（いま盤にいる選手はそのまま）
+  state.players.forEach((p) => delete p.subs);
   if (anyCardMarks() && confirm("作戦盤のカード・アシストの印も消しますか？")) {
     remember();
     [...state.players, ...(state.opp || [])].forEach((p) => delete p.marks);
