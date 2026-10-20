@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201521">
+<link rel="stylesheet" href="style.css?v=202610201522">
 </head>
 <body>
 <main class="wrap">
@@ -270,7 +270,7 @@
     <!-- カードで送る：送るカードを選ぶ（2枚なら1つのメッセージに横に並ぶ）。試合結果は入れてあれば最初から選んでおく -->
     <div class="card-picks">
       <!-- それぞれのカードを、おくるんで送るときと同じ見た目で小さく見せる（タップで選ぶ・外す） -->
-      <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 メンバー（スタメン）</b></span><span id="previewLineup" class="pick-preview"></span></label>
+      <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 メンバー</b></span><span id="previewLineup" class="pick-preview"></span></label>
       <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b></span><span id="previewResult" class="pick-preview"></span></label>
       <a id="sendCards" class="btn line" href="#">💬 カードで送る</a>
       <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。メンバーのカードのピッチをタップすると、さくせん盤で同じ配置が開きます。</p>
@@ -284,14 +284,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201521"></script>
-<script src="js/board.js?v=202610201521"></script>
-<script src="js/ink.js?v=202610201521"></script>
-<script src="js/tactics.js?v=202610201521"></script>
-<script src="js/sheets.js?v=202610201521"></script>
-<script src="js/share.js?v=202610201521"></script>
-<script src="js/events.js?v=202610201521"></script>
-<script src="app.js?v=202610201521"></script>
+<script src="js/core.js?v=202610201522"></script>
+<script src="js/board.js?v=202610201522"></script>
+<script src="js/ink.js?v=202610201522"></script>
+<script src="js/tactics.js?v=202610201522"></script>
+<script src="js/sheets.js?v=202610201522"></script>
+<script src="js/share.js?v=202610201522"></script>
+<script src="js/events.js?v=202610201522"></script>
+<script src="app.js?v=202610201522"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>
