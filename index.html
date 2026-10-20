@@ -111,7 +111,7 @@
         </div>
         <p class="hint left">フルコートは両チームが互い違いに、コート別は半分ずつ並びます。選手名・得点などを出さないと、画像・カードのリンクからも外します（入れたものは消えません）。</p>
       </div>
-      <!-- 👤 選手名：名前を入れるときも、表示・非表示を切りかえられるように（👁 表示の「選手名」と同じ設定） -->
+      <!-- 👤 選手情報：名前を入れるときも、表示・非表示を切りかえられるように（👁 表示の「選手名」と同じ設定） -->
       <div id="editTools" class="view-tools" hidden>
         <span class="label">選手名</span>
         <div class="seg" role="radiogroup" aria-label="選手名">
@@ -123,7 +123,7 @@
       <div class="toolbar">
         <button id="toggleView" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👁️</i><span>表示</span></button>
         <button id="toggleShape" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">📐</i><span>並び</span></button>
-        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手名</span></button>
+        <button id="toggleEdit" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">👤</i><span>選手情報</span></button>
         <button id="togglePen" class="tool" type="button" aria-pressed="false"><i class="emoji" aria-hidden="true">✏️</i><span>ペン</span></button>
         <button id="undo" class="tool" type="button"><i class="emoji" aria-hidden="true">↩️</i><span>戻す</span></button>
       </div>
@@ -174,7 +174,7 @@
     <details class="card fold">
       <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
       <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
-      <p class="hint">「👤 選手名」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
+      <p class="hint">「👤 選手情報」を押してから選手をタップすると、ここから選べます。この端末に残ります。</p>
     </details>
 
     <!-- 共有（主）と画像の保存を横に並べる -->
