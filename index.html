@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201402">
+<link rel="stylesheet" href="style.css?v=202610201404">
 </head>
 <body>
 <main class="wrap">
@@ -62,6 +62,8 @@
           <button id="shapeTabOurs" class="shape-tab" type="button" role="tab">自チーム</button>
           <button id="shapeTabOpp" class="shape-tab" type="button" role="tab">相手</button>
         </div>
+        <!-- 相手を出しているときの人数の差（11 対 10（数的有利）など） -->
+        <p id="countVs" class="count-vs"></p>
         <div class="shape-head">
           <div id="ourStepper" class="stepper" role="group" aria-label="自チームの人数">
             <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
@@ -134,7 +136,6 @@
     <!-- チーム：自チームと相手を左右に並べ、人数・色・フォーメーションをまとめて選ぶ -->
     <details class="card fold" id="teamFold">
       <summary>👕 チーム <span id="teamMeta" class="meta"></span></summary>
-      <p id="countVs" class="count-vs"></p>
       <!-- 自チームと相手を左右に向かい合わせ、チーム名・色を同じ行にそろえる（人数・フォーメーションは作戦盤の「📐 並び」） -->
       <div class="versus">
         <span class="label">自チーム</span>
@@ -291,14 +292,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201402"></script>
-<script src="js/board.js?v=202610201402"></script>
-<script src="js/ink.js?v=202610201402"></script>
-<script src="js/tactics.js?v=202610201402"></script>
-<script src="js/sheets.js?v=202610201402"></script>
-<script src="js/share.js?v=202610201402"></script>
-<script src="js/events.js?v=202610201402"></script>
-<script src="app.js?v=202610201402"></script>
+<script src="js/core.js?v=202610201404"></script>
+<script src="js/board.js?v=202610201404"></script>
+<script src="js/ink.js?v=202610201404"></script>
+<script src="js/tactics.js?v=202610201404"></script>
+<script src="js/sheets.js?v=202610201404"></script>
+<script src="js/share.js?v=202610201404"></script>
+<script src="js/events.js?v=202610201404"></script>
+<script src="app.js?v=202610201404"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>
