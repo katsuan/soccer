@@ -23,9 +23,10 @@ function render() {
   $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
   // 相手のフォーメーション（人数を変えたあとは ""＝今の相手をそのまま使う）。
   // 今のコートより人数が多い並び（フットサルなのにサッカーの 4-4-2 など）は、自チームの並びにそろえる。
-  // カスタム（4-4-1 など一覧にない並び）でも、コートの人数に収まれば残す
+  // カスタム（4-4-1 など一覧にない並び）でも、コートの人数に収まれば残す（11人制のコートは、12人以上の練習試合もあるので上限まで）
   const courtMax = Math.max(...court.list.map((f) => fieldCount(f) || 0));
-  if (state.oppFormation !== "" && (!fieldCount(state.oppFormation) || fieldCount(state.oppFormation) > courtMax)) {
+  const oppMax = courtMax >= 10 ? MAX_PLAYERS - 1 : courtMax;
+  if (state.oppFormation !== "" && (!fieldCount(state.oppFormation) || fieldCount(state.oppFormation) > oppMax)) {
     state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     if (!state.showOpp) state.opp = null; // 出していない相手は、次に出すときに自チームの人数で並べ直す
   }
@@ -55,6 +56,9 @@ function render() {
   $("shapeTabOurs").setAttribute("aria-selected", String(!opp));
   $("shapeTabOpp").setAttribute("aria-selected", String(opp));
   $("ourStepper").hidden = opp;
+  $("oppLayoutRow").hidden = !opp;
+  $("oppLayoutFull").setAttribute("aria-checked", String(state.oppLayout !== "half"));
+  $("oppLayoutHalf").setAttribute("aria-checked", String(state.oppLayout === "half"));
   $("oppStepper").hidden = !opp;
   const current = opp ? (state.showOpp ? state.oppFormation : "") : state.formation;
   const count = opp ? oppTotal() : state.players.length;
@@ -70,7 +74,7 @@ function render() {
   const showCustom = (on) => {
     $("customRow").hidden = !on;
     if (on) {
-      customInput.value = current || "";
+      customInput.value = (current || "").replace(/-/g, "");
       customInput.focus();
     }
   };
@@ -83,14 +87,16 @@ function render() {
     else pickOurs(f);
   };
   $("customApply").onclick = () => {
-    // 全角の数字・ハイフンも受け付ける（「４ー４ー１」→「4-4-1」）
-    const f = customInput.value
+    // 全角の数字・ハイフンも受け付ける（「４ー４ー１」→「4-4-1」）。
+    // スマホの数字キーボードにはハイフンがないので、数字だけなら1けたずつ1列とみなす（「3241」→「3-2-4-1」）
+    const typed = customInput.value
       .replace(/[０-９]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0))
       .replace(/[ー－‐−―\s・,、.]+/g, "-")
       .replace(/^-|-$/g, "");
+    const f = /^\d+$/.test(typed) ? typed.split("").join("-") : typed;
     const field = fieldCount(f);
     if (!parseFormation(f).length || field < 1 || field > MAX_PLAYERS - 1 || parseFormation(f).some((n) => n < 1)) {
-      $("shapeNote").textContent = `「4-4-1」のように、後ろの列から数をハイフンでつないで入れてください（GK のほかに 1〜${MAX_PLAYERS - 1} 人、5列まで）。`;
+      $("shapeNote").textContent = `「441」か「4-4-1」のように、後ろの列から数を入れてください（GK のほかに 1〜${MAX_PLAYERS - 1} 人、5列まで）。`;
       return;
     }
     showCustom(false);
@@ -280,18 +286,35 @@ function setShowOpp(on) {
   if (state.showOpp === on) return;
   state.showOpp = on;
   // 自チームの高さを、GK と最前線の位置に合わせて縮める・広げる（横はそのまま）。なめらかに動かす
-  const [from, to] = on ? [FULL, VERSUS] : [VERSUS, FULL];
+  const [from, to] = on ? [FULL, versusFrame()] : [versusFrame(), FULL];
   state.players = state.players.map((p) => ({ ...p, y: Math.min(98, Math.max(2, fitY(p.y, from, to))) }));
   if (on) {
     // 相手がまだいない・今のコートに合わない人数（フットサルなのに 11 人など）のときは、自チームの人数・並びで出す
     const court = courtDef(state.court);
-    const tooMany = Array.isArray(state.opp) && state.opp.length > Math.max(...court.list.map((f) => fieldCount(f) || 0)) + 1;
+    const courtMax = Math.max(...court.list.map((f) => fieldCount(f) || 0));
+    const tooMany = Array.isArray(state.opp) && state.opp.length > (courtMax >= 10 ? MAX_PLAYERS : courtMax + 1);
     if (!Array.isArray(state.opp) || !state.opp.length || tooMany) {
       state.oppFormation = state.formation || autoFormation(state.players.length - 1);
       state.opp = opponents();
     }
   }
   animateTokens = true;
+}
+
+// 相手の並べ方（フルコート・コート別）を切りかえる。自チームも相手も、GK はそのままで縦の広がりだけ変える
+function setOppLayout(layout) {
+  if ((state.oppLayout === "half" ? "half" : "full") === layout) return;
+  remember();
+  const from = versusFrame();
+  state.oppLayout = layout;
+  const to = versusFrame();
+  if (state.showOpp) {
+    const clamp = (y) => Math.min(98, Math.max(2, y));
+    state.players = state.players.map((p) => ({ ...p, y: clamp(fitY(p.y, from, to)) }));
+    if (Array.isArray(state.opp)) state.opp = state.opp.map((p) => ({ ...p, y: clamp(100 - fitY(100 - p.y, from, to)) }));
+    animateTokens = true;
+  }
+  render();
 }
 
 // 相手は選んだフォーメーション（最初は自チームと同じ）を、上下・左右反対に置く

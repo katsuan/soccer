@@ -14,9 +14,9 @@ const FORMATION_GROUPS = [
   { id: "soccer8", label: "サッカー（8人制）", mode: "soccer", list: ["3-3-1", "2-3-2", "3-2-2", "2-4-1"] },
   { id: "futsal", label: "フットサル（5人）", mode: "futsal", list: ["1-2-1", "2-2", "3-1", "2-1-1"] }
 ];
-// 人数は変則もある（退場で10人、7人制など）。GK を入れて 2〜11 人
+// 人数は変則もある（退場で10人、7人制、練習試合で12人以上など）。GK を入れて 2〜16 人
 const MIN_PLAYERS = 2;
-const MAX_PLAYERS = 11;
+const MAX_PLAYERS = 16;
 const parseFormation = (f) => (/^\d{1,2}(-\d{1,2}){0,4}$/.test(String(f)) ? String(f).split("-").map(Number) : []);
 const fieldCount = (f) => parseFormation(f).reduce((a, b) => a + b, 0);
 // 決まったフォーメーションがない人数のときの並び（後ろ 4 割・前 2 割・残りが中盤）
@@ -53,6 +53,10 @@ const cardColor = () => "#2e8b4a";
 // ほかの列は、この2つの間で同じ割合の位置に動く（選手を動かしたあとでも、同じ割合で縮む・広がる）
 const FULL = { gk: 90, front: 18 };
 const VERSUS = { gk: 90, front: 33 };
+// 相手の並べ方「コート別」：自チームは自陣（下半分）だけ、相手は上半分だけに並べる（重ならない）
+const HALF = { gk: 90, front: 56 };
+// 相手を出しているときの高さ。state.oppLayout が "half" ならコート別、それ以外はフルコート（互い違い）
+const versusFrame = () => (state.oppLayout === "half" ? HALF : VERSUS);
 const fitY = (y, from, to) => Math.round((to.gk - ((from.gk - y) * (to.gk - to.front)) / (from.gk - from.front)) * 10) / 10;
 
 // 列ごとの形（フォーメーションの数字だけでは決まらない並び）。人数ごとに選べる形。先頭がこれまでの並び。
@@ -131,7 +135,7 @@ function formationPositions(mode, formation, versus = true, shapes = []) {
     const shift = top < 12 ? 12 - top : 0;
     line.forEach((spot) => spots.push({ x: spot.x, y: Math.round(Math.min(79, spot.y + shift) * 10) / 10 }));
   });
-  return versus ? spots.map((spot) => ({ x: spot.x, y: fitY(spot.y, FULL, VERSUS) })) : spots;
+  return versus ? spots.map((spot) => ({ x: spot.x, y: fitY(spot.y, FULL, versusFrame()) })) : spots;
 }
 
 // 選手の印（イエロー・レッド・ゴール・アシスト）。p.marks = { y: 0〜2, r: 0〜1, g: 0〜, a: 0〜 }（なければ印なし）
@@ -198,6 +202,7 @@ const state = Object.assign(
     players: freshPlayers("soccer", "4-4-2", [], false),
     showOpp: false,
     showBall: false,
+    oppLayout: "full", // 相手を出したときの並べ方："full"＝フルコート（互い違い）・"half"＝コート別（半分ずつ）
     showNames: true, // 盤・画像・リンクに選手の名前を出すか（👤 選手でまとめて切りかえ）
     ball: { x: 50, y: 50 },
     strokes: [],
@@ -236,7 +241,7 @@ let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメ�
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
-const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "oppLineShapes", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
+const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "oppLineShapes", "players", "opp", "ball", "showOpp", "oppLayout", "showBall", "strokes", "ourColor", "oppColor"];
 const undoStack = [];
 function remember() {
   undoStack.push(JSON.stringify(Object.fromEntries(BOARD_KEYS.map((k) => [k, state[k]]))));

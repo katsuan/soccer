@@ -62,6 +62,8 @@ $("toggleEdit").addEventListener("click", () => {
   selected.clear();
   render();
 });
+$("oppLayoutFull").addEventListener("click", () => setOppLayout("full"));
+$("oppLayoutHalf").addEventListener("click", () => setOppLayout("half"));
 $("toggleNames").addEventListener("click", () => {
   state.showNames = state.showNames === false;
   render();
