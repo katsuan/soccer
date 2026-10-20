@@ -287,7 +287,7 @@ applyQuery();
 function applyQuery() {
   const q = new URLSearchParams(location.search);
   const data = decode(q.get("data"));
-  // 試合結果のリンク（?tab=result）からは、🏆 試合結果の欄を開いて見せる（1ページになったのでタブはない）
+  // 試合結果のリンク（?tab=result）からは、👕 チーム・試合結果の欄を開いて見せる（1ページになったのでタブはない）
   openResultOnLoad = q.get("tab") === "result";
   if (data && Array.isArray(data.pl)) {
     state.mode = data.m === "futsal" ? "futsal" : "soccer";

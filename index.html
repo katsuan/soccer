@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201430">
+<link rel="stylesheet" href="style.css?v=202610201431">
 </head>
 <body>
 <main class="wrap">
@@ -129,9 +129,10 @@
       <button id="resetPositions" class="link reset" type="button">位置をフォーメーションに戻す</button>
     </div>
 
-    <!-- チーム：自チームと相手を左右に並べ、人数・色・フォーメーションをまとめて選ぶ -->
+    <!-- チーム・試合結果：自チームと相手を左右に並べ、チーム名・色、その下にスコア・内訳・得点者・MVP。
+         作戦盤の印（ゴール・アシスト・カード）とつながる。人数・フォーメーションは作戦盤の「📐 並び」 -->
     <details class="card fold" id="teamFold">
-      <summary>👕 チーム <span id="teamMeta" class="meta"></span></summary>
+      <summary>👕 チーム・試合結果 <span id="teamMeta" class="meta"></span></summary>
       <!-- 自チームと相手を左右に向かい合わせ、チーム名・色を同じ行にそろえる（人数・フォーメーションは作戦盤の「📐 並び」） -->
       <div class="versus">
         <span class="label">自チーム</span>
@@ -142,13 +143,9 @@
         <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
       </div>
       <p class="hint left">人数・フォーメーション・列ごとの形は、作戦盤の「📐 並び」で決めます。</p>
-    </details>
-
-    <!-- 🏆 試合結果：スコア（チーム名は 👕 チームの欄）・内訳・得点者・MVP。作戦盤の印（ゴール・アシスト・カード）とつながる -->
-    <details class="card fold" id="resultFold">
-      <summary>🏆 試合結果 <span id="resultMeta" class="meta"></span></summary>
+      <!-- 試合結果：スコアは上のチーム名と同じ左右（左が自チーム、右が相手） -->
+      <p class="sub-head">🏆 試合結果</p>
       <div class="score">
-        <span id="scoreUsLabel" class="label">自チーム</span><i></i><span id="scoreThemLabel" class="label">相手</span>
         <input id="scoreUs" type="number" inputmode="numeric" min="0" max="99" value="0" aria-label="自チームの得点">
         <span>-</span>
         <input id="scoreThem" type="number" inputmode="numeric" min="0" max="99" value="0" aria-label="相手の得点">
@@ -263,7 +260,7 @@
     <!-- カードで送る：送るカードを選ぶ（2枚なら1つのメッセージに横に並ぶ）。試合結果は入れてあれば最初から選んでおく -->
     <div class="card-picks">
       <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 メンバー（スタメン）</b><small>選手の位置をカードで描きます。ピッチをタップすると、さくせん盤で同じ配置が開きます。</small></span></label>
-      <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b><small>スコア・得点者・アシスト・カード・MVP。「🏆 試合結果」の欄で入れます。</small></span></label>
+      <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b><small>スコア・得点者・アシスト・カード・MVP。「👕 チーム・試合結果」の欄で入れます。</small></span></label>
       <a id="sendCards" class="btn line" href="#">💬 カードで送る</a>
       <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。</p>
     </div>
@@ -276,14 +273,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201430"></script>
-<script src="js/board.js?v=202610201430"></script>
-<script src="js/ink.js?v=202610201430"></script>
-<script src="js/tactics.js?v=202610201430"></script>
-<script src="js/sheets.js?v=202610201430"></script>
-<script src="js/share.js?v=202610201430"></script>
-<script src="js/events.js?v=202610201430"></script>
-<script src="app.js?v=202610201430"></script>
+<script src="js/core.js?v=202610201431"></script>
+<script src="js/board.js?v=202610201431"></script>
+<script src="js/ink.js?v=202610201431"></script>
+<script src="js/tactics.js?v=202610201431"></script>
+<script src="js/sheets.js?v=202610201431"></script>
+<script src="js/share.js?v=202610201431"></script>
+<script src="js/events.js?v=202610201431"></script>
+<script src="app.js?v=202610201431"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

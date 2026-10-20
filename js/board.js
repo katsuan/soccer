@@ -172,8 +172,6 @@ function render() {
   const vs = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
   $("oppCount").textContent = `${theirs}人`;
   $("countVs").textContent = state.showOpp ? vs : "";
-  // 見出しはチーム名だけ（人数・フォーメーションは 📐 並び）
-  $("teamMeta").textContent = state.team && state.opponent ? `${state.team} vs ${state.opponent}` : state.team || state.opponent;
   $("removeOpp").disabled = theirs <= MIN_PLAYERS;
   $("addOpp").disabled = theirs >= MAX_PLAYERS;
   $("infoMeta").textContent = [whenText(), state.where].filter(Boolean).join("・") || "なし";
@@ -197,11 +195,12 @@ function render() {
   // 得点者・MVP の欄の見出しの右
   const goalCount = state.goals.length;
   $("goalsMeta").textContent = [goalCount ? `${goalCount}点` : "", state.mvp ? "MVP あり" : ""].filter(Boolean).join("・");
-  // 🏆 試合結果の欄：見出しの右にスコア、スコアの上にチーム名（チーム名は 👕 チームの欄で入れる）
+  // 👕 チーム・試合結果の欄の見出し：チーム名、試合結果を入れていれば間にスコア（「FC青 2 - 1 赤SC」）
   const played = Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length;
-  $("resultMeta").textContent = played ? `${Number(state.scoreUs) || 0} - ${Number(state.scoreThem) || 0}` : "なし";
-  $("scoreUsLabel").textContent = state.team || "自チーム";
-  $("scoreThemLabel").textContent = state.opponent || "相手";
+  const score = played ? `${Number(state.scoreUs) || 0} - ${Number(state.scoreThem) || 0}` : "";
+  $("teamMeta").textContent = score
+    ? [state.team, score, state.opponent].filter(Boolean).join(" ")
+    : state.team && state.opponent ? `${state.team} vs ${state.opponent}` : state.team || state.opponent;
   // 作戦盤の印：ゴールがあれば「印から入れる」、アシスト・カードがあれば「カードに入ります」
   $("goalsFromMarks").hidden = !state.players.some((p) => Number(p.marks?.g) > 0 || Number(p.marks?.o) > 0);
   const { assists, cards } = marksForResult();
