@@ -48,8 +48,8 @@ function renderPlayerMarks() {
   );
 }
 
-// ---- 長押しのメニュー：印をその場で増やす・減らす（試合中に片手で記録する用。得点の取り消しもここで）。
-// 選手のシートと同じ − 数 ＋ の並び。押すたびにすぐ盤に出る。「↩️ 戻す」でも戻せる ----
+// ---- 長押しのメニュー：印を1つ足す（試合中に片手で記録する用）。押すと足して閉じる。
+// 減らす・取り消すは「くわしく」（選手のシートの − 数 ＋）か「↩️ 戻す」で ----
 let quickIndex = -1;
 
 function renderQuickMarks() {
@@ -61,39 +61,33 @@ function renderQuickMarks() {
   close.addEventListener("click", closeQuickMarks);
   const head = Object.assign(document.createElement("div"), { className: "quick-head" });
   head.append(title, close);
-  const rows = MARKS.map(({ key, icon, label, max, red }) => {
-    const n = Number(p.marks?.[key]) || 0;
-    const row = Object.assign(document.createElement("div"), { className: "mark-row" });
-    const name = Object.assign(document.createElement("span"), { className: "mark-label", textContent: `${icon} ${label}` });
-    if (red) name.replaceChildren(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }), ` ${label}`);
-    const step = (delta) => {
-      remember();
-      const marks = { ...(p.marks || {}), [key]: Math.min(max, Math.max(0, n + delta)) };
-      Object.keys(marks).forEach((k) => !marks[k] && delete marks[k]);
-      if (Object.keys(marks).length) p.marks = marks;
-      else delete p.marks;
-      render();
-      renderQuickMarks();
-    };
-    const minus = Object.assign(document.createElement("button"), { type: "button", textContent: "−", disabled: n <= 0 });
-    minus.setAttribute("aria-label", `${label}を減らす`);
-    minus.addEventListener("click", () => step(-1));
-    const count = Object.assign(document.createElement("span"), { className: "mark-count", textContent: String(n) });
-    const plus = Object.assign(document.createElement("button"), { type: "button", textContent: "＋", disabled: n >= max });
-    plus.setAttribute("aria-label", `${label}を増やす`);
-    plus.addEventListener("click", () => step(1));
-    const stepper = Object.assign(document.createElement("div"), { className: "stepper mark-stepper" });
-    stepper.append(minus, count, plus);
-    row.append(name, stepper);
-    return row;
-  });
-  const more = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "✏️ 名前・背番号を変える" });
+  const grid = Object.assign(document.createElement("div"), { className: "quick-grid" });
+  grid.append(
+    ...MARKS.map(({ key, icon, label, max, red }) => {
+      const n = Number(p.marks?.[key]) || 0;
+      const b = Object.assign(document.createElement("button"), { type: "button", className: "quick-mark", disabled: n >= max });
+      b.setAttribute("role", "menuitem");
+      b.setAttribute("aria-label", `${label}を足す（今 ${n}）`);
+      if (red) b.append(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }));
+      else b.append(icon);
+      b.append(Object.assign(document.createElement("small"), { textContent: `＋${label}` }));
+      if (n) b.append(Object.assign(document.createElement("i"), { className: "quick-count", textContent: String(n) }));
+      b.addEventListener("click", () => {
+        remember();
+        p.marks = { ...(p.marks || {}), [key]: Math.min(max, n + 1) };
+        closeQuickMarks();
+        render();
+      });
+      return b;
+    })
+  );
+  const more = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "✏️ 減らす・名前や背番号はくわしく" });
   more.addEventListener("click", () => {
     const index = quickIndex;
     closeQuickMarks();
     openPlayer(index);
   });
-  $("quickMarks").replaceChildren(head, ...rows, more);
+  $("quickMarks").replaceChildren(head, grid, more);
 }
 
 function openQuickMarks(index, el) {
