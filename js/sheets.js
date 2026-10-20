@@ -21,10 +21,12 @@ let editingMarks = {};
 
 function renderPlayerMarks() {
   $("playerMarks").replaceChildren(
-    ...MARKS.map(({ key, icon, label, max }) => {
+    ...MARKS.map(({ key, icon, label, max, red }) => {
       const row = document.createElement("div");
       row.className = "mark-row";
       const name = Object.assign(document.createElement("span"), { className: "mark-label", textContent: `${icon} ${label}` });
+      // オウンゴールは盤・画像と同じ赤いボール（share.js の redBallDataUrl）
+      if (red) name.replaceChildren(Object.assign(document.createElement("img"), { className: "is-own-goal", src: redBallDataUrl(), alt: "" }), ` ${label}`);
       const n = Number(editingMarks[key]) || 0;
       const step = (delta) => {
         editingMarks[key] = Math.min(max, Math.max(0, n + delta));

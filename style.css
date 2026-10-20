@@ -282,3 +282,5 @@ h1 .logo { width: 28px; height: 28px; }
 .custom-row[hidden] { display: none; }
 .custom-row input { min-width: 0; min-height: 40px; padding: 0 12px; border: 2px solid var(--border); border-radius: 12px; font: inherit; font-size: 16px; }
 
+/* 選手のシートの印の欄のオウンゴール：赤いボールを文字と同じ大きさに */
+.mark-label .is-own-goal { display: inline-block; height: 1.5em; width: auto; margin: -0.15em -0.1em -0.15em -0.15em; vertical-align: -0.4em; }
