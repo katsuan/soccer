@@ -224,3 +224,13 @@ h1 .logo { width: 28px; height: 28px; }
 
 /* キャッチコピー（見出しの行のすぐ下。おくるんの「つくって、おくるん」と同じ役目） */
 .brand-copy { margin: 2px 2px 0; color: #2E8B4A; font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: 0.02em; }
+
+/* 列ごとの形（フォーメーションの下）：左に列の名前、右に形のボタン */
+.line-shapes { display: grid; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.line-shapes[hidden] { display: none; }
+.line-shapes-title { margin: 0; color: var(--ink-soft, #5b6b62); font-size: 12px; font-weight: 800; }
+.line-shape-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 6px; }
+.line-shape-label { font-size: 12px; font-weight: 800; white-space: nowrap; }
+.line-shape-row .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.line-shape-row .chip { min-height: 34px; padding: 0 4px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+

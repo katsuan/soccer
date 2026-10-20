@@ -67,6 +67,7 @@ function render() {
     ...rows.flatMap(([ours, theirs]) => [ours || document.createElement("span"), theirs || document.createElement("span")])
   );
   $("oppHint").textContent = state.showOpp ? "" : "（選ぶと表示）";
+  renderLineShapes();
   // チームの色
   const swatches = (key) => {
     const pick = (hex) => {
@@ -152,6 +153,59 @@ function render() {
   // おくるんへのリンク（押したときに最新を作る）
   $("sendLineup").href = lineupCardUrl();
   $("sendResult").href = resultCardUrl();
+}
+
+// 列ごとの形（自チームの今のフォーメーション）。2〜5人の列だけ、形のボタンを並べる。選ぶとその形で並べ直す
+function renderLineShapes() {
+  const lines = parseFormation(state.formation);
+  const box = $("lineShapes");
+  const shapes = lineShapesOf(state.formation);
+  const names = LINE_NAMES[lines.length] || lines.map((_, i) => `${i + 1}列目`);
+  const rows = lines
+    .map((count, i) => ({ count, i, options: LINE_SHAPES[count] }))
+    .filter((line) => line.options);
+  box.hidden = !rows.length;
+  if (!rows.length) {
+    box.replaceChildren();
+    return;
+  }
+  const pick = (i, id) => {
+    remember();
+    animateTokens = true;
+    const next = lines.map((_, j) => shapes[j] || "");
+    next[i] = id;
+    state.lineShapes = { ...(state.lineShapes || {}), [state.formation]: next };
+    state.players = freshPlayers(state.mode, state.formation, state.players, state.showOpp, next);
+    selected.clear();
+    render();
+  };
+  const title = document.createElement("p");
+  title.className = "line-shapes-title";
+  title.textContent = `並びの形（${state.formation}）`;
+  box.replaceChildren(
+    title,
+    ...rows.map(({ count, i, options }) => {
+      const row = document.createElement("div");
+      row.className = "line-shape-row";
+      const label = document.createElement("span");
+      label.className = "line-shape-label";
+      label.textContent = `${names[i]} ${count}人`;
+      const chips = document.createElement("div");
+      chips.className = "chips";
+      chips.setAttribute("role", "radiogroup");
+      chips.setAttribute("aria-label", `${names[i]}の形`);
+      const current = shapes[i] || options[0].id;
+      chips.append(
+        ...options.map((o) => {
+          const b = chip(o.label, current === o.id, () => pick(i, o.id), "radio");
+          if (o.title) b.title = o.title;
+          return b;
+        })
+      );
+      row.append(label, chips);
+      return row;
+    })
+  );
 }
 
 function chip(text, pressed, onClick, role) {

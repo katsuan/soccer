@@ -55,29 +55,83 @@ const FULL = { gk: 90, front: 18 };
 const VERSUS = { gk: 90, front: 33 };
 const fitY = (y, from, to) => Math.round((to.gk - ((from.gk - y) * (to.gk - to.front)) / (from.gk - from.front)) * 10) / 10;
 
+// 列ごとの形（フォーメーションの数字だけでは決まらない並び）。人数ごとに選べる形。先頭がこれまでの並び。
+// 343 の 4 をダイヤに、中盤の 2 を開く・しぼる、3 を三角（頂点が前・後ろ）に、など
+const LINE_SHAPES = {
+  2: [{ id: "normal", label: "ふつう" }, { id: "wide", label: "ワイド" }, { id: "narrow", label: "しぼる" }],
+  3: [{ id: "flat", label: "フラット" }, { id: "front", label: "▲ 三角", title: "三角（頂点が前）" }, { id: "back", label: "▼ 逆三角", title: "逆三角（頂点が後ろ）" }],
+  4: [{ id: "flat", label: "フラット" }, { id: "diamond", label: "◆ ダイヤ" }, { id: "box", label: "▢ ボックス" }],
+  5: [{ id: "flat", label: "フラット" }, { id: "wings", label: "サイド前", title: "両サイドが前（ウイングバック）" }, { id: "anchor", label: "アンカー", title: "真ん中が後ろ（アンカー）" }]
+};
+// 列の呼び名（後ろから）。列の数で変える
+const LINE_NAMES = { 1: ["フィールド"], 2: ["後ろ", "前"], 3: ["DF", "MF", "FW"], 4: ["DF", "ボランチ", "2列目", "FW"], 5: ["DF", "ボランチ", "MF", "2列目", "FW"] };
+// 今のフォーメーションで選んでいる列ごとの形（フォーメーションごとに覚える）。state を作る前に呼ばれても空で返す
+function lineShapesOf(formation) {
+  try {
+    return (state.lineShapes && state.lineShapes[formation]) || [];
+  } catch {
+    return [];
+  }
+}
+
+// 1列分の位置（y は列の高さ、gap は列と列の間。前＝上＝y が小さい）
+function lineSpots(mode, count, y, gap, shape) {
+  const cap = mode === "futsal" ? 26 : 36;
+  const d = Math.max(6, gap * 0.4); // 前後にずらす幅
+  const row = (half, yy, n = count) =>
+    Array.from({ length: n }, (_, j) => ({ x: n === 1 ? 50 : Math.round(50 - half + (2 * half * j) / (n - 1)), y: yy }));
+  if (count === 2) {
+    const half = Math.min(cap, { wide: 30, narrow: 9 }[shape] ?? 16);
+    return row(half, y);
+  }
+  if (count === 3 && (shape === "front" || shape === "back")) {
+    const half = Math.min(cap, 26);
+    const middle = shape === "front" ? y - d : y + d;
+    return [{ x: 50 - half, y }, { x: 50, y: middle }, { x: 50 + half, y }];
+  }
+  if (count === 4 && shape === "diamond") {
+    const half = Math.min(cap, 24);
+    return [{ x: 50, y: y + d }, { x: 50 - half, y }, { x: 50 + half, y }, { x: 50, y: y - d }];
+  }
+  if (count === 4 && shape === "box") {
+    const half = Math.min(cap, 14);
+    return [{ x: 50 - half, y: y + d * 0.6 }, { x: 50 + half, y: y + d * 0.6 }, { x: 50 - half, y: y - d * 0.6 }, { x: 50 + half, y: y - d * 0.6 }];
+  }
+  if (count === 5 && (shape === "wings" || shape === "anchor")) {
+    const spots = row(Math.min(cap, 36), y);
+    if (shape === "wings") [0, 4].forEach((j) => (spots[j].y = y - d));
+    if (shape === "anchor") spots[2].y = y + d;
+    return spots;
+  }
+  const half = Math.min(cap, { 2: 16, 3: 26 }[count] ?? 36);
+  return row(half, y);
+}
+
 // versus：相手も出すとき。上から 相手GK → 相手DF → 自チームFW → 相手MF → 自チームMF → 相手FW → 自チームDF → 自チームGK の順に、
 // 相手と互い違いに並ぶ高さ（相手は上下反対に置く）。FW を前に出しすぎないので、並べ直しが少なくて済む。
 // 相手がいないときは、コート全体に広げる
-function formationPositions(mode, formation, versus = true) {
+function formationPositions(mode, formation, versus = true, shapes = []) {
   const parsed = parseFormation(formation);
   const lines = parsed.length ? parsed : parseFormation(mode === "futsal" ? "1-2-1" : "4-4-2");
   // コート全体に並べてから、相手を出すときは GK と最前線の高さに合わせて縦に縮める
   const spots = [{ x: 50, y: FULL.gk }];
   const back = 74;
+  const gap = lines.length > 1 ? (back - FULL.front) / (lines.length - 1) : 20;
   lines.forEach((count, i) => {
     const y = lines.length === 1 ? 46 : Math.round(back - ((back - FULL.front) * i) / (lines.length - 1));
-    // 横の広がりは人数で変える（2人は中央寄り、4人以上はサイドいっぱい）
-    const half = Math.min(mode === "futsal" ? 26 : 36, { 2: 16, 3: 26 }[count] ?? 36);
-    const [left, right] = [50 - half, 50 + half];
-    for (let j = 0; j < count; j += 1) {
-      spots.push({ x: count === 1 ? 50 : Math.round(left + ((right - left) * j) / (count - 1)), y });
-    }
+    // 横の広がりは人数で変える（2人は中央寄り、4人以上はサイドいっぱい）。列ごとの形（shapes[i]）があればその形に
+    // 前の端・後ろ（GK の前）の端にはみ出す形は、形を保ったまま列ごと内側へずらす
+    const line = lineSpots(mode, count, y, gap, shapes[i]);
+    const top = Math.min(...line.map((spot) => spot.y));
+    const bottom = Math.max(...line.map((spot) => spot.y));
+    const shift = top < 12 ? 12 - top : bottom > 80 ? 80 - bottom : 0;
+    line.forEach((spot) => spots.push({ x: spot.x, y: Math.round((spot.y + shift) * 10) / 10 }));
   });
   return versus ? spots.map((spot) => ({ x: spot.x, y: fitY(spot.y, FULL, VERSUS) })) : spots;
 }
 
-function freshPlayers(mode, formation, old = [], versus = state.showOpp) {
-  return formationPositions(mode, formation, versus).map((spot, i) => ({
+function freshPlayers(mode, formation, old = [], versus = state.showOpp, shapes = lineShapesOf(formation)) {
+  return formationPositions(mode, formation, versus, shapes).map((spot, i) => ({
     number: old[i]?.number ?? String(i + 1),
     name: old[i]?.name ?? "",
     ...spot
@@ -130,6 +184,7 @@ const state = Object.assign(
     pkUs: "",
     pkThem: "",
     oppFormation: "4-4-2",
+    lineShapes: {}, // { "3-4-3": ["flat", "diamond", "front"] } 列ごとの形（フォーメーションごと）
     ourColor: "#6c47ff",
     oppColor: "#ffffff",
     goals: [],
@@ -142,7 +197,7 @@ let drawing = false; // ペンで描くモード（作戦盤の線）
 let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
 
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
-const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
+const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
 const undoStack = [];
 function remember() {
   undoStack.push(JSON.stringify(Object.fromEntries(BOARD_KEYS.map((k) => [k, state[k]]))));
