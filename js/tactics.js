@@ -4,7 +4,7 @@
 
 // ---- 作戦の保存（場面ごとの配置と線。チームの色は含めない。この端末に残す） ----
 const TACTICS_KEY = "soccer:tactics";
-const TACTIC_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "players", "opp", "ball", "showOpp", "showBall", "strokes"];
+const TACTIC_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "oppLineShapes", "players", "opp", "ball", "showOpp", "showBall", "strokes"];
 const MAX_TACTICS = 30;
 let tactics = load(TACTICS_KEY, []);
 if (!Array.isArray(tactics)) tactics = [];

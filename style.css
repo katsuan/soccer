@@ -237,8 +237,6 @@ h1 .logo { width: 28px; height: 28px; }
 /* 📐 並び：盤のすぐ下。フォーメーションのボタン（横に並べて、あふれたら横にすべらせる）と列ごとの形 */
 .shape-tools { display: grid; gap: 10px; padding: 10px 2px 2px; }
 .shape-tools[hidden] { display: none; }
-.shape-formations { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
-.shape-formations .chip { flex: 0 0 auto; min-height: 32px; padding: 0 12px; font-size: 12px; }
 
 /* 選手の印（イエロー・ゴールなど）：盤の丸のすぐ上 */
 .token .marks { position: absolute; top: -17px; left: 50%; transform: translateX(-50%); padding: 0 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 11px; font-style: normal; line-height: 16px; white-space: nowrap; pointer-events: none; }
@@ -250,4 +248,16 @@ h1 .logo { width: 28px; height: 28px; }
 .mark-count { min-width: 22px; text-align: center; font-weight: 800; }
 /* オウンゴールのボール：⚽ に赤を重ねた絵（ほかの絵文字と同じ大きさに） */
 .token .marks .is-own-goal { display: inline-block; height: 17px; width: auto; margin: -2px 0; vertical-align: -4px; }
+
+/* 📐 並び：自チーム・相手のタブ（2つの切りかえ）、人数とフォーメーションのプルダウンを1行に */
+.shape-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px; background: #eaf4ed; }
+.shape-tab { min-height: 34px; border: 0; border-radius: 999px; background: none; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.shape-tab[aria-selected="true"] { background: #fff; color: #4a2bc4; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+.shape-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.shape-head .stepper[hidden] { display: none; }
+.shape-select { min-width: 0; }
+.shape-select select { width: 100%; }
+.custom-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.custom-row[hidden] { display: none; }
+.custom-row input { min-width: 0; min-height: 40px; padding: 0 12px; border: 2px solid var(--border); border-radius: 12px; font: inherit; font-size: 16px; }
 

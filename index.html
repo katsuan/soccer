@@ -22,7 +22,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610201327">
+<link rel="stylesheet" href="style.css?v=202610201333">
 </head>
 <body>
 <main class="wrap">
@@ -57,7 +57,29 @@
       <!-- 📐 並び：フォーメーションと列ごとの形（3 を三角に、4 をダイヤに、2 を開く・しぼる など）。盤を見ながら変えられるよう、盤のすぐ下に。
            列は盤と同じく上から FW → MF → DF の順 -->
       <div id="shapeTools" class="shape-tools" hidden>
-        <div id="shapeFormations" class="chips shape-formations" role="radiogroup" aria-label="フォーメーション"></div>
+        <!-- 自チーム・相手をタブで切りかえて、人数・フォーメーション（プルダウン）・列ごとの形をここだけで決める -->
+        <div class="shape-tabs" role="tablist" aria-label="自チーム・相手">
+          <button id="shapeTabOurs" class="shape-tab" type="button" role="tab">自チーム</button>
+          <button id="shapeTabOpp" class="shape-tab" type="button" role="tab">相手</button>
+        </div>
+        <div class="shape-head">
+          <div id="ourStepper" class="stepper" role="group" aria-label="自チームの人数">
+            <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
+            <span id="playerCount">11人</span>
+            <button id="addPlayer" type="button" aria-label="1人増やす">＋</button>
+          </div>
+          <div id="oppStepper" class="stepper" role="group" aria-label="相手の人数">
+            <button id="removeOpp" type="button" aria-label="相手を1人減らす">−</button>
+            <span id="oppCount">11人</span>
+            <button id="addOpp" type="button" aria-label="相手を1人増やす">＋</button>
+          </div>
+          <label class="select shape-select"><span class="sr">フォーメーション</span><select id="formationSelect"></select></label>
+        </div>
+        <div id="customRow" class="custom-row" hidden>
+          <input id="customFormation" inputmode="numeric" maxlength="14" placeholder="例：4-4-1" aria-label="カスタムのフォーメーション">
+          <button id="customApply" class="btn small" type="button">決定</button>
+        </div>
+        <p id="shapeNote" class="hint left"></p>
         <div id="lineShapes" class="line-shapes" aria-label="列ごとの形"></div>
       </div>
       <div id="penTools" class="chips pen-tools" hidden>
@@ -80,28 +102,16 @@
     <details class="card fold" id="teamFold">
       <summary>👕 チーム <span id="teamMeta" class="meta"></span></summary>
       <p id="countVs" class="count-vs"></p>
-      <!-- 自チームと相手を左右に向かい合わせ、チーム名・人数・色・フォーメーションを同じ行にそろえる -->
+      <!-- 自チームと相手を左右に向かい合わせ、チーム名・色を同じ行にそろえる（人数・フォーメーションは作戦盤の「📐 並び」） -->
       <div class="versus">
         <span class="label">自チーム</span>
-        <span class="label">相手 <span id="oppHint" class="meta"></span></span>
+        <span class="label">相手</span>
         <input class="team" maxlength="20" placeholder="チーム名" aria-label="チーム名">
         <input class="opponent" maxlength="20" placeholder="対戦相手" aria-label="対戦相手">
-        <div class="stepper" role="group" aria-label="自チームの人数">
-          <button id="removePlayer" type="button" aria-label="1人減らす">−</button>
-          <span id="playerCount">11人</span>
-          <button id="addPlayer" type="button" aria-label="1人増やす">＋</button>
-        </div>
-        <div class="stepper" role="group" aria-label="相手の人数">
-          <button id="removeOpp" type="button" aria-label="相手を1人減らす">−</button>
-          <span id="oppCount">11人</span>
-          <button id="addOpp" type="button" aria-label="相手を1人増やす">＋</button>
-        </div>
         <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
         <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
       </div>
-      <!-- フォーメーション：同じ並びは同じ行（左が自チーム、右が相手） -->
-      <div id="formationRows" class="versus" role="group" aria-label="フォーメーション"></div>
-      <p class="hint left">人数の − ＋ は1人ずつ増やす・減らす（ほかの選手の位置はそのまま）。退場や数的有利の練習に。相手の欄を触ると、相手も表示します。</p>
+      <p class="hint left">人数・フォーメーション・列ごとの形は、作戦盤の「📐 並び」で決めます。</p>
     </details>
 
     <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
@@ -248,14 +258,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610201327"></script>
-<script src="js/board.js?v=202610201327"></script>
-<script src="js/ink.js?v=202610201327"></script>
-<script src="js/tactics.js?v=202610201327"></script>
-<script src="js/sheets.js?v=202610201327"></script>
-<script src="js/share.js?v=202610201327"></script>
-<script src="js/events.js?v=202610201327"></script>
-<script src="app.js?v=202610201327"></script>
+<script src="js/core.js?v=202610201333"></script>
+<script src="js/board.js?v=202610201333"></script>
+<script src="js/ink.js?v=202610201333"></script>
+<script src="js/tactics.js?v=202610201333"></script>
+<script src="js/sheets.js?v=202610201333"></script>
+<script src="js/share.js?v=202610201333"></script>
+<script src="js/events.js?v=202610201333"></script>
+<script src="app.js?v=202610201333"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

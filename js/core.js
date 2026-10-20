@@ -65,10 +65,12 @@ const LINE_SHAPES = {
 };
 // 列の呼び名（後ろから）。列の数で変える
 const LINE_NAMES = { 1: ["フィールド"], 2: ["後ろ", "前"], 3: ["DF", "MF", "FW"], 4: ["DF", "ボランチ", "2列目", "FW"], 5: ["DF", "ボランチ", "MF", "2列目", "FW"] };
-// 今のフォーメーションで選んでいる列ごとの形（フォーメーションごとに覚える）。state を作る前に呼ばれても空で返す
-function lineShapesOf(formation) {
+// 今のフォーメーションで選んでいる列ごとの形（フォーメーションごとに覚える。相手は oppLineShapes）。
+// state を作る前に呼ばれても空で返す
+function lineShapesOf(formation, side = "ours") {
   try {
-    return (state.lineShapes && state.lineShapes[formation]) || [];
+    const store = side === "opp" ? state.oppLineShapes : state.lineShapes;
+    return (store && store[formation]) || [];
   } catch {
     return [];
   }
@@ -216,6 +218,7 @@ const state = Object.assign(
     pkThem: "",
     oppFormation: "4-4-2",
     lineShapes: {}, // { "3-4-3": ["flat", "diamond", "front"] } 列ごとの形（フォーメーションごと）
+    oppLineShapes: {}, // 相手の列ごとの形
     ourColor: "#6c47ff",
     oppColor: "#ffffff",
     goals: [],
@@ -226,10 +229,11 @@ const state = Object.assign(
 );
 let drawing = false; // ペンで描くモード（作戦盤の線）
 let editMode = false; // 選手の名前・背番号を変えるモード（それ以外のときは、タップは選ぶだけ）
-let shapeMode = false; // 📐 並び：盤のすぐ下にフォーメーションと列ごとの形を出す
+let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
+let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
-const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
+const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "oppLineShapes", "players", "opp", "ball", "showOpp", "showBall", "strokes", "ourColor", "oppColor"];
 const undoStack = [];
 function remember() {
   undoStack.push(JSON.stringify(Object.fromEntries(BOARD_KEYS.map((k) => [k, state[k]]))));

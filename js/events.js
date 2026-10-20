@@ -34,6 +34,15 @@ $("toggleBall").addEventListener("click", () => {
   state.showBall = !state.showBall;
   render();
 });
+// 📐 並びのタブ（自チーム・相手）
+$("shapeTabOurs").addEventListener("click", () => {
+  shapeSide = "ours";
+  render();
+});
+$("shapeTabOpp").addEventListener("click", () => {
+  shapeSide = "opp";
+  render();
+});
 $("toggleShape").addEventListener("click", () => {
   shapeMode = !shapeMode;
   if (shapeMode) drawing = false; // 盤の下はどちらか一方（ペンの色の欄と並びの欄）

@@ -22,8 +22,10 @@ function render() {
   $("removePlayer").disabled = state.players.length <= MIN_PLAYERS;
   $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
   // 相手のフォーメーション（人数を変えたあとは ""＝今の相手をそのまま使う）。
-  // 今のコートにない並び（フットサルなのにサッカーの 4-4-2 など）は、自チームの並びにそろえる
-  if (state.oppFormation !== "" && (!fieldCount(state.oppFormation) || !court.list.includes(state.oppFormation))) {
+  // 今のコートより人数が多い並び（フットサルなのにサッカーの 4-4-2 など）は、自チームの並びにそろえる。
+  // カスタム（4-4-1 など一覧にない並び）でも、コートの人数に収まれば残す
+  const courtMax = Math.max(...court.list.map((f) => fieldCount(f) || 0));
+  if (state.oppFormation !== "" && (!fieldCount(state.oppFormation) || fieldCount(state.oppFormation) > courtMax)) {
     state.oppFormation = state.formation || autoFormation(state.players.length - 1);
     if (!state.showOpp) state.opp = null; // 出していない相手は、次に出すときに自チームの人数で並べ直す
   }
@@ -48,28 +50,58 @@ function render() {
     setShowOpp(true);
     render();
   };
-  const oppFree = state.showOpp && !state.oppFormation;
-  const rows = [];
-  if (!state.formation || oppFree) {
-    rows.push([
-      state.formation ? null : chip(`${state.players.length}人（自由）`, true, () => {}, "radio"),
-      oppFree ? chip(`${oppTotal()}人（自由）`, true, () => {}, "radio") : null
-    ]);
-  }
-  const names = [...new Set([...(state.formation && !court.list.includes(state.formation) ? [state.formation] : []), ...(state.oppFormation && !court.list.includes(state.oppFormation) ? [state.oppFormation] : []), ...court.list])];
-  for (const f of names) {
-    rows.push([
-      chip(f, state.formation === f, () => pickOurs(f), "radio"),
-      chip(f, state.showOpp && state.oppFormation === f, () => pickTheirs(f), "radio")
-    ]);
-  }
-  $("formationRows").replaceChildren(
-    ...rows.flatMap(([ours, theirs]) => [ours || document.createElement("span"), theirs || document.createElement("span")])
-  );
-  $("oppHint").textContent = state.showOpp ? "" : "（選ぶと表示）";
-  // 📐 並びの欄：今のコートのフォーメーション（自チーム）と、列ごとの形
-  $("shapeFormations").replaceChildren(...court.list.map((f) => chip(f, state.formation === f, () => pickOurs(f), "radio")));
-  renderLineShapes();
+  // 📐 並びの欄：自チーム・相手のタブ、人数、フォーメーション（プルダウン）、列ごとの形
+  const opp = shapeSide === "opp";
+  $("shapeTabOurs").setAttribute("aria-selected", String(!opp));
+  $("shapeTabOpp").setAttribute("aria-selected", String(opp));
+  $("ourStepper").hidden = opp;
+  $("oppStepper").hidden = !opp;
+  const current = opp ? (state.showOpp ? state.oppFormation : "") : state.formation;
+  const count = opp ? oppTotal() : state.players.length;
+  const names = [...new Set([...(current && !court.list.includes(current) ? [current] : []), ...court.list])];
+  const options = names.map((f) => Object.assign(document.createElement("option"), { value: f, textContent: f }));
+  // 人数を変えて決まった並びがないとき・相手をまだ出していないときの見出し
+  if (!current) options.unshift(Object.assign(document.createElement("option"), { value: "", textContent: opp && !state.showOpp ? "相手を出す…" : `${count}人（自由）` }));
+  // カスタム：4-4-1 のように数を入れて決める（入れた数に合わせて人数も変わる）
+  options.push(Object.assign(document.createElement("option"), { value: "__custom", textContent: "カスタム…（4-4-1 など）" }));
+  $("formationSelect").replaceChildren(...options);
+  $("formationSelect").value = current || "";
+  const customInput = $("customFormation");
+  const showCustom = (on) => {
+    $("customRow").hidden = !on;
+    if (on) {
+      customInput.value = current || "";
+      customInput.focus();
+    }
+  };
+  $("formationSelect").onchange = (e) => {
+    const f = e.target.value;
+    if (f === "__custom") return showCustom(true);
+    showCustom(false);
+    if (!f) return;
+    if (opp) pickTheirs(f);
+    else pickOurs(f);
+  };
+  $("customApply").onclick = () => {
+    // 全角の数字・ハイフンも受け付ける（「４ー４ー１」→「4-4-1」）
+    const f = customInput.value
+      .replace(/[０-９]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0))
+      .replace(/[ー－‐−―\s・,、.]+/g, "-")
+      .replace(/^-|-$/g, "");
+    const field = fieldCount(f);
+    if (!parseFormation(f).length || field < 1 || field > MAX_PLAYERS - 1 || parseFormation(f).some((n) => n < 1)) {
+      $("shapeNote").textContent = `「4-4-1」のように、後ろの列から数をハイフンでつないで入れてください（GK のほかに 1〜${MAX_PLAYERS - 1} 人、5列まで）。`;
+      return;
+    }
+    showCustom(false);
+    if (opp) pickTheirs(f);
+    else pickOurs(f);
+  };
+  customInput.onkeydown = (e) => {
+    if (e.key === "Enter" && !e.isComposing) $("customApply").click();
+  };
+  if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "フォーメーションか人数を選ぶと、相手を盤に出します。" : "";
+  renderLineShapes(opp ? "opp" : "ours");
   // チームの色
   const swatches = (key) => {
     const pick = (hex) => {
@@ -162,16 +194,18 @@ function render() {
 }
 
 // 列ごとの形（自チームの今のフォーメーション）。2〜5人の列だけ、形のボタンを並べる。選ぶとその形で並べ直す
-function renderLineShapes() {
-  const lines = parseFormation(state.formation);
+function renderLineShapes(side = "ours") {
+  const opp = side === "opp";
+  const formation = opp ? (state.showOpp ? state.oppFormation : "") : state.formation;
+  const lines = parseFormation(formation);
   const box = $("lineShapes");
-  const shapes = lineShapesOf(state.formation);
+  const shapes = lineShapesOf(formation, side);
   const names = LINE_NAMES[lines.length] || lines.map((_, i) => `${i + 1}列目`);
-  // 盤と同じ順（上が前＝FW、下が後ろ＝DF）に並べる
   const rows = lines
     .map((count, i) => ({ count, i, options: LINE_SHAPES[count] }))
     .filter((line) => line.options)
-    .reverse();
+    // 盤と同じ順：自チームは上が前（FW から）、相手は上が後ろ（相手の DF から。盤の上で向かい合うため）
+    .sort((a, b) => (opp ? a.i - b.i : b.i - a.i));
   box.hidden = !rows.length;
   if (!rows.length) {
     box.replaceChildren();
@@ -182,14 +216,20 @@ function renderLineShapes() {
     animateTokens = true;
     const next = lines.map((_, j) => shapes[j] || "");
     next[i] = id;
-    state.lineShapes = { ...(state.lineShapes || {}), [state.formation]: next };
-    state.players = freshPlayers(state.mode, state.formation, state.players, state.showOpp, next);
+    if (opp) {
+      state.oppLineShapes = { ...(state.oppLineShapes || {}), [formation]: next };
+      state.opp = opponents();
+    } else {
+      state.lineShapes = { ...(state.lineShapes || {}), [formation]: next };
+      state.players = freshPlayers(state.mode, formation, state.players, state.showOpp, next);
+    }
     selected.clear();
     render();
   };
   const title = document.createElement("p");
   title.className = "line-shapes-title";
-  title.textContent = `列ごとの形（${state.formation}・上が前）`;
+  // 自チームは上が前、相手は下が前（盤の上で向かい合うため）
+  title.textContent = `列ごとの形（${formation}・${opp ? "下" : "上"}が前）`;
   box.replaceChildren(
     title,
     ...rows.map(({ count, i, options }) => {
@@ -256,7 +296,7 @@ const oppTotal = () => (Array.isArray(state.opp) && state.opp.length ? state.opp
 
 function opponents() {
   const formation = state.oppFormation || autoFormation(oppTotal() - 1);
-  return formationPositions(state.mode, formation, true).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
+  return formationPositions(state.mode, formation, true, lineShapesOf(formation, "opp")).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
 }
 
 // 範囲で選んだもの（"p3"＝自チームの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
