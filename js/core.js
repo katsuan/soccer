@@ -59,10 +59,11 @@ const HALF = { gk: 90, front: 56 };
 const versusFrame = () => (state.oppLayout === "half" ? HALF : VERSUS);
 const fitY = (y, from, to) => Math.round((to.gk - ((from.gk - y) * (to.gk - to.front)) / (from.gk - from.front)) * 10) / 10;
 
-// 列ごとの形（フォーメーションの数字だけでは決まらない並び）。人数ごとに選べる形。先頭がこれまでの並び。
+// 列ごとの形（フォーメーションの数字だけでは決まらない並び）。人数ごとに選べる形。何も選んでいないときは default のもの（なければ先頭）。
 // 343 の 4 をダイヤに、中盤の 2 を開く・しぼる、3 を三角（頂点が前・後ろ）に、など
 const LINE_SHAPES = {
-  2: [{ id: "normal", label: "ふつう" }, { id: "wide", label: "ワイド" }, { id: "narrow", label: "しぼる" }],
+  // 2人は幅の順（しぼる → ふつう → ワイド）。何も選んでいないときは default の「ふつう」
+  2: [{ id: "narrow", label: "しぼる" }, { id: "normal", label: "ふつう", default: true }, { id: "wide", label: "ワイド" }],
   3: [{ id: "flat", label: "フラット" }, { id: "front", label: "▲ 三角", title: "三角（頂点が前）" }, { id: "back", label: "▼ 逆三角", title: "逆三角（頂点が後ろ）" }],
   4: [{ id: "flat", label: "フラット" }, { id: "diamond", label: "◆ ダイヤ" }, { id: "box", label: "▢ ボックス" }],
   5: [{ id: "flat", label: "フラット" }, { id: "wings", label: "サイド前", title: "両サイドが前（ウイングバック）" }, { id: "anchor", label: "アンカー", title: "真ん中が後ろ（アンカー）" }]

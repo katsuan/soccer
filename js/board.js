@@ -268,7 +268,7 @@ function renderLineShapes(side = "ours") {
       chips.className = "chips";
       chips.setAttribute("role", "radiogroup");
       chips.setAttribute("aria-label", `${names[i]}の形`);
-      const current = shapes[i] || options[0].id;
+      const current = shapes[i] || (options.find((o) => o.default) || options[0]).id;
       chips.append(
         ...options.map((o) => {
           const b = chip(o.label, current === o.id, () => pick(i, o.id), "radio");
