@@ -242,13 +242,16 @@ function renameScorer(g, oldName) {
   player.name = to.slice(0, 8);
   renameGoals(from, team === "u" ? playerLabel(player) : oppLabel(player), team);
 }
-// 交代前の選手（この丸から交代で出た選手）の得点の数。いまの選手と同じ名前（また入った選手）は、いまの印に入っているので数えない。
-// team は "u"＝自チーム・"t"＝相手
+// 交代前の選手（この丸から交代で出た選手）の得点（g）とオウンゴール（o）。印と同じ形 { g, o }（なければ undefined）。
+// いまの選手と同じ名前（また入った選手）は、いまの印に入っているので数えない。team は "u"＝自チーム・"t"＝相手
 function subGoalsOf(p, team = "u") {
   const label = team === "t" ? oppLabel : playerLabel;
   const now = label(p);
   const outs = new Set((p.subs || []).map((s) => label({ number: s.outNumber, name: s.outName })).filter((n) => n && n !== now));
-  return state.goals.filter((g) => g.side === team && outs.has(g.name)).length;
+  const other = team === "u" ? "t" : "u";
+  const g = state.goals.filter((x) => x.side === team && outs.has(x.name)).length;
+  const o = state.goals.filter((x) => x.side === other && outs.has(String(x.name).replace(/（OG）$/, "")) && /（OG）$/.test(x.name)).length;
+  return g || o ? { ...(g ? { g } : {}), ...(o ? { o } : {}) } : undefined;
 }
 // 交代（結果のカードに「🔄 60' たなか → すずき」）。[[分, 出た選手, 入った選手], ...] を時間の順に
 // 相手の交代は「相手 ジョン」「相手10番」のように、相手とわかる名前にする（相手を出しているときだけ）

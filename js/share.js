@@ -330,19 +330,30 @@ async function boardCanvas() {
     ctx.font = font(20, 400);
     ctx.textAlign = "center";
     ctx.fillText("🔄", x, y + 7);
-    // 交代前の選手の得点：🔄 の右下に小さく ⚽
-    const goals = subGoalsOf(p, team);
-    if (!goals) return;
-    const text = goals > 2 ? `⚽${goals}` : "⚽".repeat(goals);
+    // 交代前の選手の得点・OG：🔄 の右下に小さく（⚽・赤いボール）
+    const parts = markParts(subGoalsOf(p, team));
+    if (!parts.length) return;
     ctx.font = font(18, 400);
-    const w = ctx.measureText(text).width + 10;
+    const pieces = parts.flatMap((part) => [
+      ...Array.from({ length: part.count }, () => ({ text: part.icon, red: part.red })),
+      ...(part.label ? [{ text: part.label }] : [])
+    ]);
+    const widths = pieces.map((piece) => ctx.measureText(piece.text).width);
+    const w = widths.reduce((a, b) => a + b, 0) + 10;
     ctx.fillStyle = "rgba(255,255,255,0.95)";
     ctx.beginPath();
     ctx.roundRect(x + 10, y + 6, w, 26, 13);
     ctx.fill();
     ctx.textAlign = "left";
-    ctx.fillStyle = "#23302a";
-    ctx.fillText(text, x + 15, y + 26);
+    let cx = x + 15;
+    pieces.forEach((piece, k) => {
+      if (piece.red) ctx.drawImage(redBall(piece.text, widths[k]), cx, y + 6, widths[k], 26);
+      else {
+        ctx.fillStyle = "#23302a";
+        ctx.fillText(piece.text, cx, y + 26);
+      }
+      cx += widths[k];
+    });
     ctx.textAlign = "center";
   });
   // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く。

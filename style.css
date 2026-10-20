@@ -397,3 +397,4 @@ h1 .logo { width: 28px; height: 28px; }
 .cp-subs { white-space: pre-line; }
 /* 交代前の選手の得点：🔄 の右下に小さく */
 .token .sub-goals { position: absolute; top: 4px; left: calc(50% + 18px); padding: 0 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 8px; font-style: normal; line-height: 12px; white-space: nowrap; pointer-events: none; }
+.token .sub-goals .is-own-goal { display: inline-block; height: 11px; width: auto; vertical-align: -2px; }

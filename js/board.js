@@ -418,6 +418,21 @@ function renderTokens() {
   }
 }
 
+// 印の札（⚽・カードなどの絵文字。オウンゴールは赤いボールの絵）。丸の右下の印にも、交代前の得点にも使う
+function marksBadge(marks, className, label) {
+  const badge = Object.assign(document.createElement("em"), { className });
+  badge.setAttribute("aria-label", label);
+  markParts(marks).forEach((part) => {
+    for (let k = 0; k < part.count; k += 1) {
+      // オウンゴール：⚽ に赤を重ねた絵（作戦盤の画像と同じ。share.js の redBallDataUrl）
+      if (part.red) badge.append(Object.assign(document.createElement("img"), { className: "mark-icon is-own-goal", src: redBallDataUrl(), alt: "" }));
+      else badge.append(Object.assign(document.createElement("span"), { className: "mark-icon", textContent: part.icon }));
+    }
+    if (part.label) badge.append(part.label);
+  });
+  return badge;
+}
+
 function tokenEl(p, extra, target) {
   const el = document.createElement("span");
   el.className = `token ${extra}`;
@@ -434,33 +449,13 @@ function tokenEl(p, extra, target) {
   el.querySelector("small").textContent = p.name || "";
   // 交代して入った選手：丸の右上に小さく 🔄
   if (p.subs?.length) el.append(Object.assign(document.createElement("i"), { className: "sub-mark", textContent: "🔄", ariaLabel: "交代" }));
-  // 交代前の選手の得点：🔄 の右下に小さく ⚽（3つ以上は「⚽3」）
-  const subGoals = p.subs?.length ? subGoalsOf(p, target.kind === "opp" ? "t" : "u") : 0;
-  if (subGoals) el.append(Object.assign(document.createElement("i"), { className: "sub-goals", textContent: subGoals > 2 ? `⚽${subGoals}` : "⚽".repeat(subGoals), ariaLabel: `交代前の得点 ${subGoals}` }));
+  // 交代前の選手の得点・OG：🔄 の右下に小さく（印と同じ ⚽・赤いボール。3つ以上は「⚽3」）
+  const subGoals = p.subs?.length ? subGoalsOf(p, target.kind === "opp" ? "t" : "u") : undefined;
+  if (subGoals) el.append(marksBadge(subGoals, "sub-goals", `交代前の得点 ${markText(subGoals)}`));
   // 印（イエロー・レッド・ゴール・アシスト）：いつも丸の右下（盤からはみ出すときは fitMarks で選手をずらす）。
   // 相手は、試合結果の得点者から数えた ⚽・OG
   const marks = target.kind === "opp" ? oppMarksOf(p) : playerMarksOf(p);
-  const parts = markParts(marks);
-  if (parts.length) {
-    const badge = document.createElement("em");
-    badge.className = "marks";
-    badge.setAttribute("aria-label", markText(marks));
-    parts.forEach((part) => {
-      for (let k = 0; k < part.count; k += 1) {
-        if (part.red) {
-          // オウンゴール：⚽ に赤を重ねた絵（作戦盤の画像と同じ。share.js の redBallDataUrl）
-          const img = Object.assign(document.createElement("img"), { className: "mark-icon is-own-goal", src: redBallDataUrl(), alt: "" });
-          badge.append(img);
-        } else {
-          const icon = Object.assign(document.createElement("span"), { className: "mark-icon" });
-          icon.textContent = part.icon;
-          badge.append(icon);
-        }
-      }
-      if (part.label) badge.append(part.label);
-    });
-    el.append(badge);
-  }
+  if (markParts(marks).length) el.append(marksBadge(marks, "marks", markText(marks)));
   place(el, p);
   el.classList.toggle("is-selected", selected.has(keyOf(target)));
   bindDrag(el, target);
