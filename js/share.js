@@ -19,7 +19,14 @@ const lineupData = () => ({
 // それでも長ければこのページを開くだけ
 function boardLinkUrl() {
   const r = (v) => Math.round(v);
-  const players = (withNames) => ({ ...lineupData(), pl: state.players.map((p) => [p.number, withNames ? p.name : "", r(p.x), r(p.y)]) });
+  // 印（イエロー・ゴールなど）があれば5つめに入れる（「y1g2」）
+  const players = (withNames) => ({
+    ...lineupData(),
+    pl: state.players.map((p) => {
+      const marks = encodeMarks(p.marks);
+      return marks ? [p.number, withNames ? p.name : "", r(p.x), r(p.y), marks] : [p.number, withNames ? p.name : "", r(p.x), r(p.y)];
+    })
+  });
   // 相手の背番号は、1・2・3… の順のままなら省く（[x, y] だけ）
   const opp = state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [r(p.x), r(p.y)] : [p.number, r(p.x), r(p.y)])), of: state.oppFormation, oc: state.oppColor } : {};
   const ball = state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {};
@@ -193,6 +200,22 @@ async function boardCanvas() {
   };
   if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, "", inkOn(state.oppColor), i === 0));
   state.players.forEach((p, i) => drawToken(p, state.ourColor, p.name, inkOn(state.ourColor), i === 0));
+  // 印（イエロー・ゴールなど）：丸のすぐ上に、白い角丸の札に入れて
+  state.players.forEach((p) => {
+    const marks = markText(p.marks);
+    if (!marks) return;
+    const x = (p.x / 100) * W;
+    const y = (p.y / 100) * H;
+    ctx.font = font(26, 400);
+    const w = ctx.measureText(marks).width + 16;
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.beginPath();
+    ctx.roundRect(x - w / 2, y - 76, w, 36, 18);
+    ctx.fill();
+    ctx.fillStyle = "#23302a";
+    ctx.textAlign = "center";
+    ctx.fillText(marks, x, y - 49);
+  });
   if (state.showBall) {
     ctx.font = font(56, 400);
     ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);

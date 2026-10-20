@@ -16,9 +16,41 @@ function parseRoster() {
     });
 }
 
+// 選手のシートで入れている印（決定まで state には書かない）
+let editingMarks = {};
+
+function renderPlayerMarks() {
+  $("playerMarks").replaceChildren(
+    ...MARKS.map(({ key, icon, label, max }) => {
+      const row = document.createElement("div");
+      row.className = "mark-row";
+      const name = Object.assign(document.createElement("span"), { className: "mark-label", textContent: `${icon} ${label}` });
+      const n = Number(editingMarks[key]) || 0;
+      const step = (delta) => {
+        editingMarks[key] = Math.min(max, Math.max(0, n + delta));
+        renderPlayerMarks();
+      };
+      const minus = Object.assign(document.createElement("button"), { type: "button", textContent: "−", disabled: n <= 0 });
+      minus.setAttribute("aria-label", `${label}を減らす`);
+      minus.addEventListener("click", () => step(-1));
+      const count = Object.assign(document.createElement("span"), { className: "mark-count", textContent: String(n) });
+      const plus = Object.assign(document.createElement("button"), { type: "button", textContent: "＋", disabled: n >= max });
+      plus.setAttribute("aria-label", `${label}を増やす`);
+      plus.addEventListener("click", () => step(1));
+      const stepper = document.createElement("div");
+      stepper.className = "stepper mark-stepper";
+      stepper.append(minus, count, plus);
+      row.append(name, stepper);
+      return row;
+    })
+  );
+}
+
 function openPlayer(index) {
   editing = index;
   const p = state.players[index];
+  editingMarks = { ...(p.marks || {}) };
+  renderPlayerMarks();
   $("playerSheetTitle").textContent = index === 0 ? "GK" : `${index + 1}人目`;
   $("playerNumber").value = p.number;
   $("playerName").value = p.name;
@@ -43,6 +75,10 @@ $("playerDone").addEventListener("click", () => {
     remember();
     state.players[editing].number = $("playerNumber").value.trim().slice(0, 3);
     state.players[editing].name = $("playerName").value.trim().slice(0, 8);
+    // 印は、1つでもあれば残す（全部 0 なら消す）
+    const marks = Object.fromEntries(Object.entries(editingMarks).filter(([, n]) => Number(n) > 0));
+    if (Object.keys(marks).length) state.players[editing].marks = marks;
+    else delete state.players[editing].marks;
   }
   $("playerSheet").hidden = true;
   render();

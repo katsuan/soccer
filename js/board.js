@@ -324,6 +324,14 @@ function tokenEl(p, extra, target) {
   number.style.color = inkOn(fill);
   number.style.borderColor = isLight(fill) ? "#23302a" : "#ffffff";
   el.querySelector("small").textContent = p.name || "";
+  // 印（イエロー・レッド・ゴール・アシスト）：丸のすぐ上に
+  const marks = markText(p.marks);
+  if (marks) {
+    const badge = document.createElement("em");
+    badge.className = "marks";
+    badge.textContent = marks;
+    el.append(badge);
+  }
   place(el, p);
   el.classList.toggle("is-selected", selected.has(keyOf(target)));
   bindDrag(el, target);

@@ -130,10 +130,37 @@ function formationPositions(mode, formation, versus = true, shapes = []) {
   return versus ? spots.map((spot) => ({ x: spot.x, y: fitY(spot.y, FULL, VERSUS) })) : spots;
 }
 
+// 選手の印（イエロー・レッド・ゴール・アシスト）。p.marks = { y: 0〜2, r: 0〜1, g: 0〜, a: 0〜 }（なければ印なし）
+const MARKS = [
+  { key: "y", icon: "🟨", label: "イエロー", max: 2 },
+  { key: "r", icon: "🟥", label: "レッド", max: 1 },
+  { key: "g", icon: "⚽", label: "ゴール", max: 9 },
+  { key: "a", icon: "👟", label: "アシスト", max: 9 }
+];
+// 盤・画像に出す文字（「🟨⚽⚽」。3つ以上は「⚽3」）
+function markText(marks) {
+  if (!marks) return "";
+  return MARKS.map(({ key, icon }) => {
+    const n = Math.max(0, Math.floor(Number(marks[key]) || 0));
+    return n <= 0 ? "" : n <= 2 ? icon.repeat(n) : `${icon}${n}`;
+  }).join("");
+}
+// リンクに入れる短い形（「y1g2」）と、その読み戻し
+const encodeMarks = (marks) => MARKS.map(({ key }) => (Number(marks?.[key]) > 0 ? `${key}${Math.floor(Number(marks[key]))}` : "")).join("");
+function decodeMarks(text) {
+  const marks = {};
+  for (const [, key, n] of String(text || "").matchAll(/([yrga])(\d+)/g)) {
+    const def = MARKS.find((m) => m.key === key);
+    marks[key] = Math.min(def.max, Number(n));
+  }
+  return Object.keys(marks).length ? marks : undefined;
+}
+
 function freshPlayers(mode, formation, old = [], versus = state.showOpp, shapes = lineShapesOf(formation)) {
   return formationPositions(mode, formation, versus, shapes).map((spot, i) => ({
     number: old[i]?.number ?? String(i + 1),
     name: old[i]?.name ?? "",
+    ...(old[i]?.marks ? { marks: old[i].marks } : {}),
     ...spot
   }));
 }
@@ -229,7 +256,10 @@ function applyQuery() {
   if (q.get("tab") === "lineup") state.tab = "lineup";
   if (data && Array.isArray(data.pl)) {
     state.mode = data.m === "futsal" ? "futsal" : "soccer";
-    state.players = data.pl.slice(0, MAX_PLAYERS).map((p) => ({ number: String(p[0] ?? ""), name: String(p[1] ?? ""), x: Number(p[2]) || 50, y: Number(p[3]) || 50 }));
+    state.players = data.pl.slice(0, MAX_PLAYERS).map((p) => {
+      const marks = decodeMarks(p[4]);
+      return { number: String(p[0] ?? ""), name: String(p[1] ?? ""), x: Number(p[2]) || 50, y: Number(p[3]) || 50, ...(marks ? { marks } : {}) };
+    });
     state.formation = fieldCount(data.f) === state.players.length - 1 ? data.f : "";
     state.court = courtOf(state.mode, state.formation, state.players.length);
     Object.assign(state, { team: data.t || state.team, opponent: data.o || state.opponent, subs: data.s || "" });
