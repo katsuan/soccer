@@ -38,7 +38,10 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .chip.color { width: 36px; padding: 0; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
 .chip.color[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--ink); }
 /* もう片方のチームと同じ色：選べるが、薄くする */
-.chip.color.is-taken { opacity: 0.3; }
+/* もう片方のチームと同じ色：選べるが見分けにくいので、少し薄くして斜めの線（白でも分かるように。ろくがと同じ） */
+.chip.color { position: relative; }
+.chip.color.is-taken { opacity: 0.6; }
+.chip.color.is-taken::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), #7d8a82 calc(50% - 1.5px), #7d8a82 calc(50% + 1.5px), transparent calc(50% + 1.5px)); pointer-events: none; }
 
 /* 見出しは1行：名前 … 中身の要約 › */
 .fold summary { display: flex; align-items: center; gap: 6px; list-style: none; cursor: pointer; font-weight: 800; }
