@@ -34,10 +34,10 @@ const courtDef = (id) => FORMATION_GROUPS.find((g) => g.id === id) || FORMATION_
 const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
 // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
 // 最後に「カスタム」（自由な色）
-// ユニフォームの色は見分けやすい3色にしぼる（紫・赤・白。白は相手の最初の色）。ほかの色はカスタムで
+// ユニフォームの色は見分けやすい3色にしぼる（緑・黄・白。白は相手の最初の色）。ほかの色はカスタムで。ろくがと同じ3色
 const TEAM_COLORS = [
-  { label: "おくるん", hex: "#6c47ff" },
-  { label: "ベリー", hex: "#e5484d" },
+  { label: "緑", hex: "#22a447" },
+  { label: "黄", hex: "#ffd23f" },
   { label: "白", hex: "#ffffff" }
 ];
 const isLight = (hex) => {
@@ -349,7 +349,7 @@ const state = Object.assign(
     oppFormation: "4-4-2",
     lineShapes: {}, // { "3-4-3": ["flat", "diamond", "front"] } 列ごとの形（フォーメーションごと）
     oppLineShapes: {}, // 相手の列ごとの形
-    ourColor: "#6c47ff",
+    ourColor: "#22a447",
     oppColor: "#ffffff",
     goals: [],
     resultNote: ""
