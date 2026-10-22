@@ -4,9 +4,9 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
+const XSS = "<img src=x onerror=alert(1)>"; // qcheck-ok: W8 テストの見本の文字（画面では動かさない）
 
 const code = fs.readFileSync(path.join(__dirname, "../js/core.js"), "utf8");
-const XSS = "<img src=x onerror=alert(1)>";
 const b64 = (v) => Buffer.from(JSON.stringify(v), "utf8").toString("base64url");
 
 // 端末の中身と URL を決めて core.js を読む
