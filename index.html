@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-ls-dark="auto">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -9,7 +9,8 @@
 <meta property="og:title" content="さくせん盤｜スタメン・作戦・試合結果">
 <meta property="og:description" content="選手を並べて、スタメンや試合結果を LINE にカードで送れます。">
 <meta property="og:url" content="https://katsuan.github.io/soccer/">
-<meta name="theme-color" content="#eaf6ee">
+<meta name="theme-color" content="#eaf6ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16151a" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -24,7 +25,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221023">
+<link rel="stylesheet" href="style.css?v=202610221446">
 </head>
 <body>
 <main class="wrap">
@@ -47,7 +48,7 @@
         <ul>
           <li>選手はドラッグで動かせます。<b>長押し</b>で背番号・名前を変えたり、得点やカードを記録できます。</li>
           <li>「👁️ 表示」で相手・ボールを出し、「📐 並び」で人数とフォーメーションを決めます。</li>
-          <li>「💬 LINE で共有」から、さくせん盤と試合結果のカードを送れます。</li>
+          <li>「💬 LINEで送る」から、さくせん盤と試合結果のカードを送れます。</li>
         </ul>
         <button id="firstTipClose" class="ls-button is-primary is-block small" type="button">わかった</button>
       </div>
@@ -251,12 +252,12 @@
     <details class="ls-panel fold">
       <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
       <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
-      <p class="hint">選手を長押しして、上の「背番号・名前 ✏️」をタップすると、ここから選べます。この端末に残ります。</p>
+      <p class="hint">選手を長押し→「背番号・名前 ✏️」で、ここから選べます。</p>
     </details>
 
     <!-- 共有（主）と画像の保存を横に並べる -->
     <div class="share-row">
-      <button id="shareLineup" class="ls-button is-block line" type="button">💬 LINE で共有</button>
+      <button id="shareLineup" class="ls-button is-block line" type="button">💬 LINEで送る</button>
       <button id="saveBoard" class="ls-button is-block" type="button">📷 画像で保存</button>
     </div>
   </section>
@@ -270,19 +271,19 @@
 <!-- 自チームの選手を長押しすると出るポップアップ（背番号・名前・印。選手の丸のそば） -->
 <div id="quickMarks" class="quick-marks" role="menu" hidden></div>
 
-<!-- LINE で共有：スタメンのカード・作戦の画像・試合結果のカードから選ぶ -->
+<!-- LINEで送る：スタメンのカード・作戦の画像・試合結果のカードから選ぶ -->
 <div id="shareSheet" class="sheet" hidden>
   <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="shareSheetTitle">
-    <p id="shareSheetTitle" class="sheet-title">LINE で共有</p>
+    <p id="shareSheetTitle" class="sheet-title">LINEで送る</p>
     <!-- カードで送る：送るカードを選ぶ（2枚なら1つのメッセージに横に並ぶ）。試合結果は入れてあれば最初から選んでおく -->
     <div class="card-picks">
       <!-- それぞれのカードを、おくるんで送るときと同じ見た目で小さく見せる（タップで選ぶ・外す） -->
       <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 さくせん盤</b></span><span id="previewLineup" class="pick-preview"></span></label>
       <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b></span><span id="previewResult" class="pick-preview"></span></label>
       <a id="sendCards" class="ls-button is-block line" href="#">💬 カードで送る</a>
-      <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。さくせん盤のカードのピッチをタップすると、さくせん盤で同じ配置が開きます。</p>
+      <p class="hint">カードは確実に届き、あとで消えません。ピッチをタップすると、同じ配置で開きます。</p>
     </div>
-    <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 作戦を画像で送る</b><small>相手・ボール・線も入った画像です。画像をタップすると、さくせん盤で同じ配置が開きます。画像は時間がたつと消えることがあります。</small></button>
+    <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 作戦を画像で送る</b><small>相手・ボール・線も入ります。画像は時間がたつと消えることがあります。</small></button>
     <p id="imageStatus" class="hint" aria-live="polite"></p>
     <button id="shareCancel" class="link" type="button">やめる</button>
   </div>
@@ -290,15 +291,19 @@
 
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
+<!-- Q キットの動き（確認の窓・トースト） -->
+<script src="https://katsuan.github.io/line-share/shared/ui.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610221023"></script>
-<script src="js/board.js?v=202610221023"></script>
-<script src="js/ink.js?v=202610221023"></script>
-<script src="js/tactics.js?v=202610221023"></script>
-<script src="js/sheets.js?v=202610221023"></script>
-<script src="js/share.js?v=202610221023"></script>
-<script src="js/events.js?v=202610221023"></script>
-<script src="app.js?v=202610221023"></script>
+<script src="js/core.js?v=202610221446"></script>
+<script src="js/board.js?v=202610221446"></script>
+<script src="js/ink.js?v=202610221446"></script>
+<script src="js/tactics.js?v=202610221446"></script>
+<script src="js/sheets.js?v=202610221446"></script>
+<script src="js/share.js?v=202610221446"></script>
+<script src="js/events.js?v=202610221446"></script>
+<script src="app.js?v=202610221446"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
+<!-- 電波がなくても開けるように（sw.js） -->
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>
 </html>

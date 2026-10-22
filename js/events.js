@@ -222,8 +222,9 @@ $("roster").addEventListener("input", () => {
 });
 // 試合結果をリセット：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま。盤の ⚽ の印も消える）。
 // 作戦盤にカード・アシストの印があれば、それも消すかを続けて聞く
-$("resetResult").addEventListener("click", () => {
-  if (!confirm("スコア・内訳・得点者・交代・ひとこと（結果）を消しますか？（チーム名・色・いまの選手はそのまま）")) return;
+$("resetResult").addEventListener("click", async () => {
+  const ok = await LineShareUI.ask({ title: "試合結果を消しますか？", text: "スコア・得点者・交代・ひとことを消します。チーム名・色・選手はそのままです。", ok: "消す", danger: true });
+  if (!ok) return;
   const fields = ["scoreUs", "scoreThem", "halfUs", "halfThem", "secondUs", "secondThem", "extraUs", "extraThem", "pkUs", "pkThem", "resultNote"];
   fields.forEach((k) => {
     state[k] = k === "scoreUs" || k === "scoreThem" ? 0 : "";
@@ -232,7 +233,7 @@ $("resetResult").addEventListener("click", () => {
   state.goals = [];
   // 交代の記録も消す（いま盤にいる選手はそのまま）
   [...state.players, ...(state.opp || [])].forEach((p) => delete p.subs);
-  if (anyCardMarks() && confirm("作戦盤のカード・アシストの印も消しますか？")) {
+  if (anyCardMarks() && (await LineShareUI.ask({ title: "作戦盤のカード・アシストの印も消しますか？", ok: "消す", cancel: "残す", danger: true }))) {
     remember();
     [...state.players, ...(state.opp || [])].forEach((p) => delete p.marks);
   }

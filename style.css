@@ -8,6 +8,9 @@
   --border: #dbe7df;
   --line-green: #06c755;
   --card: #ffffff;
+  --soft: #eaf4ed; /* うすい緑（道具のボタン・切りかえ） */
+  --soft-2: #f3f5f4; /* うすい灰（閉じる・交代の一覧） */
+  --tip-bg: #eef7f1; /* はじめての案内 */
   --shadow: 0 8px 24px rgba(20, 60, 40, 0.1);
   --radius: 18px;
   --max-w: 480px;
@@ -39,7 +42,7 @@ h1 { font-size: 22px; font-weight: 800; text-align: center; }
 .ls-panel { gap: 10px; padding: 14px; border: 0; }
 .ls-label, label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
 label { display: grid; gap: 4px; }
-input, textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: 16px; }
+input, textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 16px; }
 input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .hint { font-size: 12px; color: var(--ink-soft); text-align: center; }
 .meta { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
@@ -134,13 +137,13 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .score span { padding-bottom: 10px; font-size: 22px; font-weight: 800; }
 .score input { font-size: 22px; font-weight: 800; text-align: center; }
 /* スコアの − 数 ＋（キロっくの回数入力と同じ：1つの枠に、控えめな − ＋ と真ん中の数） */
-.score-stepper { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: stretch; overflow: hidden; border: 2px solid var(--border); border-radius: 12px; background: #fff; }
+.score-stepper { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: stretch; overflow: hidden; border: 2px solid var(--border); border-radius: 12px; background: var(--card); }
 .score-stepper:focus-within { border-color: var(--accent); }
 .score-stepper input { min-width: 0; padding: 0; border: 0; background: transparent; -moz-appearance: textfield; }
 .score-stepper input::-webkit-outer-spin-button, .score-stepper input::-webkit-inner-spin-button { margin: 0; -webkit-appearance: none; }
 .score-stepper input:focus { outline: none; }
 .stepper-button { min-height: 52px; padding: 0; border: 0; background: transparent; color: var(--ink-soft); font: inherit; font-size: 20px; font-weight: 400; cursor: pointer; touch-action: manipulation; }
-.stepper-button:active { background: #efebff; color: #4a2bc4; }
+.stepper-button:active { background: var(--ls-accent-soft); color: var(--ls-accent-ink); }
 .score.is-half input { font-size: 16px; }
 
 .goals { display: grid; gap: 6px; }
@@ -150,14 +153,14 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .goal.is-them .scorer { grid-template-columns: minmax(0, 1fr) auto; }
 .goal input { min-width: 0; padding: 8px; font-size: 16px; }
 .goal .min { text-align: center; }
-.goal .remove { width: 26px; height: 26px; padding: 0; font-size: 12px; border: 1px solid var(--border); border-radius: 50%; background: #fff; color: var(--ink-soft); cursor: pointer; }
+.goal .remove { width: 26px; height: 26px; padding: 0; font-size: 12px; border: 1px solid var(--border); border-radius: 50%; background: var(--card); color: var(--ink-soft); cursor: pointer; }
 
 .foot { font-size: 12px; color: var(--ink-soft); text-align: center; }
 .foot a { color: inherit; }
 
 /* ---- 下から出るシート（選手の入力・画像） ---- */
 .sheet { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; padding: 12px; background: rgba(15, 30, 20, 0.45); }
-.sheet-card { display: grid; gap: 10px; width: min(100%, 440px); max-height: 100%; overflow: auto; padding: 18px; border-radius: 20px; background: #fff; }
+.sheet-card { display: grid; gap: 10px; width: min(100%, 440px); max-height: 100%; overflow: auto; padding: 18px; border-radius: 20px; background: var(--card); }
 .sheet-title { font-weight: 800; }
 .sheet-card img { width: 100%; border-radius: 12px; -webkit-touch-callout: default; }
 
@@ -185,18 +188,18 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .board-head { display: flex; align-items: center; gap: 10px; }
 .board-head .ls-label { margin-right: auto; font-size: 16px; color: var(--ink); }
 .select { position: relative; display: block; }
-.select select { appearance: none; -webkit-appearance: none; min-height: 36px; padding: 0 28px 0 12px; border: 2px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
+.select select { appearance: none; -webkit-appearance: none; min-height: 36px; padding: 0 28px 0 12px; border: 2px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
 .select::after { content: "▾"; position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-soft); pointer-events: none; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .toolbar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
-.tool { display: grid; justify-items: center; gap: 2px; min-height: 56px; padding: 6px 0 4px; border: 2px solid transparent; border-radius: 14px; background: #eaf4ed; color: var(--ink); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.tool { display: grid; justify-items: center; gap: 2px; min-height: 56px; padding: 6px 0 4px; border: 2px solid transparent; border-radius: 14px; background: var(--soft); color: var(--ink); font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
 .tool .emoji { font-size: 22px; font-style: normal; line-height: 26px; }
-.tool[aria-pressed="true"] { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
+.tool[aria-pressed="true"] { border-color: var(--accent); background: var(--ls-accent-soft); color: var(--ls-accent-ink); }
 .tool:disabled { opacity: 0.4; cursor: default; }
 .pen-tools { align-items: center; justify-content: space-between; }
 
 /* LINE で共有：送り方を選ぶ */
-.choice { display: grid; gap: 2px; width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 16px; background: #fff; color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.choice { display: grid; gap: 2px; width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: 16px; background: var(--card); color: var(--ink); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
 .choice b { font-size: 16px; }
 .choice small { font-size: 12px; color: var(--ink-soft); }
 .choice:disabled { opacity: 0.6; cursor: progress; }
@@ -208,8 +211,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .pick-preview > .cp { display: flex; flex-direction: column; }
 .pick-preview > .cp > .cp-body { flex: 1; align-content: start; }
 .card-picks > :not(.pick) { grid-column: 1 / -1; }
-.pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px 6px; padding: 8px; border: 2px solid var(--border); border-radius: 16px; background: #fff; cursor: pointer; }
-.pick:has(input:checked) { border-color: var(--accent); background: #efebff; }
+.pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px 6px; padding: 8px; border: 2px solid var(--border); border-radius: 16px; background: var(--card); cursor: pointer; }
+.pick:has(input:checked) { border-color: var(--accent); background: var(--ls-accent-soft); }
 .pick input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
 .pick > span:not(.pick-preview) { display: grid; gap: 2px; }
 .pick > span > b { font-size: 12px; line-height: 1.3; }
@@ -219,7 +222,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .fold:not([open]) { gap: 0; }
 
 /* 人数：− 11人 ＋ */
-.stepper { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 999px; background: #fff; }
+.stepper { display: flex; align-items: center; border: 2px solid var(--border); border-radius: 999px; background: var(--card); }
 .stepper button { width: 32px; height: 32px; border: 0; border-radius: 50%; background: none; color: var(--ink); font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; }
 .stepper button:disabled { opacity: 0.3; cursor: default; }
 .stepper span { min-width: 34px; font-size: 14px; font-weight: 800; text-align: center; }
@@ -230,7 +233,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 /* 場所：1行に 入力・▼（保存した場所。select を小さな四角に見せる）・保存／消す */
 .venue { display: grid; gap: 6px; }
 .venue-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: stretch; gap: 6px; }
-.venue-pick { position: relative; display: grid; place-items: center; width: 46px; border: 2px solid var(--border); border-radius: 12px; background: #fff; }
+.venue-pick { position: relative; display: grid; place-items: center; width: 46px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); }
 .venue-pick[hidden] { display: none; }
 .venue-pick::after { content: "▼"; font-size: 12px; color: var(--ink-soft); pointer-events: none; }
 .venue-pick select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; } /* 見えない欄でも 16px（iPhone が押したときに拡大しないように） */
@@ -244,8 +247,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .tactic-open b { overflow: hidden; font-size: 15px; white-space: nowrap; text-overflow: ellipsis; }
 .tactic-open small { font-size: 12px; color: var(--ink-soft); }
 .tactic-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.tactic-actions .is-main { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
-.tactic-actions button { min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
+.tactic-actions .is-main { border-color: var(--accent); background: var(--ls-accent-soft); color: var(--ls-accent-ink); }
+.tactic-actions button { min-height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink-soft); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
 
 
 /* チームの欄：人数の − ＋ は列の幅いっぱい */
@@ -326,9 +329,9 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .token .marks .is-own-goal, .token .sub-goals .is-own-goal { display: inline-block; height: 1.385em; width: auto; margin: -0.19em 0; vertical-align: -0.17em; }
 
 /* 📐 並び：自チーム・相手のタブ（2つの切りかえ）、人数とフォーメーションのプルダウンを1行に */
-.shape-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px; background: #eaf4ed; }
+.shape-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px; background: var(--soft); }
 .shape-tab { min-height: 34px; border: 0; border-radius: 999px; background: none; color: var(--ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
-.shape-tab[aria-selected="true"] { background: #fff; color: #4a2bc4; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
+.shape-tab[aria-selected="true"] { background: var(--card); color: var(--ls-accent-ink); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12); }
 .shape-head { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .shape-head .stepper[hidden] { display: none; }
 .shape-select { min-width: 0; }
@@ -340,32 +343,32 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 /* 選手のシートの印の欄のオウンゴール：赤いボールを文字と同じ大きさに */
 
 /* はじめての方への案内（作戦盤のカードのいちばん上） */
-.first-tip { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: #eef7f1; font-size: 13px; }
+.first-tip { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: var(--tip-bg); font-size: 13px; }
 .first-tip[hidden] { display: none; }
 .first-tip ul { margin: 0; padding-left: 1.2em; display: grid; gap: 2px; }
 .first-tip .ls-button { justify-self: end; width: auto; min-height: 36px; padding: 0 16px; }
 
 /* 長押しのメニュー：印をすぐ付ける（丸のそばに浮かせる） */
-.quick-marks { position: fixed; z-index: 30; display: grid; gap: 6px; overflow-y: auto; overscroll-behavior: contain; width: min(320px, calc(100vw - 16px)); padding: 12px; border-radius: 16px; background: #fff; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); }
+.quick-marks { position: fixed; z-index: 30; display: grid; gap: 6px; overflow-y: auto; overscroll-behavior: contain; width: min(320px, calc(100vw - 16px)); padding: 12px; border-radius: 16px; background: var(--card); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); }
 .quick-marks[hidden] { display: none; }
 .quick-head { display: flex; align-items: center; justify-content: space-between; }
 .quick-title { margin: 0; font-size: 15px; font-weight: 800; }
-.quick-close { width: 32px; height: 32px; border: 0; border-radius: 50%; background: #f3f5f4; color: var(--ink-soft); font: inherit; font-size: 16px; cursor: pointer; }
+.quick-close { width: 32px; height: 32px; border: 0; border-radius: 50%; background: var(--soft-2); color: var(--ink-soft); font: inherit; font-size: 16px; cursor: pointer; }
 .quick-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .quick-cell { display: grid; gap: 4px; }
 .quick-note { margin: 0; color: var(--ink-soft); font-size: 11px; white-space: pre-line; }
 /* 1つ減らす（取り消し）：ボタンの下の小さな − */
-.quick-minus { justify-self: center; width: 34px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink-soft); font: inherit; font-size: 13px; line-height: 1; cursor: pointer; }
+.quick-minus { justify-self: center; width: 34px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink-soft); font: inherit; font-size: 13px; line-height: 1; cursor: pointer; }
 .quick-minus:disabled { visibility: hidden; }
 /* 背番号・名前（タップで入れる）と、選手名簿のボタン */
 .quick-title.is-edit { padding: 4px 8px; margin-left: -8px; border: 0; border-radius: 10px; background: none; color: var(--ink); font: inherit; font-size: 15px; font-weight: 800; text-align: left; cursor: pointer; }
-.quick-title.is-edit:active { background: #f3f5f4; }
+.quick-title.is-edit:active { background: var(--soft-2); }
 .quick-edit { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 6px; }
 .quick-edit input { padding: 8px 10px; }
 .quick-roster { max-height: 84px; overflow-y: auto; }
 .quick-roster .ls-chip { min-height: 30px; padding: 0 10px; font-size: 12px; }
-.quick-mark { position: relative; display: grid; justify-items: center; gap: 3px; min-height: 60px; padding: 8px 2px 6px; border: 2px solid var(--border); border-radius: 12px; background: #fff; font: inherit; font-size: 22px; line-height: 1; cursor: pointer; touch-action: manipulation; }
-.quick-mark:active { border-color: var(--accent); background: #efebff; }
+.quick-mark { position: relative; display: grid; justify-items: center; gap: 3px; min-height: 60px; padding: 8px 2px 6px; border: 2px solid var(--border); border-radius: 12px; background: var(--card); font: inherit; font-size: 22px; line-height: 1; cursor: pointer; touch-action: manipulation; }
+.quick-mark:active { border-color: var(--accent); background: var(--ls-accent-soft); }
 .quick-mark small { font-size: 10px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
 .quick-mark .is-own-goal { height: 24px; width: auto; }
 .quick-mark:disabled { opacity: 0.4; }
@@ -427,10 +430,10 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .card-picks #sendCards { position: sticky; bottom: 8px; z-index: 1; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18); }
 
 /* 交代：選手の行の「🔄 交代」、これまでの交代、入る選手の入力 */
-.quick-sub-open { margin-left: auto; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
-.quick-sub-open[aria-pressed="true"] { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
+.quick-sub-open { margin-left: auto; padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+.quick-sub-open[aria-pressed="true"] { border-color: var(--accent); background: var(--ls-accent-soft); color: var(--ls-accent-ink); }
 .quick-head { gap: 6px; }
-.quick-subs { display: grid; gap: 2px; padding: 6px 8px; border-radius: 10px; background: #f3f5f4; font-size: 12px; }
+.quick-subs { display: grid; gap: 2px; padding: 6px 8px; border-radius: 10px; background: var(--soft-2); font-size: 12px; }
 .quick-subs p { margin: 0; }
 .quick-subs .quick-more { justify-self: start; padding: 0; }
 .quick-subform { display: grid; gap: 6px; }
@@ -442,3 +445,26 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .cp-subs { white-space: pre-line; }
 /* 交代前の選手の得点：🔄 の右下に小さく */
 .token .sub-goals { position: absolute; top: 4px; left: calc(50% + 18px); padding: 0 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.95); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 8px; font-style: normal; line-height: 12px; white-space: nowrap; pointer-events: none; }
+
+/* ---- 暗い表示（index.html の data-ls-dark="auto"。Q キットの色は ui.css が暗くする） ----
+ * ピッチ・選手の丸・送るカードの見本（.cp-*。LINE のカードの見た目）は明るいまま。
+ */
+@media (prefers-color-scheme: dark) {
+  :root[data-ls-dark="auto"] {
+    --ink: #e9efe9;
+    --ink-soft: #a9b8ae;
+    --border: rgba(255, 255, 255, 0.14);
+    --card: #1b211d;
+    --soft: #243029;
+    --soft-2: #262d29;
+    --tip-bg: #1f2b24;
+    --ls-line-strong: rgba(255, 255, 255, 0.24);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  :root[data-ls-dark="auto"] { background-color: #121815; }
+  :root[data-ls-dark="auto"] body { background: linear-gradient(180deg, #151c18, #101512); }
+  :root[data-ls-dark="auto"] .sheet { background: rgba(0, 0, 0, 0.6); }
+  :root[data-ls-dark="auto"] .ls-chip.color { border-color: #1b211d; }
+  :root[data-ls-dark="auto"] .venue-row .ls-button.is-remove { color: #ff9b6b; }
+}

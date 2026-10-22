@@ -11,15 +11,15 @@ if (!Array.isArray(tactics)) tactics = [];
 const saveTactics = () => save(TACTICS_KEY, tactics);
 const snapshot = () => JSON.parse(JSON.stringify(Object.fromEntries(TACTIC_KEYS.map((k) => [k, state[k]]))));
 
-function saveTactic() {
+async function saveTactic() {
   const input = $("tacticName");
   const name = input.value.trim().slice(0, 20) || `作戦 ${tactics.length + 1}`;
   const same = tactics.findIndex((t) => t.name === name);
-  if (same >= 0 && !confirm(`「${name}」を今の作戦盤で上書きしますか？`)) return;
+  if (same >= 0 && !(await LineShareUI.ask({ title: `「${name}」を上書きしますか？`, text: "いまの作戦盤で置きかえます。", ok: "上書き" }))) return;
   const entry = { id: same >= 0 ? tactics[same].id : `t${Date.now().toString(36)}`, name, savedAt: Date.now(), board: snapshot() };
   if (same >= 0) tactics.splice(same, 1);
   else if (tactics.length >= MAX_TACTICS) {
-    alert(`保存できるのは ${MAX_TACTICS} 件までです。使わないものを消してください。`);
+    LineShareUI.toast(`保存できるのは ${MAX_TACTICS} 件までです。使わないものを消してください`);
     return;
   }
   tactics.unshift(entry);
@@ -39,7 +39,7 @@ function openTactic(entry) {
 }
 
 function copyTactic(entry) {
-  if (tactics.length >= MAX_TACTICS) return alert(`保存できるのは ${MAX_TACTICS} 件までです。`);
+  if (tactics.length >= MAX_TACTICS) return LineShareUI.toast(`保存できるのは ${MAX_TACTICS} 件までです`);
   let name = `${entry.name}（コピー）`.slice(0, 20);
   for (let n = 2; tactics.some((t) => t.name === name); n += 1) name = `${entry.name}（コピー${n}）`.slice(0, 20);
   tactics.splice(tactics.indexOf(entry) + 1, 0, { ...JSON.parse(JSON.stringify(entry)), id: `t${Date.now().toString(36)}`, name, savedAt: Date.now() });
@@ -47,19 +47,28 @@ function copyTactic(entry) {
   renderTactics();
 }
 
-function renameTactic(entry) {
-  const name = prompt("作戦の名前", entry.name);
+async function renameTactic(entry) {
+  const name = await LineShareUI.ask({ title: "作戦の名前", input: entry.name, ok: "決める", maxLength: 20 });
   if (!name || !name.trim()) return;
   entry.name = name.trim().slice(0, 20);
   saveTactics();
   renderTactics();
 }
 
+// 聞かずに消して、「元に戻す」を出す
 function removeTactic(entry) {
-  if (!confirm(`「${entry.name}」を消しますか？`)) return;
+  const at = tactics.indexOf(entry);
   tactics = tactics.filter((t) => t !== entry);
   saveTactics();
   renderTactics();
+  LineShareUI.toast(`「${entry.name}」を消しました`, {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      tactics.splice(Math.max(0, at), 0, entry);
+      saveTactics();
+      renderTactics();
+    }
+  });
 }
 
 // ---- よく使う場所（名前だけ。この端末に残す） ----
@@ -72,8 +81,8 @@ venues = [...new Set(venues)];
 
 function saveVenue() {
   const place = String(state.where || "").trim();
-  if (!place) return alert("場所を入れてから保存してください。");
-  if (!venues.includes(place) && venues.length >= MAX_VENUES) return alert(`保存できるのは ${MAX_VENUES} 件までです。使わないものを消してください。`);
+  if (!place) return LineShareUI.toast("場所を入れてから保存してください");
+  if (!venues.includes(place) && venues.length >= MAX_VENUES) return LineShareUI.toast(`保存できるのは ${MAX_VENUES} 件までです。使わないものを消してください`);
   venues = [place, ...venues.filter((v) => v !== place)];
   save(VENUES_KEY, venues);
   renderVenues();
@@ -88,10 +97,19 @@ function applyVenue(place) {
 
 function removeVenue() {
   const place = String(state.where || "").trim();
-  if (!place || !confirm(`「${place}」を保存した場所から消しますか？`)) return;
+  if (!place) return;
+  const before = [...venues];
   venues = venues.filter((v) => v !== place);
   save(VENUES_KEY, venues);
   renderVenues();
+  LineShareUI.toast(`「${place}」を保存した場所から消しました`, {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      venues = before;
+      save(VENUES_KEY, venues);
+      renderVenues();
+    }
+  });
 }
 
 // ▼ は保存した場所があるときだけ。右のボタンは、今の場所が保存済みなら「消す」、まだなら「保存」
