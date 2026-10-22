@@ -95,7 +95,9 @@ function render() {
     const f = /^\d+$/.test(typed) ? typed.split("").join("-") : typed;
     const field = fieldCount(f);
     if (!parseFormation(f).length || field < 1 || field > MAX_PLAYERS - 1 || parseFormation(f).some((n) => n < 1)) {
-      $("shapeNote").textContent = `「441」か「4-4-1」のように、後ろの列から数を入れてください（GK のほかに 1〜${MAX_PLAYERS - 1} 人、5列まで）。`;
+      // まちがいは、欄のすぐ下に赤い字で
+      $("shapeNote").textContent = `「441」か「4-4-1」のように、後ろの列から数を入れてね（GK のほかに 1〜${MAX_PLAYERS - 1} 人、5列まで）。`;
+      $("shapeNote").classList.add("is-error");
       return;
     }
     showCustom(false);
@@ -105,6 +107,7 @@ function render() {
   customInput.onkeydown = (e) => {
     if (e.key === "Enter" && !e.isComposing) $("customApply").click();
   };
+  if ($("customRow").hidden) $("shapeNote").classList.remove("is-error");
   if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "相手はいま出していません。「👁️ 表示」で出すか、ここでフォーメーションを選ぶと出ます。" : "";
   renderLineShapes(opp ? "opp" : "ours");
   // チームの色

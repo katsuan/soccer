@@ -477,14 +477,12 @@ async function sendBoardImage() {
   const button = $("sendBoardImage");
   if (button.disabled) return;
   button.disabled = true;
-  const started = Date.now();
-  const timer = setInterval(() => {
-    const sec = Math.floor((Date.now() - started) / 1000);
-    $("imageStatus").textContent = `画像を保存しています… ${sec}秒${sec >= 6 ? "（はじめは30秒ほどかかることがあります）" : ""}`;
-  }, 1000);
   $("imageStatus").textContent = "画像を作っています…";
+  let stop = () => {};
   try {
     const canvas = await boardCanvas();
+    // 経過秒数と、遅いときのわけ（Q キットの progress）
+    stop = LineShareUI.progress("画像を保存しています", (text) => ($("imageStatus").textContent = text), { slowNote: "はじめは30秒ほどかかることがあります。" });
     const response = await fetch(`${IMAGE_API}/api/upload`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -492,13 +490,15 @@ async function sendBoardImage() {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !/^https:\/\//.test(data.imageUrl || "")) throw new Error(`upload ${response.status}`);
+    stop();
     $("imageStatus").textContent = "おくるんを開いています…";
     location.href = boardImageCardUrl(data.imageUrl);
   } catch (error) {
     console.error(error);
-    $("imageStatus").textContent = "画像を保存できませんでした。時間をおいてもう一度お試しください。";
+    stop();
+    $("imageStatus").textContent = "画像を保存できませんでした。少し待って、もう一度押してね。";
   } finally {
-    clearInterval(timer);
+    stop();
     button.disabled = false;
   }
 }

@@ -16,7 +16,7 @@ function parseRoster() {
 
 // ---- 選手のポップアップ（自チームの選手を長押し）：選手のことはここだけで変える ----
 //   ・上の「10 たなか ✏️」をタップ → 背番号・名前を入れる（選手名簿からも選べる）
-//   ・印のボタンをタップ → 1つ足す（試合中の記録）。下の小さな − で1つ減らす（取り消し）
+//   ・印のボタンをタップ → 1つ足す（試合中の記録）。下の小さな − で1つ減らす
 //     ゴール・OG は試合結果の得点者そのもの（足すと得点者とスコアに入り、− で消える）
 //   ・上の「🔄 交代」→ 入る選手（名簿からも）と時間を入れる。丸（ポジション）はそのまま、中の人が入れかわる。
 //     出た選手の記録は p.subs に残る（得点は名前で得点者に残り、カード・アシストは出た選手の分として結果に入る）
@@ -168,7 +168,7 @@ function quickEditRows(p, team = "u") {
 const subLabel = (number, name, team = "u") => name || (number ? (team === "t" ? `相手${number}番` : `${number}番`) : "");
 const rerenderQuick = (team) => (team === "t" ? renderOppQuick() : renderQuickMarks());
 
-// これまでの交代（「🔄 60' たなか → すずき」）と、出た選手の記録（得点は得点者から、カード・アシストは残した印から）。最後の交代は取り消せる
+// これまでの交代（「🔄 60' たなか → すずき」）と、出た選手の記録（得点は得点者から、カード・アシストは残した印から）。最後の交代は元に戻せる
 function subHistoryEl(p, team = "u") {
   const box = Object.assign(document.createElement("div"), { className: "quick-subs" });
   p.subs.forEach((s) => {
@@ -180,7 +180,7 @@ function subHistoryEl(p, team = "u") {
     const record = [count("⚽", goals), count("OG", ogs), markText(s.outMarks)].filter(Boolean).join(" ");
     box.append(Object.assign(document.createElement("p"), { textContent: `🔄 ${s.min ? `${s.min}' ` : ""}${out} → ${subLabel(s.inNumber, s.inName, team)}${record ? `（${out}：${record}）` : ""}` }));
   });
-  const undoSub = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "最後の交代を取り消す" });
+  const undoSub = Object.assign(document.createElement("button"), { type: "button", className: "quick-more", textContent: "最後の交代を元に戻す" });
   undoSub.addEventListener("click", () => {
     remember();
     const last = p.subs.pop();
@@ -263,7 +263,7 @@ function openQuickMarks(index, el) {
   placeQuick(el);
 }
 
-// ---- 相手の長押し：相手の印を記録する（自チームと同じボタン。下の小さな − で取り消し）。
+// ---- 相手の長押し：相手の印を記録する（自チームと同じボタン。下の小さな − で減らす）。
 // ゴールは試合結果の得点者の相手側に「相手10番」、OG（相手のオウンゴール）は自チーム側に「相手10番（OG）」として入り、スコアも合わせる。
 // イエロー・レッド・アシストは相手の選手の印（結果のカードにも「相手10番」で入る） ----
 let oppQuickIndex = -1;

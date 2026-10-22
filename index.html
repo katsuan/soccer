@@ -25,7 +25,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610221446">
+<link rel="stylesheet" href="style.css?v=202610221618">
 </head>
 <body>
 <main class="wrap">
@@ -42,16 +42,6 @@
   <section class="panel">
     <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・ペン・戻す。選手のことは長押し）をひとまとめに。人数・色は下の「チーム」の欄 -->
     <div class="ls-panel board-card">
-      <!-- はじめて開いた人にだけ出す短い案内（「わかった」で消え、この端末では次から出ない） -->
-      <div id="firstTip" class="first-tip" hidden>
-        <b>はじめての方へ</b>
-        <ul>
-          <li>選手はドラッグで動かせます。<b>長押し</b>で背番号・名前を変えたり、得点やカードを記録できます。</li>
-          <li>「👁️ 表示」で相手・ボールを出し、「📐 並び」で人数とフォーメーションを決めます。</li>
-          <li>「💬 LINEで送る」から、さくせん盤と試合結果のカードを送れます。</li>
-        </ul>
-        <button id="firstTipClose" class="ls-button is-primary is-block small" type="button">わかった</button>
-      </div>
       <div class="board-head">
         <span class="ls-label">作戦盤</span>
         <label class="select"><span class="sr">コート</span><select id="courtSelect"></select></label>
@@ -88,7 +78,7 @@
         </div>
         <div id="customRow" class="custom-row" hidden>
           <input id="customFormation" inputmode="numeric" maxlength="14" placeholder="例：3241（後ろの列から）" aria-label="カスタムのフォーメーション">
-          <button id="customApply" class="ls-button is-primary is-block small" type="button">決定</button>
+          <button id="customApply" class="ls-button is-primary is-block small" type="button">決める</button>
         </div>
         <p id="shapeNote" class="hint left"></p>
         <div id="lineShapes" class="line-shapes" aria-label="列ごとの形"></div>
@@ -144,7 +134,7 @@
       <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
       <div class="save-row">
         <input id="tacticName" maxlength="20" placeholder="例：ビルドアップ、コーナーキック" list="tacticPresets">
-        <button id="saveTactic" class="ls-button is-primary is-block small" type="button">保存</button>
+        <button id="saveTactic" class="ls-button is-primary is-block small" type="button">💾 保存</button>
       </div>
       <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
       <ul id="tacticList" class="tactic-list"></ul>
@@ -280,7 +270,7 @@
       <!-- それぞれのカードを、おくるんで送るときと同じ見た目で小さく見せる（タップで選ぶ・外す） -->
       <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 さくせん盤</b></span><span id="previewLineup" class="pick-preview"></span></label>
       <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b></span><span id="previewResult" class="pick-preview"></span></label>
-      <a id="sendCards" class="ls-button is-block line" href="#">💬 カードで送る</a>
+      <a id="sendCards" class="ls-button is-block line" href="#">💬 LINEで送る</a>
       <p class="hint">カードは確実に届き、あとで消えません。ピッチをタップすると、同じ配置で開きます。</p>
     </div>
     <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 作戦を画像で送る</b><small>相手・ボール・線も入ります。画像は時間がたつと消えることがあります。</small></button>
@@ -294,14 +284,14 @@
 <!-- Q キットの動き（確認の窓・トースト） -->
 <script src="https://katsuan.github.io/line-share/shared/ui.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610221446"></script>
-<script src="js/board.js?v=202610221446"></script>
-<script src="js/ink.js?v=202610221446"></script>
-<script src="js/tactics.js?v=202610221446"></script>
-<script src="js/sheets.js?v=202610221446"></script>
-<script src="js/share.js?v=202610221446"></script>
-<script src="js/events.js?v=202610221446"></script>
-<script src="app.js?v=202610221446"></script>
+<script src="js/core.js?v=202610221618"></script>
+<script src="js/board.js?v=202610221618"></script>
+<script src="js/ink.js?v=202610221618"></script>
+<script src="js/tactics.js?v=202610221618"></script>
+<script src="js/sheets.js?v=202610221618"></script>
+<script src="js/share.js?v=202610221618"></script>
+<script src="js/events.js?v=202610221618"></script>
+<script src="app.js?v=202610221618"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 <!-- 電波がなくても開けるように（sw.js） -->
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>

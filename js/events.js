@@ -271,20 +271,28 @@ document.querySelectorAll("[data-note]").forEach((b) =>
     box.setSelectionRange(box.value.length, box.value.length);
   })
 );
-// はじめて開いた人への案内（この端末で一度「わかった」を押したら出さない）
+// はじめて開いた人への案内（Q キットの firstTip。作戦盤の上に3つ。「わかった」でこの端末では次から出さない）。
+// 前の案内（soccer:tip-seen）で「わかった」を押した人には出さない
 const TIP_KEY = "soccer:tip-seen";
-$("firstTip").hidden = Boolean(load(TIP_KEY, false));
-$("firstTipClose").addEventListener("click", () => {
-  save(TIP_KEY, true);
-  $("firstTip").hidden = true;
-});
+if (load(TIP_KEY, false)) {
+  try {
+    localStorage.setItem("line-share:tip:saqsen", "1");
+  } catch {
+    // 覚えられないときは Q キットが出さない
+  }
+}
+LineShareUI.firstTip(
+  "saqsen",
+  ["選手はドラッグで動かす。長押しで背番号・名前・得点", "👁️ 表示で相手・ボール、📐 並びで人数と形", "💬 LINEで送るから、カードで送れる"],
+  document.querySelector(".board-head")
+);
 // 送る直前に最新のリンクにする
 // 送るカードの選択：ボタンに枚数を出し、選んでいなければ押せなくする。押す直前に最新のリンクにする
 function updateSendCards() {
   const picks = { lineup: $("pickLineup").checked, result: $("pickResult").checked };
   const count = Object.values(picks).filter(Boolean).length;
   const send = $("sendCards");
-  send.textContent = count ? `💬 カードで送る（${count}枚）` : "💬 送るカードを選んでください";
+  send.textContent = count ? `💬 LINEで送る（${count}枚）` : "送るカードを選んでね";
   send.classList.toggle("is-disabled", !count);
   send.setAttribute("aria-disabled", String(!count));
   send.href = count ? cardsUrl(picks) : "#";

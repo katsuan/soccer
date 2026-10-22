@@ -10,7 +10,6 @@
   --card: #ffffff;
   --soft: #eaf4ed; /* うすい緑（道具のボタン・切りかえ） */
   --soft-2: #f3f5f4; /* うすい灰（閉じる・交代の一覧） */
-  --tip-bg: #eef7f1; /* はじめての案内 */
   --shadow: 0 8px 24px rgba(20, 60, 40, 0.1);
   --radius: 18px;
   --max-w: 480px;
@@ -169,6 +168,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .token.is-selected b { box-shadow: 0 0 0 3px #ffd23f, 0 2px 6px rgba(0, 0, 0, 0.25); }
 .token.is-ball.is-selected { filter: drop-shadow(0 0 4px #ffd23f); }
 .hint.left { text-align: left; }
+.hint.is-error { color: var(--ls-danger); font-weight: 700; }
+#imageStatus { white-space: pre-line; } /* 画像を保存しているときの経過秒数と、遅いときのわけ（2行） */
 
 /* フォーメーション：自チームと相手を左右に並べ、縦に選ぶ */
 .fold[open] { gap: 10px; }
@@ -343,10 +344,6 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 /* 選手のシートの印の欄のオウンゴール：赤いボールを文字と同じ大きさに */
 
 /* はじめての方への案内（作戦盤のカードのいちばん上） */
-.first-tip { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: var(--tip-bg); font-size: 13px; }
-.first-tip[hidden] { display: none; }
-.first-tip ul { margin: 0; padding-left: 1.2em; display: grid; gap: 2px; }
-.first-tip .ls-button { justify-self: end; width: auto; min-height: 36px; padding: 0 16px; }
 
 /* 長押しのメニュー：印をすぐ付ける（丸のそばに浮かせる） */
 .quick-marks { position: fixed; z-index: 30; display: grid; gap: 6px; overflow-y: auto; overscroll-behavior: contain; width: min(320px, calc(100vw - 16px)); padding: 12px; border-radius: 16px; background: var(--card); box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); }
@@ -357,7 +354,7 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .quick-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .quick-cell { display: grid; gap: 4px; }
 .quick-note { margin: 0; color: var(--ink-soft); font-size: 11px; white-space: pre-line; }
-/* 1つ減らす（取り消し）：ボタンの下の小さな − */
+/* 1つ減らす：ボタンの下の小さな − */
 .quick-minus { justify-self: center; width: 34px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 999px; background: var(--card); color: var(--ink-soft); font: inherit; font-size: 13px; line-height: 1; cursor: pointer; }
 .quick-minus:disabled { visibility: hidden; }
 /* 背番号・名前（タップで入れる）と、選手名簿のボタン */
@@ -457,8 +454,7 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
     --card: #1b211d;
     --soft: #243029;
     --soft-2: #262d29;
-    --tip-bg: #1f2b24;
-    --ls-line-strong: rgba(255, 255, 255, 0.24);
+      --ls-line-strong: rgba(255, 255, 255, 0.24);
     --shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }
 

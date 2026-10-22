@@ -15,11 +15,11 @@ async function saveTactic() {
   const input = $("tacticName");
   const name = input.value.trim().slice(0, 20) || `作戦 ${tactics.length + 1}`;
   const same = tactics.findIndex((t) => t.name === name);
-  if (same >= 0 && !(await LineShareUI.ask({ title: `「${name}」を上書きしますか？`, text: "いまの作戦盤で置きかえます。", ok: "上書き" }))) return;
+  if (same >= 0 && !(await LineShareUI.ask({ title: `「${name}」を上書きしますか？`, text: "いまの作戦盤で置きかえます。", ok: "上書きする", danger: true }))) return;
   const entry = { id: same >= 0 ? tactics[same].id : `t${Date.now().toString(36)}`, name, savedAt: Date.now(), board: snapshot() };
   if (same >= 0) tactics.splice(same, 1);
   else if (tactics.length >= MAX_TACTICS) {
-    LineShareUI.toast(`保存できるのは ${MAX_TACTICS} 件までです。使わないものを消してください`);
+    LineShareUI.toast(`保存できるのは ${MAX_TACTICS} 件まで。使わないものを消すと保存できます`);
     return;
   }
   tactics.unshift(entry);
@@ -81,8 +81,8 @@ venues = [...new Set(venues)];
 
 function saveVenue() {
   const place = String(state.where || "").trim();
-  if (!place) return LineShareUI.toast("場所を入れてから保存してください");
-  if (!venues.includes(place) && venues.length >= MAX_VENUES) return LineShareUI.toast(`保存できるのは ${MAX_VENUES} 件までです。使わないものを消してください`);
+  if (!place) return; // 空のときは「保存」を押せない（renderVenues）
+  if (!venues.includes(place) && venues.length >= MAX_VENUES) return LineShareUI.toast(`保存できるのは ${MAX_VENUES} 件まで。使わないものを消すと保存できます`);
   venues = [place, ...venues.filter((v) => v !== place)];
   save(VENUES_KEY, venues);
   renderVenues();
