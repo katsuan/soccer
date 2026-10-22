@@ -130,7 +130,7 @@ function render() {
     });
     // カスタム：自由な色（選んでいる間は、その色で丸を塗る）
     const custom = document.createElement("label");
-    custom.className = "chip color is-custom";
+    custom.className = "ls-chip color is-custom";
     custom.setAttribute("aria-label", "カスタム");
     custom.setAttribute("aria-pressed", String(!isPreset));
     if (!isPreset) custom.style.background = current;
@@ -268,7 +268,7 @@ function renderLineShapes(side = "ours") {
       label.className = "line-shape-label";
       label.textContent = `${names[i]} ${count}人`;
       const chips = document.createElement("div");
-      chips.className = "chips";
+      chips.className = "ls-chips";
       chips.setAttribute("role", "radiogroup");
       chips.setAttribute("aria-label", `${names[i]}の形`);
       const current = shapes[i] || (options.find((o) => o.default) || options[0]).id;
@@ -288,7 +288,7 @@ function renderLineShapes(side = "ours") {
 function chip(text, pressed, onClick, role) {
   const b = document.createElement("button");
   b.type = "button";
-  b.className = "chip";
+  b.className = "ls-chip";
   b.textContent = text;
   if (role) {
     b.setAttribute("role", role);

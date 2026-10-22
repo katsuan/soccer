@@ -148,7 +148,7 @@ function quickEditRows(p, team = "u") {
   const used = new Set([...state.players, ...(state.opp || [])].map((x) => x.name).filter(Boolean));
   const people = parseRoster();
   if (!people.length) return [row];
-  const chips = Object.assign(document.createElement("div"), { className: "chips quick-roster" });
+  const chips = Object.assign(document.createElement("div"), { className: "ls-chips quick-roster" });
   chips.append(
     ...people.map((person) => {
       const b = chip(`${person.number ? `${person.number} ` : ""}${person.name}`, false, () => {
@@ -213,7 +213,7 @@ function subFormEl(p, team = "u") {
   const onPitch = new Set([...state.players, ...(state.opp || [])].map((x) => x.name).filter(Boolean));
   const people = parseRoster();
   if (people.length) {
-    const chips = Object.assign(document.createElement("div"), { className: "chips quick-roster" });
+    const chips = Object.assign(document.createElement("div"), { className: "ls-chips quick-roster" });
     chips.append(
       ...people.map((person) => {
         const b = chip(`${person.number ? `${person.number} ` : ""}${person.name}`, false, () => {
@@ -226,7 +226,7 @@ function subFormEl(p, team = "u") {
     );
     form.append(chips);
   }
-  const go = Object.assign(document.createElement("button"), { type: "button", className: "btn small", textContent: "交代する" });
+  const go = Object.assign(document.createElement("button"), { type: "button", className: "ls-button is-primary is-block small", textContent: "交代する" });
   go.addEventListener("click", () => {
     const inNumber = number.value.trim().slice(0, 3);
     const inName = name.value.trim().slice(0, 8);

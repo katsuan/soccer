@@ -452,11 +452,11 @@ async function saveBoardImage() {
   sheet.querySelector("img").src = url;
   const actions = sheet.querySelector(".actions");
   if (navigator.canShare?.({ files: [file] })) {
-    const share = Object.assign(document.createElement("button"), { type: "button", className: "btn", textContent: "📤 共有・保存" });
+    const share = Object.assign(document.createElement("button"), { type: "button", className: "ls-button is-primary is-block", textContent: "📤 共有・保存" });
     share.onclick = () => navigator.share({ files: [file] }).catch(() => {});
     actions.append(share);
   }
-  actions.append(Object.assign(document.createElement("a"), { className: "btn ghost", href: url, download: file.name, textContent: "⬇️ ダウンロード" }));
+  actions.append(Object.assign(document.createElement("a"), { className: "ls-button is-block", href: url, download: file.name, textContent: "⬇️ ダウンロード" }));
   const close = () => {
     sheet.remove();
     URL.revokeObjectURL(url);

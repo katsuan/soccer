@@ -22,23 +22,25 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=202610211523">
+<!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
+<link rel="stylesheet" href="style.css?v=202610221023">
 </head>
 <body>
 <main class="wrap">
   <header class="top">
     <!-- 見出しは1行：アイコン＋名前（左）と、横長のロゴ（右） -->
-    <div class="brand-row">
-      <h1><img class="logo" src="icon.svg" alt="" width="28" height="28">さくせん盤</h1>
-      <img class="brand" src="logo.svg" alt="SAQSEN" width="97" height="28">
+    <div class="ls-brand">
+      <h1 class="ls-brand-name"><img class="ls-brand-icon" src="icon.svg" alt="" width="28" height="28">さくせん盤</h1>
+      <img class="ls-brand-logo" src="logo.svg" alt="SAQSEN" width="97" height="28">
     </div>
-    <p class="brand-copy">描いて、伝えて、勝ちにいこう</p>
+    <p class="ls-brand-copy">描いて、伝えて、勝ちにいこう</p>
   </header>
 
   <!-- 1ページ：作戦盤 → 保存した作戦 → チーム・試合結果 → 会場情報 → 選手名簿 → 共有 -->
   <section class="panel">
     <!-- 作戦盤：上でコートを選び、ピッチとよく使う操作（表示・並び・ペン・戻す。選手のことは長押し）をひとまとめに。人数・色は下の「チーム」の欄 -->
-    <div class="card board-card">
+    <div class="ls-panel board-card">
       <!-- はじめて開いた人にだけ出す短い案内（「わかった」で消え、この端末では次から出ない） -->
       <div id="firstTip" class="first-tip" hidden>
         <b>はじめての方へ</b>
@@ -47,10 +49,10 @@
           <li>「👁️ 表示」で相手・ボールを出し、「📐 並び」で人数とフォーメーションを決めます。</li>
           <li>「💬 LINE で共有」から、さくせん盤と試合結果のカードを送れます。</li>
         </ul>
-        <button id="firstTipClose" class="btn small" type="button">わかった</button>
+        <button id="firstTipClose" class="ls-button is-primary is-block small" type="button">わかった</button>
       </div>
       <div class="board-head">
-        <span class="label">作戦盤</span>
+        <span class="ls-label">作戦盤</span>
         <label class="select"><span class="sr">コート</span><select id="courtSelect"></select></label>
       </div>
       <div id="board" class="board">
@@ -85,43 +87,43 @@
         </div>
         <div id="customRow" class="custom-row" hidden>
           <input id="customFormation" inputmode="numeric" maxlength="14" placeholder="例：3241（後ろの列から）" aria-label="カスタムのフォーメーション">
-          <button id="customApply" class="btn small" type="button">決定</button>
+          <button id="customApply" class="ls-button is-primary is-block small" type="button">決定</button>
         </div>
         <p id="shapeNote" class="hint left"></p>
         <div id="lineShapes" class="line-shapes" aria-label="列ごとの形"></div>
       </div>
-      <div id="penTools" class="chips pen-tools" hidden>
-        <div id="penColors" class="chips"></div>
+      <div id="penTools" class="ls-chips pen-tools" hidden>
+        <div id="penColors" class="ls-chips"></div>
         <button id="inkClear" class="link" type="button">線をすべて消す</button>
       </div>
       <!-- 👁️ 表示：盤に何を見せるか（相手・ボール・選手名・得点などの印）をここにまとめる。並べ方は 📐 並び -->
       <div id="viewTools" class="view-tools" hidden>
-        <span class="label">相手</span>
+        <span class="ls-label">相手</span>
         <div class="seg" role="radiogroup" aria-label="相手">
-          <button id="oppLayoutNone" class="chip" type="button" role="radio">出さない</button>
-          <button id="oppLayoutFull" class="chip" type="button" role="radio">フルコート</button>
-          <button id="oppLayoutHalf" class="chip" type="button" role="radio">コート別</button>
+          <button id="oppLayoutNone" class="ls-chip" type="button" role="radio">出さない</button>
+          <button id="oppLayoutFull" class="ls-chip" type="button" role="radio">フルコート</button>
+          <button id="oppLayoutHalf" class="ls-chip" type="button" role="radio">コート別</button>
         </div>
-        <span class="label">ボール</span>
+        <span class="ls-label">ボール</span>
         <div class="seg" role="radiogroup" aria-label="ボール">
-          <button id="ballOff" class="chip" type="button" role="radio">出さない</button>
-          <button id="ballOn" class="chip" type="button" role="radio">出す</button>
+          <button id="ballOff" class="ls-chip" type="button" role="radio">出さない</button>
+          <button id="ballOn" class="ls-chip" type="button" role="radio">出す</button>
         </div>
-        <span class="label">選手名</span>
+        <span class="ls-label">選手名</span>
         <div class="seg" role="radiogroup" aria-label="選手名">
-          <button class="chip" type="button" role="radio" data-names="off">出さない</button>
-          <button class="chip" type="button" role="radio" data-names="on">出す</button>
+          <button class="ls-chip" type="button" role="radio" data-names="off">出さない</button>
+          <button class="ls-chip" type="button" role="radio" data-names="on">出す</button>
         </div>
-        <span class="label">得点など</span>
+        <span class="ls-label">得点など</span>
         <div class="seg" role="radiogroup" aria-label="得点・カードなどの印">
-          <button class="chip" type="button" role="radio" data-marks="off">出さない</button>
-          <button class="chip" type="button" role="radio" data-marks="on">出す</button>
+          <button class="ls-chip" type="button" role="radio" data-marks="off">出さない</button>
+          <button class="ls-chip" type="button" role="radio" data-marks="on">出す</button>
         </div>
-        <span class="label">コート</span>
+        <span class="ls-label">コート</span>
         <div class="seg" role="radiogroup" aria-label="コートの向き">
-          <button class="chip" type="button" role="radio" data-court-view="auto">自動</button>
-          <button class="chip" type="button" role="radio" data-court-view="portrait">縦</button>
-          <button class="chip" type="button" role="radio" data-court-view="landscape">横</button>
+          <button class="ls-chip" type="button" role="radio" data-court-view="auto">自動</button>
+          <button class="ls-chip" type="button" role="radio" data-court-view="portrait">縦</button>
+          <button class="ls-chip" type="button" role="radio" data-court-view="landscape">横</button>
         </div>
         <p class="hint left">コートの「自動」は、横に広い画面（スマホの横向き・パソコンなど）で横のコートになります。フルコートは両チームが互い違いに、コート別は半分ずつ並びます。選手名・得点などを出さないと、画像・カードのリンクからも外します（入れたものは消えません）。</p>
         <button id="clearMarks" class="link" type="button" hidden>カード・アシストの印をすべて消す（得点者・名前・背番号は残す）</button>
@@ -137,11 +139,11 @@
     </div>
 
     <!-- 作戦の保存：場面ごとに配置と線を残し、次の試合でも呼び出す（この端末に残る） -->
-    <details id="tacticsFold" class="card fold">
+    <details id="tacticsFold" class="ls-panel fold">
       <summary>📁 保存した作戦 <span id="tacticsMeta" class="meta"></span></summary>
       <div class="save-row">
         <input id="tacticName" maxlength="20" placeholder="例：ビルドアップ、コーナーキック" list="tacticPresets">
-        <button id="saveTactic" class="btn small" type="button">保存</button>
+        <button id="saveTactic" class="ls-button is-primary is-block small" type="button">保存</button>
       </div>
       <datalist id="tacticPresets"><option value="ビルドアップ"><option value="コーナーキック（攻め）"><option value="コーナーキック（守り）"><option value="フリーキック"><option value="キックオフ"><option value="守備の形"><option value="プレス"></datalist>
       <ul id="tacticList" class="tactic-list"></ul>
@@ -150,16 +152,16 @@
 
     <!-- チーム・試合結果：自チームと相手を左右に並べ、チーム名・色、その下にスコア・内訳・得点者・ひとこと（結果）。
          作戦盤の印（ゴール・アシスト・カード）とつながる。人数・フォーメーションは作戦盤の「📐 並び」 -->
-    <details class="card fold" id="teamFold">
+    <details class="ls-panel fold" id="teamFold">
       <summary>👕 チーム・試合結果 <span id="teamMeta" class="meta"></span></summary>
       <!-- 自チームと相手を左右に向かい合わせ、チーム名・色を同じ行にそろえる（人数・フォーメーションは作戦盤の「📐 並び」） -->
       <div class="versus">
-        <span class="label">自チーム</span>
-        <span class="label">相手</span>
+        <span class="ls-label">自チーム</span>
+        <span class="ls-label">相手</span>
         <input class="team" maxlength="20" placeholder="チーム名" aria-label="チーム名">
         <input class="opponent" maxlength="20" placeholder="対戦相手" aria-label="対戦相手">
-        <div id="ourColors" class="chips colors" role="group" aria-label="自チームの色"></div>
-        <div id="oppColors" class="chips colors" role="group" aria-label="相手の色"></div>
+        <div id="ourColors" class="ls-chips colors" role="group" aria-label="自チームの色"></div>
+        <div id="oppColors" class="ls-chips colors" role="group" aria-label="相手の色"></div>
       </div>
       <!-- 試合結果：スコアは上のチーム名と同じ左右（左が自チーム、右が相手） -->
       <p class="sub-head">🏆 試合結果</p>
@@ -174,25 +176,25 @@
         <summary>⏱️ 得点の内訳（前後半・延長・PK） <span id="periodMeta" class="meta"></span></summary>
         <p class="hint left">上のスコアは最終スコア（延長を含む）。ここは入れたものだけカードに出ます。同点で PK があれば PK で勝ち負けを決めます。</p>
         <div class="period-row">
-          <span class="label">前半</span>
+          <span class="ls-label">前半</span>
           <input id="halfUs" type="number" inputmode="numeric" min="0" max="99" aria-label="前半の自チームの得点">
           <span>-</span>
           <input id="halfThem" type="number" inputmode="numeric" min="0" max="99" aria-label="前半の相手の得点">
         </div>
         <div class="period-row">
-          <span class="label">後半</span>
+          <span class="ls-label">後半</span>
           <input id="secondUs" type="number" inputmode="numeric" min="0" max="99" aria-label="後半の自チームの得点">
           <span>-</span>
           <input id="secondThem" type="number" inputmode="numeric" min="0" max="99" aria-label="後半の相手の得点">
         </div>
         <div class="period-row">
-          <span class="label">延長</span>
+          <span class="ls-label">延長</span>
           <input id="extraUs" type="number" inputmode="numeric" min="0" max="99" aria-label="延長の自チームの得点">
           <span>-</span>
           <input id="extraThem" type="number" inputmode="numeric" min="0" max="99" aria-label="延長の相手の得点">
         </div>
         <div class="period-row">
-          <span class="label">PK</span>
+          <span class="ls-label">PK</span>
           <input id="pkUs" type="number" inputmode="numeric" min="0" max="99" aria-label="PKの自チームの得点">
           <span>-</span>
           <input id="pkThem" type="number" inputmode="numeric" min="0" max="99" aria-label="PKの相手の得点">
@@ -204,23 +206,23 @@
       <p id="marksNote" class="hint left" hidden></p>
       <div id="goals" class="goals"></div>
       <div class="two">
-        <button id="addGoalUs" class="btn ghost small" type="button">＋ 自チームの得点</button>
-        <button id="addGoalThem" class="btn ghost small" type="button">＋ 相手の得点</button>
+        <button id="addGoalUs" class="ls-button is-block small" type="button">＋ 自チームの得点</button>
+        <button id="addGoalThem" class="ls-button is-block small" type="button">＋ 相手の得点</button>
       </div>
       <!-- ひとことは2つ：作戦盤（さくせん盤のカード。🏟️ 会場情報）と、結果（試合結果のカード。ここ）。改行できる -->
       <label>ひとこと（結果）<textarea id="resultNote" rows="2" maxlength="120" placeholder="例：MVP は山田！&#10;最後まで走りきりました"></textarea></label>
       <!-- ひな形：タップで、ひとことの次の行に足す -->
-      <div class="chips note-presets" role="group" aria-label="ひとこと（結果）のひな形">
-        <button class="chip" type="button" data-note="resultNote" data-text="MVP：">＋ MVP</button>
-        <button class="chip" type="button" data-note="resultNote" data-text="よかったところ：">＋ よかったところ</button>
-        <button class="chip" type="button" data-note="resultNote" data-text="次の試合：">＋ 次の試合</button>
+      <div class="ls-chips note-presets" role="group" aria-label="ひとこと（結果）のひな形">
+        <button class="ls-chip" type="button" data-note="resultNote" data-text="MVP：">＋ MVP</button>
+        <button class="ls-chip" type="button" data-note="resultNote" data-text="よかったところ：">＋ よかったところ</button>
+        <button class="ls-chip" type="button" data-note="resultNote" data-text="次の試合：">＋ 次の試合</button>
       </div>
       <!-- 次の試合の前に：スコア・内訳・得点者・ひとこと（結果）を消す（チーム名・色はそのまま） -->
       <button id="resetResult" class="link reset" type="button">試合結果をリセット</button>
       <datalist id="rosterNames"></datalist>
     </details>
 
-    <details class="card fold">
+    <details class="ls-panel fold">
       <summary>🏟️ 会場情報 <span id="infoMeta" class="meta"></span></summary>
       <p class="hint left">ここに入れた内容は、LINE でカードを送るときにカードに入ります（入れたものだけ）。場所は「保存」しておくと、次から ▼ で選べます。</p>
       <div class="two">
@@ -233,20 +235,20 @@
         <div class="venue-row">
           <input id="whereInput" class="where" maxlength="30" placeholder="例：市民グラウンド">
           <label id="venuePick" class="venue-pick" hidden><span class="sr">保存した場所から選ぶ</span><select id="venueSelect"></select></label>
-          <button id="venueAction" class="btn ghost small" type="button">保存</button>
+          <button id="venueAction" class="ls-button is-block small" type="button">保存</button>
         </div>
       </div>
       <!-- 控え・集合時間などは、ひとことに改行して書く（さくせん盤のカードにそのまま入る） -->
       <label>ひとこと（作戦盤）<textarea id="lineupNote" rows="3" maxlength="200" placeholder="例：集合は8:30です&#10;控え：佐藤、鈴木、田中"></textarea></label>
-      <div class="chips note-presets" role="group" aria-label="ひとこと（作戦盤）のひな形">
-        <button class="chip" type="button" data-note="lineupNote" data-text="集合：">＋ 集合</button>
-        <button class="chip" type="button" data-note="lineupNote" data-text="控え：">＋ 控え</button>
-        <button class="chip" type="button" data-note="lineupNote" data-text="持ち物：">＋ 持ち物</button>
-        <button class="chip" type="button" data-note="lineupNote" data-text="ユニフォーム：">＋ ユニフォーム</button>
+      <div class="ls-chips note-presets" role="group" aria-label="ひとこと（作戦盤）のひな形">
+        <button class="ls-chip" type="button" data-note="lineupNote" data-text="集合：">＋ 集合</button>
+        <button class="ls-chip" type="button" data-note="lineupNote" data-text="控え：">＋ 控え</button>
+        <button class="ls-chip" type="button" data-note="lineupNote" data-text="持ち物：">＋ 持ち物</button>
+        <button class="ls-chip" type="button" data-note="lineupNote" data-text="ユニフォーム：">＋ ユニフォーム</button>
       </div>
     </details>
 
-    <details class="card fold">
+    <details class="ls-panel fold">
       <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
       <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
       <p class="hint">選手を長押しして、上の「背番号・名前 ✏️」をタップすると、ここから選べます。この端末に残ります。</p>
@@ -254,8 +256,8 @@
 
     <!-- 共有（主）と画像の保存を横に並べる -->
     <div class="share-row">
-      <button id="shareLineup" class="btn line" type="button">💬 LINE で共有</button>
-      <button id="saveBoard" class="btn ghost" type="button">📷 画像で保存</button>
+      <button id="shareLineup" class="ls-button is-block line" type="button">💬 LINE で共有</button>
+      <button id="saveBoard" class="ls-button is-block" type="button">📷 画像で保存</button>
     </div>
   </section>
 
@@ -277,7 +279,7 @@
       <!-- それぞれのカードを、おくるんで送るときと同じ見た目で小さく見せる（タップで選ぶ・外す） -->
       <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 さくせん盤</b></span><span id="previewLineup" class="pick-preview"></span></label>
       <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b></span><span id="previewResult" class="pick-preview"></span></label>
-      <a id="sendCards" class="btn line" href="#">💬 カードで送る</a>
+      <a id="sendCards" class="ls-button is-block line" href="#">💬 カードで送る</a>
       <p class="hint">カードは画像を使わないので確実に届き、あとで消えません。さくせん盤のカードのピッチをタップすると、さくせん盤で同じ配置が開きます。</p>
     </div>
     <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 作戦を画像で送る</b><small>相手・ボール・線も入った画像です。画像をタップすると、さくせん盤で同じ配置が開きます。画像は時間がたつと消えることがあります。</small></button>
@@ -289,14 +291,14 @@
 <!-- おくるんのカードの入口（LIFF ID とカードの URL は line-share の shared/oqrn.js に1か所） -->
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610211523"></script>
-<script src="js/board.js?v=202610211523"></script>
-<script src="js/ink.js?v=202610211523"></script>
-<script src="js/tactics.js?v=202610211523"></script>
-<script src="js/sheets.js?v=202610211523"></script>
-<script src="js/share.js?v=202610211523"></script>
-<script src="js/events.js?v=202610211523"></script>
-<script src="app.js?v=202610211523"></script>
+<script src="js/core.js?v=202610221023"></script>
+<script src="js/board.js?v=202610221023"></script>
+<script src="js/ink.js?v=202610221023"></script>
+<script src="js/tactics.js?v=202610221023"></script>
+<script src="js/sheets.js?v=202610221023"></script>
+<script src="js/share.js?v=202610221023"></script>
+<script src="js/events.js?v=202610221023"></script>
+<script src="app.js?v=202610221023"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 </body>
 </html>

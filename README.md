@@ -12,6 +12,8 @@
 
 公開URL: https://katsuan.github.io/soccer/
 
+
+画面の部品（見出しの行・カード・チップ・ボタン・ラベル）は、おくるんの Q キット（`https://katsuan.github.io/line-share/shared/ui.css`。使い方はおくるんの README）の名前（`ls-brand`・`ls-panel`・`ls-chip`・`ls-chips`・`ls-button`・`ls-label`）。色と字は `style.css` の `:root`（`--ls-accent` など。紫はおくるんと同じ）。チームの色の丸・ピッチ・選手のこま・得点の欄など、さくせん盤にしかない見た目と、並ぶ数が多いぶんの大きさの調整は `style.css` に残す。
 ## できること
 
 タブは分けず1ページ。はじめて開いた人にだけ、作戦盤の上に3行の案内（「わかった」で消え、この端末では次から出ない）。上から 作戦盤 → 📁 保存した作戦 → 👕 チーム・試合結果 → 🏟️ 会場情報 → 👤 選手名簿 → 「💬 LINE で共有」「📷 画像で保存」。

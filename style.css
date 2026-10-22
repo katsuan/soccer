@@ -12,6 +12,17 @@
   --radius: 18px;
   --max-w: 480px;
   --font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+
+  /* Q キット（カード・チップ・ボタン・ラベル・見出しの行）の色と字。さくせん盤の紫はおくるんと同じ */
+  --ls-accent: var(--accent);
+  --ls-text: var(--ink);
+  --ls-subtext: var(--ink-soft);
+  --ls-line: var(--border);
+  --ls-line-strong: #c9d8ce;
+  --ls-bg: #e6f3ea;
+  --ls-shadow: var(--shadow);
+  --ls-radius-lg: var(--radius);
+  --ls-font: var(--font);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,24 +35,25 @@ body { min-height: 100vh; font-family: var(--font); font-size: 16px; line-height
 h1 { font-size: 22px; font-weight: 800; text-align: center; }
 
 .panel { display: grid; gap: 12px; }
-.card { display: grid; gap: 10px; padding: 14px; border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
-.label, label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
+/* カードは Q キット（ls-panel）。さくせん盤は中身が多いので、少し詰める */
+.ls-panel { gap: 10px; padding: 14px; border: 0; }
+.ls-label, label { font-size: 13px; font-weight: 800; color: var(--ink-soft); }
 label { display: grid; gap: 4px; }
 input, textarea { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: 12px; background: #fff; color: var(--ink); font: inherit; font-size: 16px; }
 input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .hint { font-size: 12px; color: var(--ink-soft); text-align: center; }
 .meta { font-size: 12px; font-weight: 700; color: var(--ink-soft); }
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { min-height: 36px; padding: 0 12px; border: 2px solid var(--border); border-radius: 999px; background: #fff; font: inherit; font-size: 13px; font-weight: 800; color: var(--ink); cursor: pointer; }
-.chip[aria-pressed="true"], .chip[aria-checked="true"] { border-color: var(--accent); background: #efebff; color: #4a2bc4; }
-.chip.color { width: 36px; padding: 0; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
-.chip.color[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--ink); }
+/* チップは Q キット（ls-chip）。さくせん盤は並ぶ数が多いので、小さめ */
+.ls-chips { gap: 6px; }
+.ls-chip { min-height: 36px; padding: 0 12px; border-width: 2px; font-size: 13px; font-weight: 800; }
+.ls-chip.color { width: 36px; padding: 0; border: 3px solid #fff; box-shadow: 0 0 0 1px var(--border); }
+.ls-chip.color[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--ink); }
 /* もう片方のチームと同じ色：選べるが、薄くする */
 /* もう片方のチームと同じ色：選べるが見分けにくいので、少し薄くして斜めの線（白でも分かるように。ろくがと同じ） */
-.chip.color { position: relative; }
-.chip.color.is-taken { opacity: 0.6; }
-.chip.color.is-taken::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), #7d8a82 calc(50% - 1.5px), #7d8a82 calc(50% + 1.5px), transparent calc(50% + 1.5px)); pointer-events: none; }
+.ls-chip.color { position: relative; }
+.ls-chip.color.is-taken { opacity: 0.6; }
+.ls-chip.color.is-taken::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(to top right, transparent calc(50% - 1.5px), #7d8a82 calc(50% - 1.5px), #7d8a82 calc(50% + 1.5px), transparent calc(50% + 1.5px)); pointer-events: none; }
 
 /* 見出しは1行：名前 … 中身の要約 › */
 .fold summary { display: flex; align-items: center; gap: 6px; list-style: none; cursor: pointer; font-weight: 800; }
@@ -100,22 +112,22 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 /* 👁 表示：左に項目名、右に選ぶボタン（同じ幅で並べる） */
 .view-tools { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 8px 10px; padding: 10px 2px 2px; }
 .view-tools[hidden] { display: none; }
-.view-tools > .label { font-size: 12px; font-weight: 800; }
+.view-tools > .ls-label { font-size: 12px; font-weight: 800; }
 .view-tools .seg { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
-.view-tools .seg .chip { padding: 0 6px; font-size: 12px; }
+.view-tools .seg .ls-chip { padding: 0 6px; font-size: 12px; }
 .view-tools .hint, .view-tools .link { grid-column: 1 / -1; margin: 0; }
 .view-tools .link { justify-self: start; text-align: left; }
-.view-tools .seg .chip { white-space: nowrap; }
+.view-tools .seg .ls-chip { white-space: nowrap; }
 .token.is-ball { width: 28px; margin-left: -14px; margin-top: -14px; font-size: 22px; line-height: 1; }
 .token.is-dragging { cursor: grabbing; z-index: 2; }
 
 .link { border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer; }
 
 .actions { display: grid; gap: 8px; }
-.btn { display: block; width: 100%; min-height: 52px; padding: 12px; border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 800; text-align: center; text-decoration: none; cursor: pointer; }
-.btn.line { background: var(--line-green); box-shadow: 0 6px 16px rgba(6, 199, 85, 0.25); }
-.btn.ghost { background: #fff; color: var(--ink); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); }
-.btn.small { min-height: 42px; font-size: 14px; }
+/* ボタンは Q キット（ls-button）。押しやすいよう大きめ */
+.ls-button { min-height: 52px; padding: 12px; font-size: 16px; font-weight: 800; }
+.ls-button.line { border-color: var(--line-green); background: var(--line-green); color: #fff; box-shadow: 0 6px 16px rgba(6, 199, 85, 0.25); }
+.ls-button.small { min-height: 42px; font-size: 14px; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 
 .score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; }
@@ -159,19 +171,19 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .fold[open] { gap: 10px; }
 
 /* チームの色の丸（自チーム・相手の欄の上） */
-.chips.colors { gap: 5px; }
-.chips.colors .chip.color { width: 30px; min-height: 30px; height: 30px; }
+.ls-chips.colors { gap: 5px; }
+.ls-chips.colors .ls-chip.color { width: 30px; min-height: 30px; height: 30px; }
 
 /* カスタムの色（おくるんの「ほかの色」と同じ。虹色の丸の中に色の入力を隠す） */
-.chip.color.is-custom { position: relative; overflow: hidden; background: conic-gradient(#e5484d, #f5a524, #30a46c, #3e7bfa, #6c47ff, #e5484d); }
-.chip.color.is-custom input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.ls-chip.color.is-custom { position: relative; overflow: hidden; background: conic-gradient(#e5484d, #f5a524, #30a46c, #3e7bfa, #6c47ff, #e5484d); }
+.ls-chip.color.is-custom input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; opacity: 0; cursor: pointer; }
 
 /* フォーメーションの欄の下の「位置を戻す」は、左右の列をまたいで置く */
 
 /* 作戦盤のカード：見出し（人数・フォーメーション）・ピッチ・操作をひとまとめに */
 .board-card { gap: 10px; }
 .board-head { display: flex; align-items: center; gap: 10px; }
-.board-head .label { margin-right: auto; font-size: 16px; color: var(--ink); }
+.board-head .ls-label { margin-right: auto; font-size: 16px; color: var(--ink); }
 .select { position: relative; display: block; }
 .select select { appearance: none; -webkit-appearance: none; min-height: 36px; padding: 0 28px 0 12px; border: 2px solid var(--border); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 800; cursor: pointer; }
 .select::after { content: "▾"; position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-soft); pointer-events: none; }
@@ -202,7 +214,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .pick > span:not(.pick-preview) { display: grid; gap: 2px; }
 .pick > span > b { font-size: 12px; line-height: 1.3; }
 .card-picks .hint { margin: 0; }
-.btn.is-disabled { opacity: 0.5; pointer-events: auto; }
+.ls-button.is-disabled { opacity: 0.5; pointer-events: auto; }
 .sheet-card .link { justify-self: center; }
 .fold:not([open]) { gap: 0; }
 
@@ -222,10 +234,10 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .venue-pick[hidden] { display: none; }
 .venue-pick::after { content: "▼"; font-size: 12px; color: var(--ink-soft); pointer-events: none; }
 .venue-pick select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; } /* 見えない欄でも 16px（iPhone が押したときに拡大しないように） */
-.venue-row .btn { width: auto; min-height: 46px; padding: 0 14px; }
-.venue-row .btn.is-remove { color: #c2410c; }
-.venue .btn:disabled { opacity: 0.45; }
-.save-row .btn { width: auto; min-height: 46px; padding: 0 18px; }
+.venue-row .ls-button { width: auto; min-height: 46px; padding: 0 14px; }
+.venue-row .ls-button.is-remove { color: #c2410c; }
+.venue .ls-button:disabled { opacity: 0.45; }
+.save-row .ls-button { width: auto; min-height: 46px; padding: 0 18px; }
 .tactic-list { display: grid; gap: 6px; list-style: none; }
 .tactic { display: grid; gap: 6px; padding: 10px 12px; border: 2px solid var(--border); border-radius: 14px; }
 .tactic-open { display: grid; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
@@ -239,7 +251,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 /* チームの欄：人数の − ＋ は列の幅いっぱい */
 .versus { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; align-items: start; }
 .versus .stepper { justify-content: space-between; }
-.versus .chip:not(.color) { width: 100%; }
+.versus .ls-chip:not(.color) { width: 100%; }
 .count-vs { margin: 0; font-size: 14px; font-weight: 800; text-align: center; }
 .count-vs:empty { display: none; }
 
@@ -253,7 +265,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 
 /* 共有と画像の保存を横に並べる（共有を広く） */
 .share-row { display: grid; grid-template-columns: 3fr 2fr; gap: 8px; }
-.share-row .btn { padding: 12px 8px; white-space: nowrap; }
+.share-row .ls-button { padding: 12px 8px; white-space: nowrap; }
 
 /* 日にち・時間：iPhone は標準の見た目のままだと幅・高さ・文字の位置がほかの欄とずれるので、見た目をそろえる（おくるんの共通スタイルと同じ） */
 input[type="date"], input[type="time"] { appearance: none; -webkit-appearance: none; display: block; min-width: 0; min-height: 48px; text-align: left; }
@@ -261,7 +273,7 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .score > i { display: block; }
 .score { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
 /* スコアの上のチーム名（👕 チームの欄で入れた名前。長ければ「…」） */
-.score .label { overflow: hidden; padding-bottom: 0; font-size: 13px; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
+.score .ls-label { overflow: hidden; padding-bottom: 0; font-size: 13px; text-align: center; white-space: nowrap; text-overflow: ellipsis; }
 /* 🏆 試合結果の中の小見出し（得点者・MVP） */
 .sub-head { margin: 4px 0 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 14px; font-weight: 800; }
 
@@ -270,24 +282,24 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .fold.inner summary { font-size: 14px; }
 .fold.inner:not([open]) { gap: 0; }
 .period-row { display: grid; grid-template-columns: 3em minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
-.period-row span:not(.label) { font-size: 18px; font-weight: 800; }
+.period-row span:not(.ls-label) { font-size: 18px; font-weight: 800; }
 .period-row input { padding: 8px; font-size: 16px; font-weight: 800; text-align: center; }
 
 /* 色の丸を選んだときの縁取り（外側 3px）が、下のフォーメーションのボタンに重ならないよう間をあける */
-.versus .chips.colors { padding: 4px 3px; }
+.versus .ls-chips.colors { padding: 4px 3px; }
 #formationRows { margin-top: 8px; }
 
 /* ツールの名前（さくせん盤）の下の小さな英字 */
 
 /* 見出し：アイコン＋名前と横長のロゴを1行に（縦を詰める） */
 .top { gap: 8px; }
-.brand-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 2px; }
-h1 { display: flex; align-items: center; gap: 8px; font-size: 20px; line-height: 1.2; text-align: left; }
-h1 .logo { width: 28px; height: 28px; }
-.brand { display: block; width: auto; height: 28px; } /* アイコン＋名前の行と同じ高さ */
 
 /* キャッチコピー（見出しの行のすぐ下。おくるんの「つくって、おくるん」と同じ役目） */
-.brand-copy { margin: 2px 2px 0; color: #2E8B4A; font-size: 13px; font-weight: 800; line-height: 1.4; letter-spacing: 0.02em; }
+/* 見出しの行は Q キット（ls-brand）。名前は少し小さく、ひとことはピッチの緑 */
+.ls-brand { padding: 0 2px; }
+.ls-brand-name { font-size: 20px; line-height: 1.2; }
+.ls-brand-icon { width: 28px; height: 28px; }
+.ls-brand-copy { margin: 2px 2px 0; color: var(--pitch); font-size: 13px; letter-spacing: 0.02em; }
 
 /* 列ごとの形（フォーメーションの下）：左に列の名前、右に形のボタン */
 .line-shapes { display: grid; gap: 8px; }
@@ -295,8 +307,8 @@ h1 .logo { width: 28px; height: 28px; }
 .line-shapes-title { margin: 0; color: var(--ink-soft, #5b6b62); font-size: 12px; font-weight: 800; }
 .line-shape-row { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 6px; }
 .line-shape-label { font-size: 12px; font-weight: 800; white-space: nowrap; }
-.line-shape-row .chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
-.line-shape-row .chip { min-height: 34px; padding: 0 4px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.line-shape-row .ls-chips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.line-shape-row .ls-chip { min-height: 34px; padding: 0 4px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* 📐 並び：盤のすぐ下。フォーメーションのボタン（横に並べて、あふれたら横にすべらせる）と列ごとの形 */
 .shape-tools { display: grid; gap: 10px; padding: 10px 2px 2px; }
@@ -331,7 +343,7 @@ h1 .logo { width: 28px; height: 28px; }
 .first-tip { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: #eef7f1; font-size: 13px; }
 .first-tip[hidden] { display: none; }
 .first-tip ul { margin: 0; padding-left: 1.2em; display: grid; gap: 2px; }
-.first-tip .btn { justify-self: end; width: auto; min-height: 36px; padding: 0 16px; }
+.first-tip .ls-button { justify-self: end; width: auto; min-height: 36px; padding: 0 16px; }
 
 /* 長押しのメニュー：印をすぐ付ける（丸のそばに浮かせる） */
 .quick-marks { position: fixed; z-index: 30; display: grid; gap: 6px; overflow-y: auto; overscroll-behavior: contain; width: min(320px, calc(100vw - 16px)); padding: 12px; border-radius: 16px; background: #fff; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22); }
@@ -351,7 +363,7 @@ h1 .logo { width: 28px; height: 28px; }
 .quick-edit { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 6px; }
 .quick-edit input { padding: 8px 10px; }
 .quick-roster { max-height: 84px; overflow-y: auto; }
-.quick-roster .chip { min-height: 30px; padding: 0 10px; font-size: 12px; }
+.quick-roster .ls-chip { min-height: 30px; padding: 0 10px; font-size: 12px; }
 .quick-mark { position: relative; display: grid; justify-items: center; gap: 3px; min-height: 60px; padding: 8px 2px 6px; border: 2px solid var(--border); border-radius: 12px; background: #fff; font: inherit; font-size: 22px; line-height: 1; cursor: pointer; touch-action: manipulation; }
 .quick-mark:active { border-color: var(--accent); background: #efebff; }
 .quick-mark small { font-size: 10px; font-weight: 800; color: var(--ink-soft); white-space: nowrap; }
@@ -363,7 +375,7 @@ h1 .logo { width: 28px; height: 28px; }
 .token { -webkit-touch-callout: none; }
 
 /* ひとことのひな形（タップで次の行に足す） */
-.note-presets .chip { min-height: 30px; padding: 0 10px; font-size: 12px; }
+.note-presets .ls-chip { min-height: 30px; padding: 0 10px; font-size: 12px; }
 
 /* 送る前のプレビュー（共有シートの、それぞれのカードの中身） */
 /* 送る前のプレビュー：おくるんのカード（Flex）と同じ並びを小さく。チェックの下に全幅で */
@@ -425,7 +437,7 @@ h1 .logo { width: 28px; height: 28px; }
 .quick-subhead { margin: 0; font-size: 12px; font-weight: 800; color: var(--ink-soft); }
 .quick-edit.is-sub { grid-template-columns: 52px 64px minmax(0, 1fr); }
 .quick-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-.quick-actions .btn { width: auto; min-height: 38px; padding: 0 16px; }
+.quick-actions .ls-button { width: auto; min-height: 38px; padding: 0 16px; }
 .token .sub-mark { position: absolute; top: -6px; left: calc(50% + 8px); display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); font-size: 9px; font-style: normal; line-height: 1; pointer-events: none; }
 .cp-subs { white-space: pre-line; }
 /* 交代前の選手の得点：🔄 の右下に小さく */
