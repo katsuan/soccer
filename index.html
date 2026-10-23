@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610230232">
+<link rel="stylesheet" href="style.css?v=202610231500">
 </head>
 <body>
 <main class="wrap">
@@ -146,14 +146,20 @@
          作戦盤の印（ゴール・アシスト・カード）とつながる。人数・フォーメーションは作戦盤の「📐 並び」 -->
     <details class="ls-panel fold" id="teamFold">
       <summary>👕 チーム・試合結果 <span id="teamMeta" class="meta"></span></summary>
-      <!-- 自チームと相手を左右に向かい合わせ、チーム名・色を同じ行にそろえる（人数・フォーメーションは作戦盤の「📐 並び」） -->
+      <!-- 自チームと相手を左右に向かい合わせ、[色の丸][チーム名] を1行に（人数・フォーメーションは作戦盤の「📐 並び」）。
+           色の丸を押したときだけ、下に横いっぱいの1行で選べる色（上のしっぽが押したチームの丸を指す。ろくがのアプリ版と同じ形） -->
       <div class="versus">
         <span class="ls-label">自チーム</span>
         <span class="ls-label">相手</span>
-        <input class="team" maxlength="20" placeholder="チーム名" aria-label="チーム名">
-        <input class="opponent" maxlength="20" placeholder="対戦相手" aria-label="対戦相手">
-        <div id="ourColors" class="ls-chips colors" role="group" aria-label="自チームの色"></div>
-        <div id="oppColors" class="ls-chips colors" role="group" aria-label="相手の色"></div>
+        <div class="team-row">
+          <button id="ourColorDot" class="color-dot" type="button" aria-controls="colorPalette" aria-expanded="false"><span class="swatch"></span></button>
+          <input class="team" maxlength="20" placeholder="チーム名" aria-label="チーム名">
+        </div>
+        <div class="team-row">
+          <button id="oppColorDot" class="color-dot" type="button" aria-controls="colorPalette" aria-expanded="false"><span class="swatch"></span></button>
+          <input class="opponent" maxlength="20" placeholder="対戦相手" aria-label="対戦相手">
+        </div>
+        <div id="colorPalette" class="color-palette" role="group" hidden></div>
       </div>
       <!-- 試合結果：スコアは上のチーム名と同じ左右（左が自チーム、右が相手） -->
       <p class="sub-head">🏆 試合結果</p>
@@ -285,14 +291,14 @@
 <!-- Q キットの動き（確認の窓・トースト） -->
 <script src="https://katsuan.github.io/line-share/shared/ui.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610230232"></script>
-<script src="js/board.js?v=202610230232"></script>
-<script src="js/ink.js?v=202610230232"></script>
-<script src="js/tactics.js?v=202610230232"></script>
-<script src="js/sheets.js?v=202610230232"></script>
-<script src="js/share.js?v=202610230232"></script>
-<script src="js/events.js?v=202610230232"></script>
-<script src="app.js?v=202610230232"></script>
+<script src="js/core.js?v=202610231500"></script>
+<script src="js/board.js?v=202610231500"></script>
+<script src="js/ink.js?v=202610231500"></script>
+<script src="js/tactics.js?v=202610231500"></script>
+<script src="js/sheets.js?v=202610231500"></script>
+<script src="js/share.js?v=202610231500"></script>
+<script src="js/events.js?v=202610231500"></script>
+<script src="app.js?v=202610231500"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 <!-- 電波がなくても開けるように（sw.js） -->
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>

@@ -47,13 +47,19 @@ const courtOf = (mode, f, count) =>
 const courtDef = (id) => FORMATION_GROUPS.find((g) => g.id === id) || FORMATION_GROUPS[0];
 const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
 // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
-// 最後に「カスタム」（自由な色）
-// ユニフォームの色は見分けやすい3色にしぼる（緑・黄・白。白は相手の最初の色）。ほかの色はカスタムで。ろくがと同じ3色
+// 横いっぱいの1行に収まるだけの8色。最後に「カスタム」（自由な色）。ろくがのアプリ版（TeamColors.presets）と同じ色・同じ並び
+// （はじめの3色 緑・黄・白 は前からの色。白は相手の最初の色）。色の名前は画面に出さず、読み上げだけに使う
 const TEAM_COLORS = [
   { label: "緑", hex: "#22a447" },
   { label: "黄", hex: "#ffd23f" },
-  { label: "白", hex: "#ffffff" }
+  { label: "白", hex: "#ffffff" },
+  { label: "赤", hex: "#e53935" },
+  { label: "青", hex: "#1e63d6" },
+  { label: "紺", hex: "#1b2a59" },
+  { label: "オレンジ", hex: "#ff8a1f" },
+  { label: "黒", hex: "#222222" }
 ];
+const teamColorName = (hex) => (TEAM_COLORS.find((c) => c.hex === String(hex).toLowerCase()) || { label: "カスタム" }).label;
 const isLight = (hex) => {
   const n = parseInt(String(hex).slice(1), 16);
   return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
@@ -466,6 +472,7 @@ function updateLandscape() {
 }
 let viewMode = false; // 👁️ 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
 let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
+let colorOpen = null; // チームの色のパレットを開いているチーム（"ourColor"・"oppColor"。一度に片方だけ。null はたたむ）
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
