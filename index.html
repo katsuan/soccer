@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610231500">
+<link rel="stylesheet" href="style.css?v=202610231530">
 </head>
 <body>
 <main class="wrap">
@@ -146,8 +146,8 @@
          作戦盤の印（ゴール・アシスト・カード）とつながる。人数・フォーメーションは作戦盤の「📐 並び」 -->
     <details class="ls-panel fold" id="teamFold">
       <summary>👕 チーム・試合結果 <span id="teamMeta" class="meta"></span></summary>
-      <!-- 自チームと相手を左右に向かい合わせ、[色の丸][チーム名] を1行に（人数・フォーメーションは作戦盤の「📐 並び」）。
-           色の丸を押したときだけ、下に横いっぱいの1行で選べる色（上のしっぽが押したチームの丸を指す。ろくがのアプリ版と同じ形） -->
+      <!-- 自チームと相手を左右に向かい合わせ、チーム名の枠の中の左に色の丸 [● チーム名]（人数・フォーメーションは作戦盤の「📐 並び」）。
+           色の丸を押したとき・チーム名を入れているあいだは、下に横いっぱいの1行で選べる色（上のしっぽがそのチームの丸を指す。ろくがのアプリ版と同じ形） -->
       <div class="versus">
         <span class="ls-label">自チーム</span>
         <span class="ls-label">相手</span>
@@ -291,14 +291,14 @@
 <!-- Q キットの動き（確認の窓・トースト） -->
 <script src="https://katsuan.github.io/line-share/shared/ui.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610231500"></script>
-<script src="js/board.js?v=202610231500"></script>
-<script src="js/ink.js?v=202610231500"></script>
-<script src="js/tactics.js?v=202610231500"></script>
-<script src="js/sheets.js?v=202610231500"></script>
-<script src="js/share.js?v=202610231500"></script>
-<script src="js/events.js?v=202610231500"></script>
-<script src="app.js?v=202610231500"></script>
+<script src="js/core.js?v=202610231530"></script>
+<script src="js/board.js?v=202610231530"></script>
+<script src="js/ink.js?v=202610231530"></script>
+<script src="js/tactics.js?v=202610231530"></script>
+<script src="js/sheets.js?v=202610231530"></script>
+<script src="js/share.js?v=202610231530"></script>
+<script src="js/events.js?v=202610231530"></script>
+<script src="app.js?v=202610231530"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 <!-- 電波がなくても開けるように（sw.js） -->
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>

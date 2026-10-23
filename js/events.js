@@ -205,6 +205,21 @@ for (const [key, selector] of Object.entries(shared)) {
     });
   }
 }
+// チーム名を入れはじめたら、そのチームの色のパレットも出す。入れおわったら（欄から離れたら）たたむ。
+// パレットを押したときは、欄から離れてもたたまない（カスタムの色を選ぶときなど）
+document.addEventListener("pointerdown", (e) => (pressingPalette = $("colorPalette").contains(e.target)), true);
+for (const { key, name } of TEAM_COLOR_SIDES) {
+  const input = document.querySelector(name);
+  input.addEventListener("focus", () => {
+    colorOpen = key;
+    renderTeamColors();
+  });
+  input.addEventListener("blur", () => {
+    if (pressingPalette || colorOpen !== key) return;
+    colorOpen = null;
+    renderTeamColors();
+  });
+}
 const single = { lineupNote: "lineupNote", resultNote: "resultNote", scoreUs: "scoreUs", scoreThem: "scoreThem", halfUs: "halfUs", halfThem: "halfThem",
   secondUs: "secondUs", secondThem: "secondThem", extraUs: "extraUs", extraThem: "extraThem", pkUs: "pkUs", pkThem: "pkThem" };
 for (const [key, id] of Object.entries(single)) {

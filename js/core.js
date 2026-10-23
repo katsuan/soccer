@@ -473,6 +473,7 @@ function updateLandscape() {
 let viewMode = false; // 👁️ 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
 let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
 let colorOpen = null; // チームの色のパレットを開いているチーム（"ourColor"・"oppColor"。一度に片方だけ。null はたたむ）
+let pressingPalette = false; // パレットを押しはじめた（チーム名の欄から指が移っても、パレットをたたまない）
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）

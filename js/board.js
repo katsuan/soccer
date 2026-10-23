@@ -256,16 +256,20 @@ function renderLineShapes(side = "ours") {
   );
 }
 
-// チームの色の丸とパレット。一度に開くのは片方だけ。決まった色を選ぶとたたむ（カスタムは選んでも開いたまま）
+// チームの色の丸とパレット。一度に開くのは片方だけ。丸を押して開いたときは、決まった色を選ぶとたたむ（カスタムは選んでも開いたまま）。
+// チーム名を入れているあいだも、そのチームのパレットを出す（色を選んでもたたまない。入れおわったらたたむ：events.js）
+const TEAM_COLOR_SIDES = [
+  { key: "ourColor", dot: "ourColorDot", name: ".team", title: "自チーム", other: "相手" },
+  { key: "oppColor", dot: "oppColorDot", name: ".opponent", title: "相手", other: "自チーム" }
+];
+const typingName = (key) => document.activeElement === document.querySelector(TEAM_COLOR_SIDES.find((s) => s.key === key).name);
 function renderTeamColors() {
-  const sides = [
-    { key: "ourColor", dot: $("ourColorDot"), title: "自チーム", other: "相手" },
-    { key: "oppColor", dot: $("oppColorDot"), title: "相手", other: "自チーム" }
-  ];
+  const sides = TEAM_COLOR_SIDES.map((s) => ({ ...s, dot: $(s.dot) }));
   sides.forEach(({ key, dot, title }) => {
     const open = colorOpen === key;
     dot.querySelector(".swatch").style.background = state[key];
     dot.classList.toggle("is-open", open);
+    dot.closest(".team-row").classList.toggle("is-open", open); // 枠のふちを緑に
     dot.setAttribute("aria-expanded", String(open));
     dot.setAttribute("aria-label", `${title}の色を選ぶ（いま：${teamColorName(state[key])}）`);
     dot.onclick = () => {
@@ -284,7 +288,7 @@ function renderTeamColors() {
     remember();
     state[key] = hex;
     if (key === "oppColor") setShowOpp(true);
-    if (close) colorOpen = null;
+    if (close && !typingName(key)) colorOpen = null;
     render();
   };
   const current = String(state[key]).toLowerCase();
@@ -302,6 +306,7 @@ function renderTeamColors() {
     sw.className = "swatch" + (taken ? " is-taken" : "");
     sw.style.background = c.hex;
     b.append(sw);
+    b.onpointerdown = (e) => e.preventDefault(); // チーム名を入れているときは、キーボードを出したまま色を選べるように
     b.onclick = () => pick(c.hex, true);
     return b;
   });
