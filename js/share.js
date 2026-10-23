@@ -5,17 +5,17 @@
 // ---- おくるんへのリンク ----
 // スタメン（選手の位置）の中身。おくるんのカードにも、作戦盤を開くリンクにも使う。
 // 👁️ 表示に合わせる：選手名を出さないなら名前を外し、相手を出しているなら相手（op: [[背番号, 名前, x, y], ...]・oc: 相手の色）も入れる
+const roundPos = (v) => Math.round(v); // リンクの位置は整数に（短くするため）
 const lineupData = () => {
   const name = (p) => (state.showNames === false ? "" : p.name || "");
-  const r = (v) => Math.round(v);
   return {
     m: state.mode,
     f: state.formation,
     t: state.team,
     o: state.opponent,
     c: state.ourColor,
-    pl: state.players.map((p) => [p.number, name(p), r(p.x), r(p.y)]),
-    ...(state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p) => [p.number, name(p), r(p.x), r(p.y)]), oc: state.oppColor } : {})
+    pl: state.players.map((p) => [p.number, name(p), roundPos(p.x), roundPos(p.y)]),
+    ...(state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p) => [p.number, name(p), roundPos(p.x), roundPos(p.y)]), oc: state.oppColor } : {})
   };
 };
 
@@ -23,23 +23,22 @@ const lineupData = () => {
 // 1000 文字に収まらないときは、選手の名前 → 線（新しいものから1本ずつ）→ ボール → 相手の順に外し、
 // それでも長ければこのページを開くだけ
 function boardLinkUrl() {
-  const r = (v) => Math.round(v);
   // 印（イエロー・ゴールなど）があれば5つめに入れる（「y1g2」）
   const players = (withNames) => ({
     ...lineupData(),
     pl: state.players.map((p) => {
       const marks = state.showMarks === false ? "" : encodeMarks(playerMarksOf(p));
       const name = withNames && state.showNames !== false ? p.name : "";
-      return marks ? [p.number, name, r(p.x), r(p.y), marks] : [p.number, name, r(p.x), r(p.y)];
+      return marks ? [p.number, name, roundPos(p.x), roundPos(p.y), marks] : [p.number, name, roundPos(p.x), roundPos(p.y)];
     })
   });
   // 相手の背番号は、1・2・3… の順のままなら省く（[x, y] だけ）
-  const opp = state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [r(p.x), r(p.y)] : [p.number, r(p.x), r(p.y)])), of: state.oppFormation, oc: state.oppColor } : {};
-  const ball = state.showBall ? { b: [r(state.ball.x), r(state.ball.y)] } : {};
+  const opp = state.showOpp && Array.isArray(state.opp) ? { op: state.opp.map((p, i) => (p.number === String(i + 1) ? [roundPos(p.x), roundPos(p.y)] : [p.number, roundPos(p.x), roundPos(p.y)])), of: state.oppFormation, oc: state.oppColor } : {};
+  const ball = state.showBall ? { b: [roundPos(state.ball.x), roundPos(state.ball.y)] } : {};
   // 線は点を間引いて短くする（1本につき最大 8 点。線の形は残る）
   // 線は、入る範囲でできるだけ多くの点を残す（1本 24 点 → 16 → 12 → 8 → 5 と減らして試す）。
   // 開いた側では点を曲線でつなぐので、点が少なくてもなめらかに見える
-  const linesAt = (max) => state.strokes.map((k) => [k.color, simplifyPoints(k.points, max).flatMap(([x, y]) => [r(x), r(y)])]);
+  const linesAt = (max) => state.strokes.map((k) => [k.color, simplifyPoints(k.points, max).flatMap(([x, y]) => [roundPos(x), roundPos(y)])]);
   const withLines = (max, n = state.strokes.length) => (n ? { k: linesAt(max).slice(0, n) } : {});
   const BUDGETS = [24, 16, 12, 8, 5];
   const candidates = [
@@ -441,9 +440,21 @@ function redBallDataUrl() {
   return redBallUrl;
 }
 
+// 作っているあいだにもう一度押されても、画面は1つだけ
+let savingImage = false;
 async function saveBoardImage() {
-  const canvas = await boardCanvas();
-  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+  if (savingImage) return;
+  savingImage = true;
+  try {
+    const canvas = await boardCanvas();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!blob) return LineShareUI.toast("画像を作れませんでした。少し待って、もう一度押してね");
+    showImageSheet(blob);
+  } finally {
+    savingImage = false;
+  }
+}
+function showImageSheet(blob) {
   const url = URL.createObjectURL(blob);
   const file = new File([blob], "作戦盤.png", { type: "image/png" });
   const sheet = document.createElement("div");

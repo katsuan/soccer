@@ -22,7 +22,7 @@ function boot({ store = {}, search = "" } = {}) {
   });
   vm.runInContext(code, ctx);
   const get = (name) => vm.runInContext(name, ctx);
-  return { state: get("state"), readLinkData: get("readLinkData"), encode: get("encode") };
+  return { state: get("state"), readLinkData: get("readLinkData"), encode: get("encode"), get };
 }
 
 test("ふつうの作戦盤のリンクを読める", () => {
@@ -106,4 +106,66 @@ test("端末に残った中身が壊れていても初めの値で開く", () =>
     const { state } = boot({ store: { "soccer:state": bad } });
     assert.equal(state.players.length, 11);
   }
+});
+
+test("端末に残った中身の1つずつが壊れていても止まらない", () => {
+  const bad = {
+    players: [null, 5, "x", { number: { a: 1 }, name: ["n"], x: "abc", y: Infinity, marks: "y1", subs: "x" }, { number: "7", name: "山田", x: 30, y: 40 }],
+    opp: { a: 1 },
+    goals: [null, "x", { side: "t", name: 5, min: {} }, { side: "u", name: "山田", min: "10" }],
+    strokes: "x",
+    ball: null,
+    lineShapes: [1],
+    oppLineShapes: "x",
+    ourColor: "red;background:url(x)",
+    oppColor: 5,
+    team: { a: 1 },
+    opponent: ["x"],
+    showOpp: "yes",
+    scoreUs: "abc",
+    whenDate: 5,
+    lineupNote: 5,
+    resultNote: null,
+    formation: 442,
+    mode: "rugby"
+  };
+  const { state, get } = boot({ store: { "soccer:state": JSON.stringify(bad) } });
+  assert.equal(state.players.length, 2);
+  assert.ok(state.players.every((p) => typeof p.number === "string" && typeof p.name === "string" && Number.isFinite(p.x) && Number.isFinite(p.y)));
+  assert.equal(state.players[0].x, 50);
+  assert.equal(state.opp, undefined);
+  assert.equal(state.goals.length, 2);
+  assert.equal(state.goals[0].name, "5"); // 数は文字にして残す
+  assert.deepEqual(state.strokes, []);
+  assert.equal(state.ball.x, 50);
+  assert.equal(state.ourColor, "#22a447");
+  assert.equal(state.oppColor, "#ffffff");
+  assert.equal(state.team, "");
+  assert.equal(state.showOpp, false);
+  assert.equal(state.mode, "soccer");
+  assert.equal(state.formation, "4-4-2");
+  assert.equal(state.lineupNote, "");
+  // 画面・カードに使う関数が止まらない
+  for (const fn of ["anyCardMarks()", "subsForResult()", "marksForResult()", "whenText()", "state.players.map(playerMarksOf)"]) assert.doesNotThrow(() => get(fn), fn);
+});
+
+test("ろくがだけが書いた中身（チーム名・色だけ）でも、ほかは初めの値", () => {
+  const { state } = boot({ store: { "soccer:state": JSON.stringify({ team: "FC", opponent: "B", ourColor: "#ffd23f", oppColor: "#ffffff" }) } });
+  assert.equal(state.team, "FC");
+  assert.equal(state.ourColor, "#ffd23f");
+  assert.equal(state.players.length, 11);
+});
+
+test("保存した作戦が壊れていても、読めるものだけ残す", () => {
+  const { get } = boot();
+  const good = { id: "t1", name: "CK", savedAt: 1, board: { players: [{ number: "1", name: "", x: 50, y: 90 }, { number: "2", name: "", x: 50, y: 50 }], strokes: "x", mode: "futsal", formation: "1" } };
+  const list = get("tacticsIn")([null, 5, { name: "x" }, { name: { a: 1 }, board: {} }, good]);
+  assert.equal(list.length, 2);
+  assert.equal(list[0].name, "作戦");
+  assert.equal(list[1].name, "CK");
+  assert.deepEqual(list[1].board.strokes, []);
+  assert.equal(list[1].board.mode, "futsal");
+  assert.equal(list[1].board.players.length, 2);
+  assert.equal("goals" in list[1].board, false); // 作戦に入れるのは盤のことだけ
+  assert.deepEqual(get("tacticsIn")("x"), []);
 });

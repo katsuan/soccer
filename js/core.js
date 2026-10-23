@@ -7,6 +7,20 @@ const LINK_MAX = 1000; // LINE のリンクは 1000 文字まで
 const STORE_KEY = "soccer:state";
 const ROSTER_KEY = "soccer:roster";
 const $ = (id) => document.getElementById(id);
+// 角の丸い四角（roundRect）がない古いブラウザ（iOS 15 まで）でも、画像・盤を描けるように足す
+function addRoundRect(Ctx) {
+  if (!Ctx?.prototype || Ctx.prototype.roundRect) return;
+  Ctx.prototype.roundRect = function (x, y, w, h, r = 0) {
+    const rr = Math.max(0, Math.min(Number(Array.isArray(r) ? r[0] : r) || 0, w / 2, h / 2));
+    this.moveTo(x + rr, y);
+    this.arcTo(x + w, y, x + w, y + h, rr);
+    this.arcTo(x + w, y + h, x, y + h, rr);
+    this.arcTo(x, y + h, x, y, rr);
+    this.arcTo(x, y, x + w, y, rr);
+    this.closePath();
+  };
+}
+if (typeof CanvasRenderingContext2D !== "undefined") addRoundRect(CanvasRenderingContext2D);
 
 // フォーメーションは後ろの列から（"4-4-2"）。GK は別に先頭に置く。mode はピッチの描き方（サッカー／フットサル）
 const FORMATION_GROUPS = [
@@ -271,22 +285,18 @@ function marksForResult() {
   const assists = [];
   const cards = [];
   // 交代で出た選手のカード・アシストも（交代のときに残した印から）
-  const outs = state.players.flatMap((p) => (p.subs || []).filter((s) => s.outMarks).map((s) => ({ number: s.outNumber, name: s.outName, marks: s.outMarks })));
-  [...outs, ...state.players].forEach((p) => {
-    const name = playerLabel(p);
-    if (!name) return;
-    if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);
-    if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);
-    if (Number(p.marks?.r) > 0) cards.push(["r", name, 1]);
-  });
+  const outsOf = (list) => list.flatMap((p) => (p.subs || []).filter((s) => s.outMarks).map((s) => ({ number: s.outNumber, name: s.outName, marks: s.outMarks })));
+  const add = (list, label) =>
+    [...outsOf(list), ...list].forEach((p) => {
+      const name = label(p);
+      if (!name) return;
+      if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);
+      if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);
+      if (Number(p.marks?.r) > 0) cards.push(["r", name, 1]);
+    });
+  add(state.players, playerLabel);
   // 相手のカード・アシストも「相手10番」で入れる（相手を出しているときだけ。交代で出た相手の分も）
-  const oppOuts = (state.opp || []).flatMap((p) => (p.subs || []).filter((s) => s.outMarks).map((s) => ({ number: s.outNumber, name: s.outName, marks: s.outMarks })));
-  if (state.showOpp) [...oppOuts, ...(state.opp || [])].forEach((p) => {
-    const name = oppLabel(p);
-    if (Number(p.marks?.a) > 0) assists.push([name, Number(p.marks.a)]);
-    if (Number(p.marks?.y) > 0) cards.push(["y", name, Number(p.marks.y)]);
-    if (Number(p.marks?.r) > 0) cards.push(["r", name, 1]);
-  });
+  if (state.showOpp) add(state.opp || [], oppLabel);
   return { assists, cards };
 }
 
@@ -297,6 +307,94 @@ function freshPlayers(mode, formation, old = [], versus = state.showOpp, shapes 
     ...(old[i]?.marks ? { marks: old[i].marks } : {}),
     ...spot
   }));
+}
+
+// リンク（?data=）の中身は外から来たもの。形・長さ・数・位置の範囲を確かめてから使う
+// （長さは入力欄と同じか少し多め。前の版のリンクも開けるように）
+const LINK_LIMIT = { number: 4, name: 20, team: 20, note: 200, goals: 40, min: 6, strokes: 60, points: 400 };
+const textIn = (v, max) => (typeof v === "string" || typeof v === "number" ? [...String(v)].slice(0, max).join("") : "");
+const posIn = (v) => {
+  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 50;
+};
+const listIn = (v, max) => (Array.isArray(v) ? v.slice(0, max) : []);
+// 点（空はそのまま空。数でなければ 0。0〜99）
+const scoreIn = (v) => (v === "" || v === null || v === undefined ? "" : Math.min(99, Math.max(0, Math.floor(Number(v)) || 0)));
+const hexIn = (v) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : "");
+const formationIn = (v, count) => (typeof v === "string" && fieldCount(v) === count - 1 ? v : "");
+
+// 端末に残った中身は、前の版・ろくが（チーム名・色だけ書く）・壊れたものもあるので、1つずつ形を確かめてから使う。
+// 形のちがうものは捨てて初めの値に（選手・得点・線は、読めるものだけ残す）
+const isObj = (v) => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+const marksIn = (v) => (isObj(v) ? decodeMarks(encodeMarks(v)) : undefined);
+const subIn = (s) => ({
+  min: textIn(s.min, LINK_LIMIT.min),
+  outNumber: textIn(s.outNumber, LINK_LIMIT.number),
+  outName: textIn(s.outName, LINK_LIMIT.name),
+  inNumber: textIn(s.inNumber, LINK_LIMIT.number),
+  inName: textIn(s.inName, LINK_LIMIT.name),
+  ...(marksIn(s.outMarks) ? { outMarks: marksIn(s.outMarks) } : {})
+});
+const pieceIn = (p) => {
+  const subs = listIn(p.subs, 40).filter(isObj).map(subIn);
+  return {
+    number: textIn(p.number, LINK_LIMIT.number),
+    name: textIn(p.name, LINK_LIMIT.name),
+    x: posIn(p.x),
+    y: posIn(p.y),
+    ...(marksIn(p.marks) ? { marks: marksIn(p.marks) } : {}),
+    ...(subs.length ? { subs } : {})
+  };
+};
+const piecesIn = (v) => listIn(v, MAX_PLAYERS).filter(isObj).map(pieceIn);
+function cleanSaved(saved, base) {
+  if (!isObj(saved)) return {};
+  const out = {};
+  for (const [key, value] of Object.entries(saved)) {
+    const want = base[key];
+    if (want === undefined) out[key] = value; // 前の版の欄（控え・MVP など。下で移す）
+    else if (typeof want === "boolean") out[key] = value === true || (value === false ? false : want);
+    else if (typeof want === "string") out[key] = typeof value === "string" ? value : want;
+    else if (isObj(want)) out[key] = isObj(value) ? value : want;
+  }
+  const players = piecesIn(saved.players);
+  if (players.length >= MIN_PLAYERS) out.players = players;
+  if (Array.isArray(saved.opp)) out.opp = piecesIn(saved.opp);
+  else delete out.opp;
+  out.goals = listIn(saved.goals, 200)
+    .filter(isObj)
+    .map((g) => ({ side: g.side === "t" ? "t" : "u", min: textIn(g.min, LINK_LIMIT.min), name: textIn(g.name, LINK_LIMIT.name + 4) }));
+  out.strokes = listIn(saved.strokes, 200)
+    .filter((k) => isObj(k) && Array.isArray(k.points))
+    .map((k) => ({ color: hexIn(k.color) || "#ffffff", points: k.points.filter((pt) => Array.isArray(pt) && pt.slice(0, 2).every(Number.isFinite)).map(([x, y]) => [x, y]) })) // 盤の外まで引いた線もそのまま
+    .filter((k) => k.points.length > 1);
+  out.ball = isObj(saved.ball) ? { x: posIn(saved.ball.x), y: posIn(saved.ball.y) } : { ...base.ball };
+  out.ourColor = hexIn(saved.ourColor) || base.ourColor;
+  out.oppColor = hexIn(saved.oppColor) || base.oppColor;
+  out.penColor = PEN_COLORS.includes(saved.penColor) ? saved.penColor : base.penColor;
+  out.mode = saved.mode === "futsal" ? "futsal" : "soccer";
+  if (!parseFormation(out.formation).length) out.formation = out.mode === "futsal" ? "1-2-1" : base.formation;
+  if (!parseFormation(out.oppFormation).length) out.oppFormation = base.oppFormation;
+  out.scoreUs = scoreIn(saved.scoreUs) || 0;
+  out.scoreThem = scoreIn(saved.scoreThem) || 0;
+  ["halfUs", "halfThem", "secondUs", "secondThem", "extraUs", "extraThem", "pkUs", "pkThem"].forEach((k) => (out[k] = scoreIn(saved[k])));
+  return out;
+}
+
+// 保存した作戦（soccer:tactics）：[{ id, name, savedAt, board: 盤の中身 }]。盤の中身も state と同じに確かめる
+const TACTIC_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "oppLineShapes", "players", "opp", "ball", "showOpp", "oppLayout", "showBall", "strokes"];
+function tacticsIn(list) {
+  return listIn(list, 100)
+    .filter((t) => isObj(t) && isObj(t.board))
+    .map((t, i) => {
+      const board = cleanSaved(t.board, STATE_BASE);
+      return {
+        id: textIn(t.id, 40) || `t${i}`,
+        name: textIn(t.name, 20) || "作戦",
+        savedAt: Number(t.savedAt) || 0,
+        board: Object.fromEntries(TACTIC_KEYS.filter((k) => k in board).map((k) => [k, board[k]]))
+      };
+    });
 }
 
 // ---- 状態（この端末に残す） ----
@@ -315,8 +413,7 @@ const save = (key, value) => {
   }
 };
 
-const state = Object.assign(
-  {
+const STATE_BASE = {
     court: "soccer11",
     mode: "soccer",
     formation: "4-4-2",
@@ -353,12 +450,8 @@ const state = Object.assign(
     oppColor: "#ffffff",
     goals: [],
     resultNote: ""
-  },
-  (() => {
-    const saved = load(STORE_KEY, {});
-    return saved && typeof saved === "object" && !Array.isArray(saved) && (saved.players === undefined || Array.isArray(saved.players)) ? saved : {};
-  })()
-);
+};
+const state = Object.assign(JSON.parse(JSON.stringify(STATE_BASE)), cleanSaved(load(STORE_KEY, {}), STATE_BASE));
 let drawing = false; // ペンで描くモード（作戦盤の線）
 // コートの向き：データ（選手・ボールの位置、線）はいつも縦のコートの % で持つ。
 // 横のコートのときは、描くときとさわるときだけ 90° 回す（自陣が左、攻める向きが右）。
@@ -376,7 +469,7 @@ let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメ�
 let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
-const BOARD_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "oppLineShapes", "players", "opp", "ball", "showOpp", "oppLayout", "showBall", "strokes", "ourColor", "oppColor"];
+const BOARD_KEYS = [...TACTIC_KEYS, "ourColor", "oppColor"]; // 作戦の保存に入れるもの ＋ チームの色
 const undoStack = [];
 function remember() {
   undoStack.push(JSON.stringify(Object.fromEntries(BOARD_KEYS.map((k) => [k, state[k]]))));
@@ -406,19 +499,6 @@ delete state.mvp;
 delete state.tab;
 if (!courtDef(state.court) || courtDef(state.court).id !== state.court || courtDef(state.court).mode !== state.mode) state.court = courtOf(state.mode, state.formation, state.players.length);
 
-// リンク（?data=）の中身は外から来たもの。形・長さ・数・位置の範囲を確かめてから使う
-// （長さは入力欄と同じか少し多め。前の版のリンクも開けるように）
-const LINK_LIMIT = { number: 4, name: 20, team: 20, note: 200, goals: 40, min: 6, strokes: 60, points: 400 };
-const textIn = (v, max) => (typeof v === "string" || typeof v === "number" ? [...String(v)].slice(0, max).join("") : "");
-const posIn = (v) => {
-  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
-  return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 50;
-};
-const listIn = (v, max) => (Array.isArray(v) ? v.slice(0, max) : []);
-// 点（空はそのまま空。数でなければ 0。0〜99）
-const scoreIn = (v) => (v === "" || v === null || v === undefined ? "" : Math.min(99, Math.max(0, Math.floor(Number(v)) || 0)));
-const hexIn = (v) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : "");
-const formationIn = (v, count) => (typeof v === "string" && fieldCount(v) === count - 1 ? v : "");
 
 // おくるんの「さくせん盤で直す」から戻ってきたとき
 let openResultOnLoad = false;
