@@ -24,6 +24,7 @@ async function saveTactic() {
   saveTactics();
   input.value = "";
   renderTactics();
+  LineShareUI.toast(seasonal(`「${name}」を保存しました`));
 }
 
 function openTactic(entry) {

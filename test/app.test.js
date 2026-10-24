@@ -107,3 +107,13 @@ test("角を丸められない古いブラウザでも、画像を描くとこ�
   assert.equal(typeof ctx2d.roundRect, "function");
   assert.doesNotThrow(() => ctx2d.roundRect(0, 0, 10, 10, 3));
 });
+
+test("作戦を保存したら「保存しました」。季節の絵文字がつくことがある（QSeason がなくても動く）", async () => {
+  const { run, toasts } = boot();
+  run(`$("tacticName").value = "CK";`);
+  await run("saveTactic()");
+  assert.equal(toasts.at(-1), "「CK」を保存しました");
+  run(`window.QSeason = { decorate: (t) => t + " 🎃" }; $("tacticName").value = "FK";`);
+  await run("saveTactic()");
+  assert.equal(toasts.at(-1), "「FK」を保存しました 🎃");
+});

@@ -7,6 +7,15 @@ const LINK_MAX = 1000; // LINE のリンクは 1000 文字まで
 const STORE_KEY = "soccer:state";
 const ROSTER_KEY = "soccer:roster";
 const $ = (id) => document.getElementById(id);
+// 季節の絵文字（Q キットの season.js。tool-share.js があとから読む）を、うれしい瞬間の短い文にときどき足す。
+// なくても・止まっても、文はそのまま
+const seasonal = (text) => {
+  try {
+    return window.QSeason ? window.QSeason.decorate(text) : text;
+  } catch {
+    return text;
+  }
+};
 // 角の丸い四角（roundRect）がない古いブラウザ（iOS 15 まで）でも、画像・盤を描けるように足す
 function addRoundRect(Ctx) {
   if (!Ctx?.prototype || Ctx.prototype.roundRect) return;
