@@ -67,7 +67,7 @@ def main():
     # キャッチコピー（おくるんの「つくって、おくるん」と同じ役目）と、その下に小さく説明
     d.text((x, 412 * S), "描いて、伝えて、勝ちにいこう", font=hira(8, 46), fill=(255, 255, 255), anchor="ls")
     d.text((x, 474 * S), "スタメン・作戦・試合結果を", font=hira(6, 30), fill=(255, 255, 255, 215), anchor="ls")
-    d.text((x, 518 * S), "LINE にカードで送れる", font=hira(6, 30), fill=(255, 255, 255, 215), anchor="ls")
+    d.text((x, 518 * S), "カードで送れる", font=hira(6, 30), fill=(255, 255, 255, 215), anchor="ls")
 
     img.resize((W, H), Image.LANCZOS).convert("RGB").save(OUT, optimize=True)
     print(f"{OUT.name} を書き出しました")

@@ -1,7 +1,7 @@
 {
   "name": "さくせん盤",
   "short_name": "さくせん盤",
-  "description": "サッカー・フットサルのスタメン・作戦・試合結果を、LINE にカードで送れるツール（SAQSEN）",
+  "description": "サッカー・フットサルのスタメン・作戦・試合結果を、カードで送れるツール（SAQSEN）",
   "lang": "ja",
   "start_url": "./",
   "scope": "./",
