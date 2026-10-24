@@ -128,3 +128,11 @@ test("ペンの色は、どれも読み上げの名前がある", () => {
   const { run } = boot();
   assert.ok(run("PEN_COLORS.every((c) => PEN_COLOR_NAMES[c])"));
 });
+
+// 送るボタンの緑とおくるんのマークは Q キット（ui.css の line・is-oqrn）にまかせる。自前で上書きしない
+test("送るボタンの見た目を、自前の CSS で上書きしない", () => {
+  const css = fs.readFileSync(path.join(__dirname, "../style.css"), "utf8");
+  assert.ok(!/\.ls-button\.line\b/.test(css));
+  const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  assert.ok(!/💬/.test(html));
+});

@@ -6,7 +6,6 @@
   --ink: #23302a;
   --ink-soft: #5c6b62;
   --border: #dbe7df;
-  --line-green: #06c755;
   --card: #ffffff;
   --soft: #eaf4ed; /* うすい緑（道具のボタン・切りかえ） */
   --soft-2: #f3f5f4; /* うすい灰（閉じる・交代の一覧） */
@@ -123,7 +122,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .actions { display: grid; gap: 8px; }
 /* ボタンは Q キット（ls-button）。押しやすいよう大きめ */
 .ls-button { min-height: 52px; padding: 12px; font-size: 16px; font-weight: 800; }
-.ls-button.line { border-color: var(--line-green); background: var(--line-green); color: #fff; box-shadow: 0 6px 16px rgba(6, 199, 85, 0.25); }
 .ls-button.small { min-height: 42px; font-size: 14px; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 
