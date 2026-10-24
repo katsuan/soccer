@@ -159,7 +159,7 @@ function render() {
       });
       b.classList.add("color");
       b.style.background = color;
-      b.setAttribute("aria-label", "ペンの色");
+      b.setAttribute("aria-label", `ペンの色：${PEN_COLOR_NAMES[color]}`);
       return b;
     })
   );
@@ -281,9 +281,13 @@ function renderTeamColors() {
   const side = sides.find((s) => s.key === colorOpen);
   palette.hidden = !side;
   if (!side) return palette.replaceChildren();
-  const { key, title, other } = side;
-  palette.dataset.for = key; // しっぽが押したチームの丸を指す（style.css）
-  palette.setAttribute("aria-label", `${title}の色`);
+  palette.dataset.for = side.key; // しっぽが押したチームの丸を指す（style.css）
+  palette.setAttribute("aria-label", `${side.title}の色`);
+  palette.replaceChildren(...paletteItems(side));
+}
+
+// パレットの中身：決まった色（もう片方のチームと同じ色は、薄くして斜めの線。並びは変えない）とカスタム
+function paletteItems({ key, title, other }) {
   const pick = (hex, close) => {
     remember();
     state[key] = hex;
@@ -293,36 +297,31 @@ function renderTeamColors() {
   };
   const current = String(state[key]).toLowerCase();
   const isPreset = TEAM_COLORS.some((c) => c.hex === current);
-  // もう片方のチームと同じ色も選べるが、見分けにくいので薄くして斜めの線（並びは変えない）
   const otherHex = String(key === "ourColor" ? state.oppColor : state.ourColor).toLowerCase();
+  const swatch = (className) => Object.assign(document.createElement("span"), { className: `swatch${className ? ` ${className}` : ""}` });
   const buttons = TEAM_COLORS.map((c) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "palette-item";
-    b.setAttribute("aria-pressed", String(current === c.hex));
     const taken = c.hex === otherHex;
+    const b = Object.assign(document.createElement("button"), { type: "button", className: "palette-item" });
+    b.setAttribute("aria-pressed", String(current === c.hex));
     b.setAttribute("aria-label", `${title}：${c.label}` + (taken ? `（${other}と同じ色）` : ""));
-    const sw = document.createElement("span");
-    sw.className = "swatch" + (taken ? " is-taken" : "");
+    const sw = swatch(taken ? "is-taken" : "");
     sw.style.background = c.hex;
     b.append(sw);
     b.onpointerdown = (e) => e.preventDefault(); // チーム名を入れているときは、キーボードを出したまま色を選べるように
     b.onclick = () => pick(c.hex, true);
     return b;
   });
-  // カスタム：自由な色（虹色の輪。選んでいる間は、まんなかをその色で塗る）
-  const custom = document.createElement("label");
-  custom.className = "palette-item";
+  // カスタム：自由な色（虹色の輪。選んでいる間は、まんなかをその色で塗る）。選んでもパレットは開いたまま
+  const custom = Object.assign(document.createElement("label"), { className: "palette-item" });
   custom.setAttribute("aria-pressed", String(!isPreset));
-  const sw = document.createElement("span");
-  sw.className = "swatch is-custom";
+  const sw = swatch("is-custom");
   if (!isPreset) sw.style.setProperty("--c", current);
   const input = Object.assign(document.createElement("input"), { type: "color", value: /^#[0-9a-f]{6}$/.test(current) ? current : "#ffffff" });
   input.setAttribute("aria-label", `${title}のカスタムの色`);
   input.addEventListener("change", () => pick(input.value, false));
   sw.append(input);
   custom.append(sw);
-  palette.replaceChildren(...buttons, custom);
+  return [...buttons, custom];
 }
 
 function chip(text, pressed, onClick, role) {

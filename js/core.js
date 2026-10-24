@@ -55,6 +55,7 @@ const courtOf = (mode, f, count) =>
   (FORMATION_GROUPS.find((g) => g.mode === mode && g.list.includes(f)) || FORMATION_GROUPS.find((g) => g.id === (mode === "futsal" ? "futsal" : count <= 8 ? "soccer8" : "soccer11"))).id;
 const courtDef = (id) => FORMATION_GROUPS.find((g) => g.id === id) || FORMATION_GROUPS[0];
 const PEN_COLORS = ["#ffffff", "#ffd23f", "#ff5a5f", "#38bdf8"];
+const PEN_COLOR_NAMES = { "#ffffff": "白", "#ffd23f": "黄", "#ff5a5f": "赤", "#38bdf8": "水色" }; // 読み上げ用
 // チームの色（自チーム・相手で選ぶ）。明るい色の丸は背番号を濃い色にする
 // 横いっぱいの1行に収まるだけの8色。最後に「カスタム」（自由な色）。ろくがのアプリ版（TeamColors.presets）と同じ色・同じ並び
 // （はじめの3色 緑・黄・白 は前からの色。白は相手の最初の色）。色の名前は画面に出さず、読み上げだけに使う

@@ -117,3 +117,14 @@ test("作戦を保存したら「保存しました」。季節の絵文字が�
   await run("saveTactic()");
   assert.equal(toasts.at(-1), "「FK」を保存しました 🎃");
 });
+
+test("チームの色のパレット：8色とカスタム。開いた・たたんだでも止まらない", () => {
+  const { run } = boot();
+  assert.equal(run("paletteItems(TEAM_COLOR_SIDES[1]).length"), 9);
+  assert.doesNotThrow(() => run("colorOpen = 'oppColor'; renderTeamColors(); colorOpen = null; renderTeamColors();"));
+});
+
+test("ペンの色は、どれも読み上げの名前がある", () => {
+  const { run } = boot();
+  assert.ok(run("PEN_COLORS.every((c) => PEN_COLOR_NAMES[c])"));
+});
