@@ -1,5 +1,5 @@
 // さくせん盤：操作（ボタン・入力）
-// ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
+// ファイルは index.html に書いた順（page → formation → marks → store → link → board → ink → tactics → sheets → card → image → events → app.js）に読み、同じ範囲の変数（state など）を使う
 "use strict";
 
 // ---- 操作 ----

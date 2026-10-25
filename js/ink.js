@@ -1,5 +1,5 @@
 // さくせん盤：ペン（作戦盤の線。位置は % で持つ）
-// ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
+// ファイルは index.html に書いた順（page → formation → marks → store → link → board → ink → tactics → sheets → card → image → events → app.js）に読み、同じ範囲の変数（state など）を使う
 "use strict";
 
 // ---- ペン（作戦盤の線。位置は % で持つ） ----

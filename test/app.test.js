@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-const FILES = ["js/core.js", "js/board.js", "js/ink.js", "js/tactics.js", "js/sheets.js", "js/share.js", "js/events.js", "app.js"];
+const FILES = ["js/page.js", "js/formation.js", "js/marks.js", "js/store.js", "js/link.js", "js/board.js", "js/ink.js", "js/tactics.js", "js/sheets.js", "js/card.js", "js/image.js", "js/events.js", "app.js"];
 
 // どんな使い方をしても止まらない、まねの部品（書いた値は覚える）
 function fakeEl() {
@@ -153,4 +153,18 @@ test("試合の日の天気（そらくる）：場所と日にちがあると�
   assert.equal(run(`weatherUrl(${now})`), "");
   run('state.whenDate = "2026-10-25"; state.whenTime = "";');
   assert.ok(run(`weatherUrl(${now})`).includes("date=2026-10-25"));
+});
+
+// ファイルの名前の決まり（q-oqrn/docs/structure.md）：入口は app.js、部品は js/ に役わりの名前。
+// 前の名前（js/core.js・js/share.js）は、前の index.html を覚えているブラウザのために、新しいファイルを読むだけ
+test("index.html は新しい名前のファイルを読み、前の名前のファイルは新しいファイルを読むだけ", () => {
+  const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
+  const scripts = [...html.matchAll(/<script src="((?:js\/)?[a-z-]+\.js)\?v=(\d+)"/g)];
+  assert.deepEqual(scripts.map((m) => m[1]), FILES);
+  const version = scripts[0][2];
+  for (const [old, next] of [["js/core.js", ["page", "formation", "marks", "store", "link"]], ["js/share.js", ["card", "image"]]]) {
+    const stub = fs.readFileSync(path.join(__dirname, "..", old), "utf8");
+    assert.match(stub, new RegExp(`\\[${next.map((n) => `"${n}"`).join(", ")}\\]`), old);
+    assert.match(stub, new RegExp(`\\?v=${version}"`), `${old} の ?v= が index.html とちがう`);
+  }
 });

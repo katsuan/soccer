@@ -1,5 +1,5 @@
 // さくせん盤：選手のポップアップ（長押し）・結果の得点
-// ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
+// ファイルは index.html に書いた順（page → formation → marks → store → link → board → ink → tactics → sheets → card → image → events → app.js）に読み、同じ範囲の変数（state など）を使う
 "use strict";
 
 // ---- 選手の名簿 ----

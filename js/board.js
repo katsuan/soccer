@@ -1,6 +1,25 @@
 // さくせん盤：画面：ピッチの描き直し・相手・選手のこま・ドラッグ・範囲選択
-// ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
+// ファイルは index.html に書いた順（page → formation → marks → store → link → board → ink → tactics → sheets → card → image → events → app.js）に読み、同じ範囲の変数（state など）を使う
 "use strict";
+
+// ---- 画面の状態（端末には残さない） ----
+let drawing = false; // ペンで描くモード（作戦盤の線）
+// コートの向き：データ（選手・ボールの位置、線）はいつも縦のコートの % で持つ。
+// 横のコートのときは、描くときとさわるときだけ 90° 回す（自陣が左、攻める向きが右）。
+// state.courtView："auto"（横に広い画面なら横）・"portrait"（縦）・"landscape"（横）
+let landscape = false;
+const toView = (x, y) => (landscape ? [100 - y, x] : [x, y]);
+const fromView = (vx, vy) => (landscape ? [vy, 100 - vx] : [vx, vy]);
+const wideScreen = () => window.matchMedia("(min-aspect-ratio: 5/4) and (min-width: 600px)").matches;
+function updateLandscape() {
+  landscape = state.courtView === "landscape" || ((state.courtView || "auto") === "auto" && wideScreen());
+  return landscape;
+}
+let viewMode = false; // 👁️ 表示：盤の下に、相手・ボール・選手名を出すかの欄を出す
+let shapeMode = false; // 📐 並び：盤のすぐ下に人数・フォーメーション・列ごとの形を出す
+let colorOpen = null; // チームの色のパレットを開いているチーム（"ourColor"・"oppColor"。一度に片方だけ。null はたたむ）
+let pressingPalette = false; // パレットを押しはじめた（チーム名の欄から指が移っても、パレットをたたまない）
+let shapeSide = "ours"; // 📐 並びのタブ（"ours"＝自チーム・"opp"＝相手）
 
 // ---- 画面 ----
 const board = $("board");

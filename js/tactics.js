@@ -1,5 +1,5 @@
 // さくせん盤：作戦の保存（場面ごとの配置と線）・よく使う会場の保存（どちらもこの端末に残す）
-// ファイルは index.html に書いた順（core → board → ink → tactics → sheets → share → events → app.js）に読み、同じ範囲の変数（state など）を使う
+// ファイルは index.html に書いた順（page → formation → marks → store → link → board → ink → tactics → sheets → card → image → events → app.js）に読み、同じ範囲の変数（state など）を使う
 "use strict";
 
 // ---- 作戦の保存（場面ごとの配置と線。チームの色は含めない。この端末に残す） ----

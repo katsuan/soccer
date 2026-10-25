@@ -6,10 +6,10 @@ const path = require("node:path");
 const vm = require("node:vm");
 const XSS = "<img src=x onerror=alert(1)>"; // qcheck-ok: W8 テストの見本の文字（画面では動かさない）
 
-const code = fs.readFileSync(path.join(__dirname, "../js/core.js"), "utf8");
+const code = ["page", "formation", "marks", "store", "link"].map((f) => fs.readFileSync(path.join(__dirname, `../js/${f}.js`), "utf8")).join("\n");
 const b64 = (v) => Buffer.from(JSON.stringify(v), "utf8").toString("base64url");
 
-// 端末の中身と URL を決めて core.js を読む
+// 端末の中身と URL を決めて、state とリンクを読むところ（js/page.js〜link.js）を読む
 function boot({ store = {}, search = "" } = {}) {
   const mem = { ...store };
   const ctx = vm.createContext({
