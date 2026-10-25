@@ -16,6 +16,7 @@
 //   app.js          入口：はじめに動かす
 "use strict";
 
+// id から画面の部品を返す
 const $ = (id) => document.getElementById(id);
 // 季節の絵文字（Q キットの season.js。tool-share.js があとから読む）を、うれしい瞬間の短い文にときどき足す。
 // なくても・止まっても、文はそのまま
@@ -56,11 +57,14 @@ const TEAM_COLORS = [
   { label: "オレンジ", hex: "#ff8a1f" },
   { label: "黒", hex: "#222222" }
 ];
+// 色から色の名前（緑・黄…、決まった色でなければ「カスタム」）を返す。読み上げに使う
 const teamColorName = (hex) => (TEAM_COLORS.find((c) => c.hex === String(hex).toLowerCase()) || { label: "カスタム" }).label;
+// 明るい色か（白いユニフォームなど）を返す
 const isLight = (hex) => {
   const n = parseInt(String(hex).slice(1), 16);
   return ((n >> 16) & 255) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114 > 170;
 };
+// 色の上にのせる字の色（明るい色なら濃い緑、暗い色なら白）を返す
 const inkOn = (hex) => (isLight(hex) ? "#23302a" : "#ffffff");
 // おくるんのカードの見出しの帯に使う色：さくせん盤の緑（チームの色ではなく、ツールの色にそろえる）
 const cardColor = () => "#2e8b4a";

@@ -12,6 +12,7 @@ async function boardCanvas() {
   const head = title ? 120 : whenText() ? 76 : 0;
   const canvas = Object.assign(document.createElement("canvas"), { width: W, height: H + head });
   const ctx = canvas.getContext("2d");
+  // 画像の字の形（太さと大きさ）を返す
   const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H + head);
@@ -34,11 +35,13 @@ async function boardCanvas() {
   ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = "rgba(255,255,255,0.67)";
   ctx.lineWidth = 5;
+  // コートの線の四角を描く（位置と大きさは %）
   const rect = (x, y, w, h) => ctx.strokeRect((x / 100) * W, (y / 100) * H, (w / 100) * W, (h / 100) * H);
   rect(5, 4, 90, 92);
   if (state.mode === "futsal") {
     // ゴール前のエリア（D形）：幅70%・奥行き15%。両端が丸い形の半分（おくるんのカードと同じ形）
     const d = 0.15 * H;
+    // ペナルティエリアの弧（D）を描く（top は上のゴールか）
     const dArea = (top) => {
       ctx.save();
       ctx.beginPath();
@@ -63,6 +66,7 @@ async function boardCanvas() {
   ctx.arc(W / 2, H / 2, W * (state.mode === "futsal" ? 0.09 : 0.11), 0, Math.PI * 2);
   ctx.stroke();
   for (const stroke of state.strokes) drawStroke(ctx, stroke, W, H, 8);
+  // こま1つ（丸・背番号・GK の 🧤・名前）を画像に描く
   const drawToken = (p, fill, text, numberColor = "#ffffff", keeper = false) => {
     const x = (p.x / 100) * W;
     const y = (p.y / 100) * H;
@@ -202,6 +206,7 @@ function redBall(icon, width) {
 
 // 盤の上で使う赤いボールの絵（data URL。1回作って使い回す）
 let redBallUrl = "";
+// 盤の上で使う赤いボール（オウンゴール）の絵の data URL を返す（1回作って使い回す）
 function redBallDataUrl() {
   if (!redBallUrl) {
     const probe = document.createElement("canvas").getContext("2d");
@@ -213,6 +218,7 @@ function redBallDataUrl() {
 
 // 作っているあいだにもう一度押されても、画面は1つだけ
 let savingImage = false;
+// 📷 画像で保存：作戦盤の画像を作り、保存・共有の画面を出す（作れない端末では知らせる）
 async function saveBoardImage() {
   if (savingImage) return;
   savingImage = true;
@@ -225,6 +231,7 @@ async function saveBoardImage() {
     savingImage = false;
   }
 }
+// 画像の保存・共有の画面（長押しで保存・共有・ダウンロード）を出す
 function showImageSheet(blob) {
   const url = URL.createObjectURL(blob);
   const file = new File([blob], "作戦盤.png", { type: "image/png" });
@@ -239,6 +246,7 @@ function showImageSheet(blob) {
     actions.append(share);
   }
   actions.append(Object.assign(document.createElement("a"), { className: "ls-button is-block", href: url, download: file.name, textContent: "⬇️ ダウンロード" }));
+  // 画像の画面を閉じる（画像の中身も手放す）
   const close = () => {
     sheet.remove();
     URL.revokeObjectURL(url);

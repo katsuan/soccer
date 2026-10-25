@@ -26,6 +26,7 @@ const setShowBall = (on) => {
 };
 $("ballOn").addEventListener("click", () => setShowBall(true));
 $("ballOff").addEventListener("click", () => setShowBall(false));
+// 盤・画像・リンクに選手の名前を出すかを切りかえる
 const setShowNames = (on) => {
   state.showNames = on;
   render();
@@ -80,6 +81,7 @@ $("oppLayoutNone").addEventListener("click", () => {
   setShowOpp(false);
   render();
 });
+// 相手の並べ方（フルコート・コート別）を選ぶ。相手を出していなければ、その並べ方で出す
 const showOppAs = (layout) => {
   if (state.showOpp) return setOppLayout(layout);
   remember();
@@ -267,6 +269,7 @@ document.querySelectorAll("[data-score]").forEach((b) =>
     render();
   })
 );
+// 得点者の欄に1行足す（side は "u"＝自チーム・"t"＝相手）。「元に戻す」で消せる
 const addGoal = (side) => {
   const before = [...state.goals];
   state.goals.push({ side, min: "", name: "" });

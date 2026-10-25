@@ -26,6 +26,7 @@ let quickEditing = false; // 背番号・名前を入れているところ
 let quickSubbing = false; // 交代を入れているところ
 let quickRemembered = false; // 背番号・名前は、開いている間に1回だけ「戻す」に残す
 
+// 自チームの選手のメニュー（背番号・名前・印・交代）を描きなおす
 function renderQuickMarks() {
   const p = state.players[quickIndex];
   if (!p) return closeQuickMarks();
@@ -125,6 +126,7 @@ function stepMark(p, key, max, next) {
 // team は "u"＝自チーム・"t"＝相手（紅白戦などで相手にも名前を付ける）
 function quickEditRows(p, team = "u") {
   const label = team === "t" ? oppLabel : playerLabel;
+  // メニューで変えたとき：はじめの1回だけ「戻す」の印をとり、描きなおす
   const change = () => {
     if (!quickRemembered) remember();
     quickRemembered = true;
@@ -166,6 +168,7 @@ function quickEditRows(p, team = "u") {
 // ---- 交代 ----
 // 呼び名：自チームは「たなか」か「10番」、相手は「ジョン」か「相手10番」（得点者の名前と同じ）
 const subLabel = (number, name, team = "u") => name || (number ? (team === "t" ? `相手${number}番` : `${number}番`) : "");
+// 開いているメニュー（自チームか相手）を描きなおす
 const rerenderQuick = (team) => (team === "t" ? renderOppQuick() : renderQuickMarks());
 
 // これまでの交代（「🔄 60' たなか → すずき」）と、出た選手の記録（得点は得点者から、カード・アシストは残した印から）。最後の交代は元に戻せる
@@ -176,6 +179,7 @@ function subHistoryEl(p, team = "u") {
     // 出た選手の記録：得点（⚽・⚽2）・オウンゴール（OG・OG2）は得点者から、カード・アシストは残した印から
     const goals = state.goals.filter((g) => g.side === team && g.name === out).length;
     const ogs = state.goals.filter((g) => g.side !== team && g.name === `${out}（OG）`).length;
+    // 印の数の文字（「⚽2」など。0 なら ""）を返す
     const count = (icon, n) => (n ? `${icon}${n > 1 ? n : ""}` : "");
     const record = [count("⚽", goals), count("OG", ogs), markText(s.outMarks)].filter(Boolean).join(" ");
     box.append(Object.assign(document.createElement("p"), { textContent: `🔄 ${s.min ? `${s.min}' ` : ""}${out} → ${subLabel(s.inNumber, s.inName, team)}${record ? `（${out}：${record}）` : ""}` }));
@@ -254,6 +258,7 @@ function subFormEl(p, team = "u") {
   return form;
 }
 
+// 自チームの選手のメニューを、そのこまの近くに開く
 function openQuickMarks(index, el) {
   quickIndex = index;
   quickEditing = false;
@@ -270,6 +275,7 @@ let oppQuickIndex = -1;
 let oppSubbing = false; // 相手の交代を入れているところ
 let oppEditing = false; // 相手の背番号・名前を入れているところ
 
+// 相手の選手のメニュー（背番号・名前・印・交代）を描きなおす
 function renderOppQuick() {
   const p = (state.opp || [])[oppQuickIndex];
   if (!p) return closeQuickMarks();
@@ -311,6 +317,7 @@ function renderOppQuick() {
     return;
   }
   const goalOf = { g: { side: "t", goalName: name }, o: { side: "u", goalName: `${name}（OG）` } };
+  // 印（ゴール・カードなど）を1つふやす・へらす（ゴール・OG は得点者に足す・消す）
   const step = (key, max, n, next) => {
     if (goalOf[key]) {
       const { side, goalName } = goalOf[key];
@@ -351,6 +358,7 @@ function renderOppQuick() {
   $("quickMarks").replaceChildren(...top, grid, note);
 }
 
+// 相手の選手のメニューを、そのこまの近くに開く
 function openOppQuick(index, el) {
   oppQuickIndex = index;
   oppSubbing = false;
@@ -363,6 +371,7 @@ function openOppQuick(index, el) {
 // ポップアップを丸の下（入らなければ上）に、画面からはみ出さないように置く
 let quickAnchor = ""; // ポップアップを出した丸（data-key）。描き直しても、その丸のそばに置き直す
 
+// メニューを出して、こまの近くに置く
 function placeQuick(el) {
   quickAnchor = el.dataset.key || "";
   $("quickMarks").hidden = false;
@@ -389,12 +398,14 @@ function positionQuick() {
     const below = r.top + 36;
     top = below + h + 8 <= view.top + view.height ? below : r.top - h - 4;
   }
+  // v を min〜max におさめる
   const clamp = (v, min, max) => Math.min(Math.max(v, min), Math.max(min, max));
   menu.style.left = `${clamp(left, view.left + 8, view.left + view.width - w - 8)}px`;
   menu.style.top = `${clamp(top, view.top + 8, view.top + view.height - h - 8)}px`;
 }
 // 中身が変わったとき（入力欄・交代の欄を開いたなど）、画面が動いたとき、キーボードが出た・閉じたときに置き直す
 let positionTimer = 0;
+// 少し待ってから、メニューの位置をこまに合わせなおす（続けて呼ばれても1回だけ）
 const schedulePosition = () => {
   clearTimeout(positionTimer);
   positionTimer = setTimeout(positionQuick, 16);
@@ -412,6 +423,7 @@ window.visualViewport?.addEventListener("scroll", schedulePosition);
   })
 );
 
+// 選手のメニューを閉じる
 function closeQuickMarks() {
   quickAnchor = "";
   quickIndex = -1;
@@ -438,6 +450,7 @@ function syncScore(before) {
   });
 }
 
+// 試合結果の得点者の欄（分・名前・消す）を描きなおす
 function renderGoals() {
   $("goals").replaceChildren(
     ...state.goals.map((g, i) => {

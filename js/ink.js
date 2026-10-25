@@ -14,6 +14,7 @@ function drawInk() {
   for (const stroke of state.strokes) drawStroke(ctx, { ...stroke, points: stroke.points.map(([x, y]) => toView(x, y)) }, rect.width, rect.height, 3);
 }
 
+// 線を1本描く（点を曲線でなめらかにつなぐ）。w・h は描く大きさ、width は線の太さ
 function drawStroke(ctx, stroke, w, h, width) {
   const pts = stroke.points.map(([x, y]) => [(x / 100) * w, (y / 100) * h]);
   if (pts.length < 2) return;
@@ -36,6 +37,7 @@ function drawStroke(ctx, stroke, w, h, width) {
 // 線の点を max 個以下に減らす。曲がり角を残すように、元の線から離れた点を優先して残す（Douglas–Peucker）
 function simplifyPoints(points, max) {
   if (points.length <= max) return points;
+  // 点をへらす（まっすぐな所の点を間引く。ダグラス・ポーカー法）
   const rdp = (pts, eps) => {
     if (pts.length < 3) return pts;
     const [ax, ay] = pts[0];
@@ -75,10 +77,12 @@ ink.addEventListener("pointerdown", (event) => {
   remember();
   const stroke = { color: state.penColor, points: [point(event)] };
   state.strokes.push(stroke);
+  // ペンで描いているあいだ、点を足して描きなおす
   const onMove = (e) => {
     stroke.points.push(point(e));
     drawInk();
   };
+  // ペンをはなしたら線を決める（点が1つだけなら捨てる）
   const onUp = () => {
     ink.removeEventListener("pointermove", onMove);
     ink.removeEventListener("pointerup", onUp);

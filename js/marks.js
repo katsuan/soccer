@@ -24,6 +24,7 @@ function markParts(marks) {
 const markText = (marks) => markParts(marks).map((part) => part.icon.repeat(part.count) + (part.label || "")).join("");
 // リンクに入れる短い形（「y1g2」）と、その読み戻し
 const encodeMarks = (marks) => MARKS.map(({ key }) => (Number(marks?.[key]) > 0 ? `${key}${Math.floor(Number(marks[key]))}` : "")).join("");
+// リンクの短い形（「y1g2」）から印（{ y: 1, g: 2 }）にもどす。印がなければ undefined
 function decodeMarks(text) {
   const marks = {};
   for (const [, key, n] of String(text || "").matchAll(/([yrgao])(\d+)/g)) {
@@ -37,6 +38,7 @@ function decodeMarks(text) {
 // 相手のこまの印は、イエロー・レッド・アシストは相手の選手の印（p.marks）、ゴール・OG は得点者から数える
 // 相手の呼び名：名前を入れていれば名前（得点者の欄で名前を書き換えると、相手のこまにも入る）、なければ「相手10番」
 const oppLabel = (p) => p.name || `相手${p.number || ""}番`;
+// 相手の選手の印を返す（イエロー・レッド・アシストは選手の印、ゴール・OG は得点者から数える）
 function oppMarksOf(p) {
   const name = oppLabel(p);
   const g = state.goals.filter((x) => x.side === "t" && x.name === name).length;
@@ -49,6 +51,7 @@ const anyCardMarks = () => [...state.players, ...(state.opp || [])].some((p) => 
 // 自チームの選手のゴール・OG も、試合結果の得点者から数える（得点者が正。長押しで足すと得点者に入り、− で消える）。
 // 選手の印 p.marks に持つのは、イエロー・レッド・アシストだけ
 const GOAL_KEYS = ["g", "o"];
+// 自チームの選手のゴール・OG の数を、得点者から数えて返す
 function goalMarksOf(p) {
   const name = playerLabel(p);
   const g = state.goals.filter((x) => x.side === "u" && x.name === name).length;
@@ -94,6 +97,7 @@ function renameGoals(oldName, newName, side = "u") {
 // g は書き換えた得点、oldName は書き換える前の名前。盤にその名前の選手がいなければ、その得点だけ変わる
 function renameScorer(g, oldName) {
   const og = /（OG）$/.test(oldName);
+  // 名前から「（OG）」を外す
   const base = (name) => String(name || "").replace(/（OG）$/, "");
   const from = base(oldName);
   const to = base(g.name);
@@ -120,7 +124,9 @@ function subGoalsOf(p, team = "u") {
 // 交代（結果のカードに「🔄 60' たなか → すずき」）。[[分, 出た選手, 入った選手], ...] を時間の順に
 // 相手の交代は「相手 ジョン」「相手10番」のように、相手とわかる名前にする（相手を出しているときだけ）
 function subsForResult() {
+  // 自チームの選手の呼び名（名前、なければ「7番」）を返す
   const name = (number, n) => n || (number ? `${number}番` : "");
+  // 相手の選手の呼び名（「相手 ジョン」「相手10番」）を返す
   const oppName = (number, n) => (n ? `相手 ${n}` : `相手${number || ""}番`);
   return [
     ...state.players.flatMap((p) => (p.subs || []).map((s) => [s.min || "", name(s.outNumber, s.outName), name(s.inNumber, s.inName)])),
@@ -135,6 +141,7 @@ function marksForResult() {
   const cards = [];
   // 交代で出た選手のカード・アシストも（交代のときに残した印から）
   const outsOf = (list) => list.flatMap((p) => (p.subs || []).filter((s) => s.outMarks).map((s) => ({ number: s.outNumber, name: s.outName, marks: s.outMarks })));
+  // 選手のならび（交代で出た選手もふくむ）のアシスト・カードを、結果に足す
   const add = (list, label) =>
     [...outsOf(list), ...list].forEach((p) => {
       const name = label(p);

@@ -6,7 +6,9 @@
 // スタメン（選手の位置）の中身。おくるんのカードにも、作戦盤を開くリンクにも使う。
 // 👁️ 表示に合わせる：選手名を出さないなら名前を外し、相手を出しているなら相手（op: [[背番号, 名前, x, y], ...]・oc: 相手の色）も入れる
 const roundPos = (v) => Math.round(v); // リンクの位置は整数に（短くするため）
+// スタメン（選手の位置）の中身を返す。おくるんのカードにも、作戦盤を開くリンクにも使う
 const lineupData = () => {
+  // 👁️ 表示に合わせた選手の名前（名前を出さないときは ""）を返す
   const name = (p) => (state.showNames === false ? "" : p.name || "");
   return {
     m: state.mode,
@@ -39,6 +41,7 @@ function boardLinkUrl() {
   // 線は、入る範囲でできるだけ多くの点を残す（1本 24 点 → 16 → 12 → 8 → 5 と減らして試す）。
   // 開いた側では点を曲線でつなぐので、点が少なくてもなめらかに見える
   const linesAt = (max) => state.strokes.map((k) => [k.color, simplifyPoints(k.points, max).flatMap(([x, y]) => [roundPos(x), roundPos(y)])]);
+  // 線を入れた形（1本の点の数は max まで、新しいものから n 本）を返す
   const withLines = (max, n = state.strokes.length) => (n ? { k: linesAt(max).slice(0, n) } : {});
   const BUDGETS = [24, 16, 12, 8, 5];
   const candidates = [
@@ -56,10 +59,12 @@ function boardLinkUrl() {
   return EDITOR_URL;
 }
 
+// スタメンのカードを開くおくるんの URL を返す
 function lineupCardUrl() {
   return OQRN.cardUrl(lineupCardQuery());
 }
 
+// 試合結果のカードを開くおくるんの URL を返す
 function resultCardUrl() {
   return OQRN.cardUrl(resultCardQuery());
 }
@@ -79,6 +84,7 @@ function cardsUrl({ lineup = true, result = false } = {}) {
 
 // 試合結果を入れたか（スコア・得点者・内訳・ひとこと（結果）のどれか）
 function hasResult() {
+  // 欄に何か入っているかを返す（空・null・undefined でない）
   const filled = (v) => v !== "" && v !== null && v !== undefined;
   return Boolean(
     Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length || state.resultNote ||
@@ -104,6 +110,7 @@ function previewCard(q, parts) {
   return card;
 }
 
+// 送る前の見本：スタメンのカード（ミニのピッチ）の部品を作る
 function lineupPreviewEl() {
   const q = lineupCardQuery();
   const pitch = el("div", `cp-pitch${state.mode === "futsal" ? " is-futsal" : ""}`);
@@ -111,6 +118,7 @@ function lineupPreviewEl() {
   // カードに渡すのと同じ中身（相手・名前は 👁️ 表示どおり）で描く
   const data = lineupData();
   pitch.classList.toggle("is-vs", Boolean(data.op)); // 相手も描くときは縦に長く（おくるんのカードと同じ）
+  // ミニのピッチに、チームのこまを並べる
   const team = (list, color) =>
     list.forEach(([number, name, x, y], i) => {
       const t = el("span", "cp-token");
@@ -131,6 +139,7 @@ function lineupPreviewEl() {
   return previewCard(q, [pitch]);
 }
 
+// 送る前の見本：試合結果のカード（勝敗・スコア・得点者）の部品を作る
 function resultPreviewEl() {
   const q = resultCardQuery();
   const us = Number(state.scoreUs) || 0;
@@ -138,7 +147,9 @@ function resultPreviewEl() {
   const pk = state.pkUs !== "" && state.pkThem !== "";
   const win = us > them || (us === them && pk && Number(state.pkUs) > Number(state.pkThem));
   const lose = us < them || (us === them && pk && Number(state.pkUs) < Number(state.pkThem));
+  // 勝ち・負け・引き分けの札を作る
   const badge = (label, cls) => el("span", `cp-badge ${cls}`, label);
+  // チーム1つぶん（名前と得点者）の部品を作る
   const side = (name, mine) => {
     const box = el("div", "cp-team");
     box.append(el("b", "", name));
@@ -173,6 +184,7 @@ function resultPreviewEl() {
   return previewCard(q, parts);
 }
 
+// スタメンのカードの、おくるんへ渡すパラメータを返す
 function lineupCardQuery() {
   const data = lineupData();
   return new URLSearchParams({
@@ -192,7 +204,9 @@ function lineupCardQuery() {
   });
 }
 
+// 試合結果のカードの、おくるんへ渡すパラメータを返す
 function resultCardQuery() {
+  // 点の欄の中身（空はそのまま、数でなければ 0）を返す
   const num = (v) => (v === "" || v === null || v === undefined ? "" : Number(v) || 0);
   const data = {
     t: state.team,
@@ -236,11 +250,13 @@ function resultCardQuery() {
 // その画像を写真にしたお知らせカードをおくるんで開く
 const IMAGE_API = "https://liff-image.onrender.com";
 
+// 🖼️ 作戦を画像で送る：作戦盤の画像を画像サーバーに保存し、その画像のカードをおくるんで開く
 async function sendBoardImage() {
   const button = $("sendBoardImage");
   if (button.disabled) return;
   button.disabled = true;
   $("imageStatus").textContent = "画像を作っています…";
+  // 経過秒数の表示を止める（画像を保存できたら・できなかったら）
   let stop = () => {};
   try {
     const canvas = await boardCanvas();
@@ -266,6 +282,7 @@ async function sendBoardImage() {
   }
 }
 
+// 作戦盤の画像のカードを開くおくるんの URL を返す（画像をタップすると同じ作戦盤が開く）
 function boardImageCardUrl(imageUrl) {
   const q = new URLSearchParams({
     headerTitle: state.showOpp || state.strokes.length ? "作戦盤" : "スタメン発表",
@@ -303,6 +320,7 @@ function weatherUrl(now = new Date()) {
   return `${SORAQRU_URL}?${String(q).replace(/\+/g, "%20")}`;
 }
 
+// 会場情報の「🌤️ 試合の日の天気」（そらくる）を、場所と日にちがあるときだけ出す
 function renderWeatherLink() {
   const url = weatherUrl();
   const link = $("weatherLink");

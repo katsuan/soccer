@@ -8,21 +8,28 @@ const ROSTER_KEY = "soccer:roster";
 // リンク（?data=）の中身は外から来たもの。形・長さ・数・位置の範囲を確かめてから使う
 // （長さは入力欄と同じか少し多め。前の版のリンクも開けるように）
 const LINK_LIMIT = { number: 4, name: 20, team: 20, note: 200, goals: 40, min: 6, strokes: 60, points: 400 };
+// 文字（か数）なら max 字までの文字にして返す。ちがえば ""
 const textIn = (v, max) => (typeof v === "string" || typeof v === "number" ? [...String(v)].slice(0, max).join("") : "");
+// 位置（%）を 0〜100 の数にして返す。数でなければ 50（まんなか）
 const posIn = (v) => {
   const n = typeof v === "number" ? v : typeof v === "string" && v.trim() ? Number(v) : NaN;
   return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : 50;
 };
+// 並びなら max 個までにして返す。ちがえば []
 const listIn = (v, max) => (Array.isArray(v) ? v.slice(0, max) : []);
 // 点（空はそのまま空。数でなければ 0。0〜99）
 const scoreIn = (v) => (v === "" || v === null || v === undefined ? "" : Math.min(99, Math.max(0, Math.floor(Number(v)) || 0)));
+// #rrggbb の色なら小文字にして返す。ちがえば ""
 const hexIn = (v) => (typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : "");
+// 人数（GK をふくむ）に合うフォーメーションの文字ならそのまま返す。ちがえば ""
 const formationIn = (v, count) => (typeof v === "string" && fieldCount(v) === count - 1 ? v : "");
 
 // 端末に残った中身は、前の版・ろくが（チーム名・色だけ書く）・壊れたものもあるので、1つずつ形を確かめてから使う。
 // 形のちがうものは捨てて初めの値に（選手・得点・線は、読めるものだけ残す）
 const isObj = (v) => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+// 印の形を確かめて返す（ない・形がちがえば undefined）
 const marksIn = (v) => (isObj(v) ? decodeMarks(encodeMarks(v)) : undefined);
+// 交代1つ（分・出た選手・入った選手・出た選手の印）の形をそろえて返す
 const subIn = (s) => ({
   min: textIn(s.min, LINK_LIMIT.min),
   outNumber: textIn(s.outNumber, LINK_LIMIT.number),
@@ -31,6 +38,7 @@ const subIn = (s) => ({
   inName: textIn(s.inName, LINK_LIMIT.name),
   ...(marksIn(s.outMarks) ? { outMarks: marksIn(s.outMarks) } : {})
 });
+// こま1つ（背番号・名前・位置・印・交代）の形をそろえて返す
 const pieceIn = (p) => {
   const subs = listIn(p.subs, 40).filter(isObj).map(subIn);
   return {
@@ -42,7 +50,9 @@ const pieceIn = (p) => {
     ...(subs.length ? { subs } : {})
   };
 };
+// こまのならびの、読めるものだけを返す（人数の上限まで）
 const piecesIn = (v) => listIn(v, MAX_PLAYERS).filter(isObj).map(pieceIn);
+// 端末に残った作戦盤（state）を、1つずつ形を確かめた中身にして返す（形のちがうものは初めの値に）
 function cleanSaved(saved, base) {
   if (!isObj(saved)) return {};
   const out = {};
@@ -79,6 +89,7 @@ function cleanSaved(saved, base) {
 
 // 保存した作戦（soccer:tactics）：[{ id, name, savedAt, board: 盤の中身 }]。盤の中身も state と同じに確かめる
 const TACTIC_KEYS = ["court", "mode", "formation", "oppFormation", "lineShapes", "oppLineShapes", "players", "opp", "ball", "showOpp", "oppLayout", "showBall", "strokes"];
+// 保存した作戦の一覧を、形を確かめた中身にして返す
 function tacticsIn(list) {
   return listIn(list, 100)
     .filter((t) => isObj(t) && isObj(t.board))
@@ -101,6 +112,7 @@ const load = (key, fallback) => {
     return fallback;
   }
 };
+// 端末に残す（残せなくても止めない）
 const save = (key, value) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -152,10 +164,12 @@ const state = Object.assign(JSON.parse(JSON.stringify(STATE_BASE)), cleanSaved(l
 // 戻す：作戦盤の変更の前に、そのときの様子を残しておく（この画面を開いている間だけ）
 const BOARD_KEYS = [...TACTIC_KEYS, "ourColor", "oppColor"]; // 作戦の保存に入れるもの ＋ チームの色
 const undoStack = [];
+// 戻すために、いまの作戦盤の様子を覚えておく（変える前に呼ぶ。50 回まで）
 function remember() {
   undoStack.push(JSON.stringify(Object.fromEntries(BOARD_KEYS.map((k) => [k, state[k]]))));
   if (undoStack.length > 50) undoStack.shift();
 }
+// 作戦盤を1つ前の様子にもどす
 function undo() {
   const last = undoStack.pop();
   if (!last) return;
@@ -171,7 +185,9 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(state.whenDate || "")) state.whenDate = "";
 if (!/^\d{2}:\d{2}$/.test(state.whenTime || "")) state.whenTime = "";
 // なくした欄の中身は、ひとことの行へ移す（控え → ひとこと（作戦盤）、MVP → ひとこと（結果））。タブもなくした
 const subsLine = (subs) => (subs ? `控え：${subs}` : "");
+// 前の版の MVP を、ひとこと（結果）の行の形にする
 const mvpLine = (mvp) => (mvp ? `MVP：${mvp}` : "");
+// ひとことの文に、まだ入っていなければ1行足して返す
 const addLine = (text, line) => (line && !String(text || "").includes(line) ? [text, line].filter(Boolean).join("\n") : text || "");
 state.lineupNote = addLine(state.lineupNote, subsLine(state.subs));
 state.resultNote = addLine(state.resultNote, mvpLine(state.mvp));

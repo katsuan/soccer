@@ -8,9 +8,13 @@ let drawing = false; // ペンで描くモード（作戦盤の線）
 // 横のコートのときは、描くときとさわるときだけ 90° 回す（自陣が左、攻める向きが右）。
 // state.courtView："auto"（横に広い画面なら横）・"portrait"（縦）・"landscape"（横）
 let landscape = false;
+// 縦のコートの位置（%）を、いまの向きの画面の位置にする（横のコートなら 90° 回す）
 const toView = (x, y) => (landscape ? [100 - y, x] : [x, y]);
+// 画面の位置を、縦のコートの位置（%）にもどす（toView の逆）
 const fromView = (vx, vy) => (landscape ? [vy, 100 - vx] : [vx, vy]);
+// 横に広い画面（スマホの横向き・パソコン）かを返す
 const wideScreen = () => window.matchMedia("(min-aspect-ratio: 5/4) and (min-width: 600px)").matches;
+// コートを横にするかを、👁️ 表示の向きと画面の形から決めて返す
 function updateLandscape() {
   landscape = state.courtView === "landscape" || ((state.courtView || "auto") === "auto" && wideScreen());
   return landscape;
@@ -26,6 +30,7 @@ const board = $("board");
 const ink = $("ink");
 const tokens = $("tokens");
 
+// 画面をまるごと描きなおす（盤・相手・欄・ボタン）。そのたびに端末に残す
 function render() {
   save(STORE_KEY, state);
   renderWeatherLink(); // 会場情報の「🌤️ 試合の日の天気」（そらくる）
@@ -62,6 +67,7 @@ function render() {
     selected.clear();
     render();
   };
+  // 相手のフォーメーションを選んだときに並べなおす（相手を出していなければ出す）
   const pickTheirs = (f) => {
     remember();
     animateTokens = true;
@@ -90,6 +96,7 @@ function render() {
   $("formationSelect").replaceChildren(...options);
   $("formationSelect").value = current || "";
   const customInput = $("customFormation");
+  // カスタムのフォーメーションの入力欄を出す・しまう
   const showCustom = (on) => {
     $("customRow").hidden = !on;
     if (on) {
@@ -231,6 +238,7 @@ function renderLineShapes(side = "ours") {
     box.replaceChildren();
     return;
   }
+  // 列ごとの形（i 番目の列を id の形に）を選んで、並べなおす
   const pick = (i, id) => {
     remember();
     animateTokens = true;
@@ -282,7 +290,9 @@ const TEAM_COLOR_SIDES = [
   { key: "ourColor", dot: "ourColorDot", name: ".team", title: "自チーム", other: "相手" },
   { key: "oppColor", dot: "oppColorDot", name: ".opponent", title: "相手", other: "自チーム" }
 ];
+// そのチームのチーム名の欄に入力中かを返す
 const typingName = (key) => document.activeElement === document.querySelector(TEAM_COLOR_SIDES.find((s) => s.key === key).name);
+// チームの色の丸（チーム名の左）と、開いているチームのパレットを描きなおす
 function renderTeamColors() {
   const sides = TEAM_COLOR_SIDES.map((s) => ({ ...s, dot: $(s.dot) }));
   sides.forEach(({ key, dot, title }) => {
@@ -308,6 +318,7 @@ function renderTeamColors() {
 
 // パレットの中身：決まった色（もう片方のチームと同じ色は、薄くして斜めの線。並びは変えない）とカスタム
 function paletteItems({ key, title, other }) {
+  // パレットで色を選ぶ（close が true なら、入力中でなければパレットをたたむ）
   const pick = (hex, close) => {
     remember();
     state[key] = hex;
@@ -318,6 +329,7 @@ function paletteItems({ key, title, other }) {
   const current = String(state[key]).toLowerCase();
   const isPreset = TEAM_COLORS.some((c) => c.hex === current);
   const otherHex = String(key === "ourColor" ? state.oppColor : state.ourColor).toLowerCase();
+  // 色の丸（span.swatch）を作る
   const swatch = (className) => Object.assign(document.createElement("span"), { className: `swatch${className ? ` ${className}` : ""}` });
   const buttons = TEAM_COLORS.map((c) => {
     const taken = c.hex === otherHex;
@@ -344,6 +356,7 @@ function paletteItems({ key, title, other }) {
   return [...buttons, custom];
 }
 
+// チップのボタンを作る（押していれば aria-pressed。role を渡すと radio などにもなる）
 function chip(text, pressed, onClick, role) {
   const b = document.createElement("button");
   b.type = "button";
@@ -387,6 +400,7 @@ function setOppLayout(layout) {
   state.oppLayout = layout;
   const to = versusFrame();
   if (state.showOpp) {
+    // 高さを盤の中（2〜98）におさめる
     const clamp = (y) => Math.min(98, Math.max(2, y));
     state.players = state.players.map((p) => ({ ...p, y: clamp(fitY(p.y, from, to)) }));
     if (Array.isArray(state.opp)) state.opp = state.opp.map((p) => ({ ...p, y: clamp(100 - fitY(100 - p.y, from, to)) }));
@@ -399,6 +413,7 @@ function setOppLayout(layout) {
 // 相手の人数（並べる前は、フォーメーションの人数）
 const oppTotal = () => (Array.isArray(state.opp) && state.opp.length ? state.opp.length : fieldCount(state.oppFormation || state.formation) ? fieldCount(state.oppFormation || state.formation) + 1 : state.players.length);
 
+// 相手のフォーメーションから相手の並びを作る（自チームと重なるこまは横にずらす）
 function opponents() {
   const formation = state.oppFormation || autoFormation(oppTotal() - 1);
   const list = formationPositions(state.mode, formation, true, lineShapesOf(formation, "opp")).map((p, i) => ({ number: String(i + 1), name: "", x: 100 - p.x, y: 100 - p.y }));
@@ -410,13 +425,16 @@ function opponents() {
 // ずらす先がほかの相手とも重ならないところを、真ん中寄り → 反対側 の順に探す。見つからなければ動かさない
 const OVERLAP = 8; // これより近いと「重なっている」（丸の大きさの7割ほど）
 const SPREAD = 10; // ずらしたあとの距離
+// 相手のこまが自チームのこまと重なるときは、横にずらした並びを返す
 function spreadFromOurs(list) {
+  // こまどうしの近さ（盤の縦横の比をあわせた距離）を返す
   const dist = (a, b) => Math.hypot(a.x - b.x, ((a.y - b.y) * 4) / 3);
   const out = list.map((o) => ({ ...o }));
   out.forEach((o, i) => {
     const p = state.players.find((q) => dist(o, q) < OVERLAP);
     if (!p) return;
     const others = out.filter((_, j) => j !== i);
+    // その位置に、ほかのこまが近くにないかを返す
     const free = (c) => state.players.every((q) => dist(c, q) >= OVERLAP) && others.every((q) => dist(c, q) >= OVERLAP);
     const dy = ((o.y - p.y) * 4) / 3;
     const dx = Math.sqrt(Math.max(0, SPREAD * SPREAD - dy * dy));
@@ -431,11 +449,13 @@ function spreadFromOurs(list) {
 
 // 範囲で選んだもの（"p3"＝自チームの4人目、"o0"＝相手のGK、"ball"）。選んだものはまとめて動く
 const selected = new Set();
+// こまの見分け（"ball"・"p3"・"o2"）を返す
 const keyOf = (target) => (target.kind === "ball" ? "ball" : `${target.kind === "player" ? "p" : "o"}${target.index}`);
 
 // 並べ直したとき（相手の出し入れ・フォーメーション・戻すなど）は、前の位置からなめらかに動かす
 let animateTokens = false;
 
+// 盤のこま（自チーム・相手・ボール）を描きなおす。並べなおしたときは、前の位置からなめらかに動かす
 function renderTokens() {
   const before = animateTokens ? new Map([...tokens.children].map((n) => [n.dataset.key, { left: n.style.left, top: n.style.top }])) : null;
   animateTokens = false;
@@ -497,6 +517,7 @@ function marksBadge(marks, className, label) {
   return badge;
 }
 
+// こま1つ（丸・背番号・名前・印）の部品を作る
 function tokenEl(p, extra, target) {
   const el = document.createElement("span");
   el.className = `token ${extra}`;
@@ -555,11 +576,13 @@ const place = (el, p) => {
   el.style.top = `${vy}%`;
 };
 
+// こまの見分け（"p3" など）から、どのこまか（{ kind, index }）を返す
 function targetOf(key) {
   if (key === "ball") return { kind: "ball" };
   return { kind: key[0] === "p" ? "player" : "opp", index: Number(key.slice(1)) };
 }
 
+// どのこまか（{ kind, index }）から、その選手・相手・ボールの中身を返す
 function itemOf(target) {
   if (target.kind === "player") return state.players[target.index];
   if (target.kind === "opp") return state.opp[target.index];
@@ -582,6 +605,7 @@ document.addEventListener(
 
 // ドラッグで移動、動かさずに離したらタップ（自分の選手なら入力シート）
 const LONG_PRESS_MS = 450; // 長押しとみなす長さ（ミリ秒）
+// こまをドラッグで動かせるようにする（長押しで印のメニュー、選んだこまはまとめて動かす）
 function bindDrag(el, target) {
   // 長押しで出る OS のメニュー（画像の保存など）は出さない
   el.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -600,6 +624,7 @@ function bindDrag(el, target) {
     // まとめて動かすもの（選ばれたものをつかんだとき）と、それぞれの最初の位置
     const group = selected.has(keyOf(target)) && selected.size > 1 ? [...selected] : [keyOf(target)];
     const origin = group.map((key) => ({ key, item: itemOf(targetOf(key)), x: itemOf(targetOf(key))?.x, y: itemOf(targetOf(key))?.y }));
+    // 位置を盤の中（2〜98）の整数におさめる
     const clamp = (v) => Math.round(Math.min(98, Math.max(2, v)));
     // 自チームの選手を動かさずに長押しすると、印（ゴール・カードなど）をすぐ付けるメニュー（sheets.js の openQuickMarks）
     let longPressed = false;
@@ -612,6 +637,7 @@ function bindDrag(el, target) {
           else openQuickMarks(target.index, el);
         }, LONG_PRESS_MS)
       : 0;
+    // 指・マウスが動いたら、こまを動かす（少し動いたら長押しのメニューはやめる）
     const onMove = (e) => {
       const far = Math.hypot(e.clientX - start.x, e.clientY - start.y);
       // 長押しでメニューが出たあとでも、押したまま動かしはじめたらメニューを閉じて移動にする
@@ -638,6 +664,7 @@ function bindDrag(el, target) {
       }
       renderTokensKeepDrag(el, target);
     };
+    // はなしたら、動かしたあとの位置で描きなおす
     const onUp = () => {
       el.removeEventListener("pointermove", onMove);
       el.removeEventListener("pointerup", onUp);
@@ -680,6 +707,7 @@ tokens.addEventListener("pointerdown", (event) => {
   const start = { x: event.clientX - rect.left, y: event.clientY - rect.top };
   const adding = event.ctrlKey || event.metaKey || event.shiftKey;
   let box = null;
+  // 範囲選択の四角を、指・マウスの位置まで広げる
   const onMove = (e) => {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -688,12 +716,14 @@ tokens.addEventListener("pointerdown", (event) => {
     Object.assign(marquee.style, { left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px` });
     marquee.hidden = false;
   };
+  // はなしたら、四角の中のこまを選ぶ
   const onUp = () => {
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
     marquee.hidden = true;
     if (!adding) selected.clear();
     if (box && (box.width >= 6 || box.height >= 6)) {
+      // そのこまが、範囲選択の四角の中にあるかを返す
       const inBox = (item) => {
         const [vx, vy] = toView(item.x, item.y);
         const x = (vx / 100) * rect.width;

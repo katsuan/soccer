@@ -10,6 +10,7 @@ let openResultOnLoad = false;
 applyQuery();
 moveGoalMarksToGoals();
 
+// 開いた URL の ?data=（作戦盤・試合結果）を state に入れる。入れたら URL から消す
 function applyQuery() {
   const q = new URLSearchParams(location.search);
   const data = readLinkData(q.get("data"));
@@ -103,6 +104,7 @@ function readLinkData(text) {
   return null;
 }
 
+// 中身を JSON → UTF-8 → base64url の文字にする（リンクに入れる形）
 function encode(value) {
   const bytes = new TextEncoder().encode(JSON.stringify(value));
   let binary = "";
@@ -110,6 +112,7 @@ function encode(value) {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+// base64url の文字から中身にもどす。読めないときは null
 function decode(text) {
   if (!text) return null;
   try {

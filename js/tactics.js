@@ -6,9 +6,12 @@
 const TACTICS_KEY = "soccer:tactics";
 const MAX_TACTICS = 30;
 let tactics = tacticsIn(load(TACTICS_KEY, [])); // 形を確かめて読む（core.js）
+// 保存した作戦の一覧を端末に残す
 const saveTactics = () => save(TACTICS_KEY, tactics);
+// いまの作戦盤の、作戦として残すところ（並び・相手・線など）の写しを返す
 const snapshot = () => JSON.parse(JSON.stringify(Object.fromEntries(TACTIC_KEYS.map((k) => [k, state[k]]))));
 
+// 📁 いまの作戦盤を、名前をつけて保存する（同じ名前なら確かめて上書き）
 async function saveTactic() {
   const input = $("tacticName");
   const name = input.value.trim().slice(0, 20) || `作戦 ${tactics.length + 1}`;
@@ -27,6 +30,7 @@ async function saveTactic() {
   LineShareUI.toast(seasonal(`「${name}」を保存しました`));
 }
 
+// 保存した作戦を作戦盤に出す（「戻す」で前にもどせる）
 function openTactic(entry) {
   remember();
   animateTokens = true;
@@ -37,6 +41,7 @@ function openTactic(entry) {
   board.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
+// 保存した作戦をコピーして、すぐ下に足す
 function copyTactic(entry) {
   if (tactics.length >= MAX_TACTICS) return LineShareUI.toast(`保存できるのは ${MAX_TACTICS} 件までです`);
   let name = `${entry.name}（コピー）`.slice(0, 20);
@@ -46,6 +51,7 @@ function copyTactic(entry) {
   renderTactics();
 }
 
+// 保存した作戦の名前を変える
 async function renameTactic(entry) {
   const name = await LineShareUI.ask({ title: "作戦の名前", input: entry.name, ok: "決める", maxLength: 20 });
   if (!name || !name.trim()) return;
@@ -78,6 +84,7 @@ let venues = load(VENUES_KEY, []);
 venues = (Array.isArray(venues) ? venues : []).map((v) => String(typeof v === "string" ? v : v?.where || v?.name || "").trim()).filter(Boolean);
 venues = [...new Set(venues)];
 
+// いまの場所を、よく使う場所に保存する
 function saveVenue() {
   const place = String(state.where || "").trim();
   if (!place) return; // 空のときは「保存」を押せない（renderVenues）
@@ -94,6 +101,7 @@ function applyVenue(place) {
   render();
 }
 
+// いまの場所を、よく使う場所から消す（「元に戻す」で戻せる）
 function removeVenue() {
   const place = String(state.where || "").trim();
   if (!place) return;
@@ -128,6 +136,7 @@ function renderVenues() {
   action.disabled = !place;
 }
 
+// 📁 保存した作戦の一覧（開く・名前・コピー・消す）を描きなおす
 function renderTactics() {
   $("tacticsMeta").textContent = tactics.length ? `${tactics.length}件` : "なし";
   $("tacticList").replaceChildren(
@@ -144,6 +153,7 @@ function renderTactics() {
       open.append(Object.assign(document.createElement("b"), { textContent: entry.name }), Object.assign(document.createElement("small"), { textContent: detail }));
       open.addEventListener("click", () => openTactic(entry));
       const actions = Object.assign(document.createElement("div"), { className: "tactic-actions" });
+      // 一覧の行のボタン（名前・コピー・消す）を作る
       const action = (text, label, fn) => {
         const btn = Object.assign(document.createElement("button"), { type: "button", textContent: text });
         btn.setAttribute("aria-label", `${entry.name}を${label}`);

@@ -11,7 +11,9 @@ const FORMATION_GROUPS = [
 // 人数は変則もある（退場で10人、7人制、練習試合で12人以上など）。GK を入れて 2〜16 人
 const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 16;
+// フォーメーションの文字（"4-4-2"）を、列ごとの人数のならび（[4, 4, 2]）にする。形がちがえば []
 const parseFormation = (f) => (/^\d{1,2}(-\d{1,2}){0,4}$/.test(String(f)) ? String(f).split("-").map(Number) : []);
+// フォーメーションのフィールドの人数（GK を除く）を返す
 const fieldCount = (f) => parseFormation(f).reduce((a, b) => a + b, 0);
 // 決まったフォーメーションがない人数のときの並び（後ろ 4 割・前 2 割・残りが中盤）
 function autoFormation(n) {
@@ -24,6 +26,7 @@ function autoFormation(n) {
 // コート（サッカー 11人・8人制・フットサル）。決まったフォーメーションが無いときは、ピッチと人数から決める
 const courtOf = (mode, f, count) =>
   (FORMATION_GROUPS.find((g) => g.mode === mode && g.list.includes(f)) || FORMATION_GROUPS.find((g) => g.id === (mode === "futsal" ? "futsal" : count <= 8 ? "soccer8" : "soccer11"))).id;
+// コートの id から、コートの決まり（名前・ピッチ・フォーメーションの一覧）を返す
 const courtDef = (id) => FORMATION_GROUPS.find((g) => g.id === id) || FORMATION_GROUPS[0];
 
 // フォーメーションから位置を作る（GK が一番下、列は後ろから前へ）
@@ -35,6 +38,7 @@ const VERSUS = { gk: 90, front: 33 };
 const HALF = { gk: 90, front: 56 };
 // 相手を出しているときの高さ。state.oppLayout が "half" ならコート別、それ以外はフルコート（互い違い）
 const versusFrame = () => (state.oppLayout === "half" ? HALF : VERSUS);
+// 高さ y を、from の GK・最前線の高さから、to の高さへ同じ割合で移した値を返す
 const fitY = (y, from, to) => Math.round((to.gk - ((from.gk - y) * (to.gk - to.front)) / (from.gk - from.front)) * 10) / 10;
 
 // 列ごとの形（フォーメーションの数字だけでは決まらない並び）。人数ごとに選べる形。何も選んでいないときは default のもの（なければ先頭）。
@@ -63,6 +67,7 @@ function lineShapesOf(formation, side = "ours") {
 function lineSpots(mode, count, y, gap, shape) {
   const cap = mode === "futsal" ? 26 : 36;
   const d = Math.max(6, gap * 0.4); // 前後にずらす幅
+  // n 人を、まんなかから左右に half ずつ広げた1列の位置を返す
   const row = (half, yy, n = count) =>
     Array.from({ length: n }, (_, j) => ({ x: n === 1 ? 50 : Math.round(50 - half + (2 * half * j) / (n - 1)), y: yy }));
   if (count === 2) {
@@ -117,6 +122,7 @@ function formationPositions(mode, formation, versus = true, shapes = []) {
   return versus ? spots.map((spot) => ({ x: spot.x, y: fitY(spot.y, FULL, versusFrame()) })) : spots;
 }
 
+// フォーメーションの位置に選手を並べる（前の選手の背番号・名前・印は、同じ順番の選手に引きつぐ）
 function freshPlayers(mode, formation, old = [], versus = state.showOpp, shapes = lineShapesOf(formation)) {
   return formationPositions(mode, formation, versus, shapes).map((spot, i) => ({
     number: old[i]?.number ?? String(i + 1),
