@@ -54,6 +54,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 /* 見出しは1行：名前 … 中身の要約 › */
 .fold summary { display: flex; align-items: center; gap: 6px; list-style: none; cursor: pointer; font-weight: 800; }
 .fold summary::-webkit-details-marker { display: none; }
+/* 押せるところは 44px（上下に広げ、同じだけ外の余白を減らして、見た目の間は前のまま） */
+.fold summary { min-height: 44px; margin: -9px 0; }
 .fold summary .meta { margin-left: auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .fold summary::after { content: "›"; flex: none; margin-left: auto; color: var(--ink-soft); transition: transform 0.2s; }
 .fold summary .meta + ::after, .fold summary:has(.meta)::after { margin-left: 0; }
@@ -118,6 +120,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .token.is-dragging { cursor: grabbing; z-index: 2; }
 
 .link { border: 0; background: none; color: var(--ink-soft); font: inherit; font-size: 13px; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.link { min-height: 44px; margin: -12px 0; padding: 0 8px; } /* 押せるところは 44px（見た目の間は前のまま） */
 
 .actions { display: grid; gap: 8px; }
 /* ボタンは Q キット（ls-button）。押しやすいよう大きめ */
@@ -146,6 +149,8 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .goal input { min-width: 0; padding: 8px; font-size: 16px; }
 .goal .min { text-align: center; }
 .goal .remove { width: 26px; height: 26px; padding: 0; font-size: 12px; border: 1px solid var(--border); border-radius: 50%; background: var(--card); color: var(--ink-soft); cursor: pointer; }
+.goal .remove { position: relative; flex: none; }
+.goal .remove::after { content: ""; position: absolute; inset: -9px; } /* 見た目は 26px、押せるところは 44px */
 
 .foot { font-size: 12px; color: var(--ink-soft); text-align: center; }
 .foot a { color: inherit; }
@@ -384,7 +389,7 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .token { -webkit-touch-callout: none; }
 
 /* ひとことのひな形（タップで次の行に足す） */
-.note-presets .ls-chip { min-height: 30px; padding: 0 10px; font-size: 12px; }
+.note-presets .ls-chip { min-height: 36px; padding: 0 10px; font-size: 12px; }
 
 /* 送る前のプレビュー（共有シートの、それぞれのカードの中身） */
 /* 送る前のプレビュー：おくるんのカード（Flex）と同じ並びを小さく。チェックの下に全幅で */

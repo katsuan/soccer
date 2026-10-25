@@ -450,6 +450,27 @@ function syncScore(before) {
   });
 }
 
+// 得点者を1つ消す。確かめずに消して、トーストの「元に戻す」で得点者とスコアを前にもどす（ux.md の D1）
+function removeGoal(index) {
+  const g = state.goals[index];
+  if (!g) return;
+  const before = [...state.goals];
+  const scores = { scoreUs: state.scoreUs, scoreThem: state.scoreThem };
+  state.goals.splice(index, 1);
+  syncScore(before);
+  render();
+  LineShareUI.toast(g.name ? `「${g.name}」の得点を消しました` : "得点を消しました", {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      state.goals = before;
+      Object.assign(state, scores);
+      $("scoreUs").value = state.scoreUs;
+      $("scoreThem").value = state.scoreThem;
+      render();
+    }
+  });
+}
+
 // 試合結果の得点者の欄（分・名前・消す）を描きなおす
 function renderGoals() {
   $("goals").replaceChildren(
@@ -479,12 +500,7 @@ function renderGoals() {
       });
       const remove = Object.assign(document.createElement("button"), { type: "button", className: "remove", textContent: "×" });
       remove.setAttribute("aria-label", "この得点を消す");
-      remove.addEventListener("click", () => {
-        const before = [...state.goals];
-        state.goals.splice(i, 1);
-        syncScore(before);
-        render();
-      });
+      remove.addEventListener("click", () => removeGoal(i));
       name.setAttribute("aria-label", g.side === "t" ? "相手の得点者" : "自チームの得点者");
       const scorer = document.createElement("div");
       scorer.className = "scorer";

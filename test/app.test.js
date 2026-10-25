@@ -168,3 +168,27 @@ test("index.html は新しい名前のファイルを読み、前の名前のフ
     assert.match(stub, new RegExp(`\\?v=${version}"`), `${old} の ?v= が index.html とちがう`);
   }
 });
+
+// ux.md の D1：1つを消すのは、確かめずに消して「元に戻す」で戻せる
+test("得点者を消すと、スコアも減り、「元に戻す」で得点者とスコアがもどる", () => {
+  const { run } = boot();
+  run(`state.goals = [{ side: "u", min: "10", name: "山田" }, { side: "u", min: "20", name: "" }]; state.scoreUs = 2; state.scoreThem = 0;
+       var lastToast = null; LineShareUI.toast = (text, opts) => (lastToast = { text, opts });`);
+  run("removeGoal(0)");
+  assert.equal(run("state.goals.length"), 1);
+  assert.equal(run("state.scoreUs"), 1);
+  assert.equal(run("lastToast.text"), "「山田」の得点を消しました");
+  assert.equal(run("lastToast.opts.actionLabel"), "元に戻す");
+  run("lastToast.opts.onAction()");
+  assert.equal(run("state.goals.length"), 2);
+  assert.equal(run("state.goals[0].name"), "山田");
+  assert.equal(run("state.scoreUs"), 2);
+});
+
+// ux.md の C3：押せるところは 44px。小さな × は透明の押せるところを足す・リンクと開閉の見出しは 44px
+test("得点者の ×・リンク・開閉の見出しは 44px 押せる", () => {
+  const css = fs.readFileSync(path.join(__dirname, "..", "style.css"), "utf8");
+  assert.match(css, /\.goal \.remove::after \{[^}]*inset:\s*-9px/);
+  assert.match(css, /\.link \{[^}]*min-height:\s*44px/);
+  assert.match(css, /\.fold summary \{[^}]*min-height:\s*44px/);
+});

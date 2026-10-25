@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610251000">
-<link rel="stylesheet" href="style.css?v=202610251300">
+<link rel="stylesheet" href="style.css?v=202610251850">
 </head>
 <body>
 <main class="wrap">
@@ -171,8 +171,8 @@
       </div>
       <!-- 得点の内訳（前半・後半・延長・PK）。スコアのカードの中でたたむ。入れたものだけカードに出る -->
       <details class="fold inner">
-        <summary>⏱️ 得点の内訳（前後半・延長・PK） <span id="periodMeta" class="meta"></span></summary>
-        <p class="hint left">上のスコアは最終スコア（延長を含む）。ここは入れたものだけカードに出ます。同点で PK があれば PK で勝ち負けを決めます。</p>
+        <summary>⏱️ 前後半・延長・PK <span id="periodMeta" class="meta"></span></summary>
+        <p class="hint left">上のスコアは延長も入れた最終スコア。ここは入れたものだけカードに出ます。同点のときは PK で勝ち負けを決めます。</p>
         <div class="period-row">
           <span class="ls-label">前半</span>
           <input id="halfUs" type="number" inputmode="numeric" min="0" max="99" aria-label="前半の自チームの得点">
@@ -204,8 +204,8 @@
       <p id="marksNote" class="hint left" hidden></p>
       <div id="goals" class="goals"></div>
       <div class="two">
-        <button id="addGoalUs" class="ls-button is-block small" type="button">＋ 自チームの得点</button>
-        <button id="addGoalThem" class="ls-button is-block small" type="button">＋ 相手の得点</button>
+        <button id="addGoalUs" class="ls-button is-block small" type="button">＋ 自チーム</button>
+        <button id="addGoalThem" class="ls-button is-block small" type="button">＋ 相手</button>
       </div>
       <!-- ひとことは2つ：作戦盤（さくせん盤のカード。🏟️ 会場情報）と、結果（試合結果のカード。ここ）。改行できる -->
       <label>ひとこと（結果）<textarea id="resultNote" rows="2" maxlength="120" placeholder="例：MVP は山田！&#10;最後まで走りきりました"></textarea></label>
@@ -222,7 +222,7 @@
 
     <details class="ls-panel fold">
       <summary>🏟️ 会場情報 <span id="infoMeta" class="meta"></span></summary>
-      <p class="hint left">ここに入れた内容は、送るカードに入ります（入れたものだけ）。場所は「保存」しておくと、次から ▼ で選べます。</p>
+      <p class="hint left">入れたものだけ、送るカードに入ります。場所は「保存」すると、次から ▼ で選べます。</p>
       <div class="two">
         <label>日にち<input class="when-date" type="date"></label>
         <label>時間<input class="when-time" type="time"></label>
@@ -250,8 +250,8 @@
 
     <details class="ls-panel fold">
       <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
-      <textarea id="roster" rows="6" placeholder="1行に1人。背番号と名前（例：10 山田）"></textarea>
-      <p class="hint">選手を長押し→「背番号・名前 ✏️」で、ここから選べます。</p>
+      <textarea id="roster" rows="6" placeholder="1行に1人、背番号と名前&#10;例：10 山田"></textarea>
+      <p class="hint">選手を長押し →「背番号・名前 ✏️」で選べます。</p>
     </details>
 
     <!-- 共有（主）と画像の保存を横に並べる -->
@@ -293,19 +293,19 @@
 <!-- Q キットの動き（確認の窓・トースト） -->
 <script src="https://katsuan.github.io/line-share/shared/ui.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/page.js?v=202610251300"></script>
-<script src="js/formation.js?v=202610251300"></script>
-<script src="js/marks.js?v=202610251300"></script>
-<script src="js/store.js?v=202610251300"></script>
-<script src="js/link.js?v=202610251300"></script>
-<script src="js/board.js?v=202610251300"></script>
-<script src="js/ink.js?v=202610251300"></script>
-<script src="js/tactics.js?v=202610251300"></script>
-<script src="js/sheets.js?v=202610251300"></script>
-<script src="js/card.js?v=202610251300"></script>
-<script src="js/image.js?v=202610251300"></script>
-<script src="js/events.js?v=202610251300"></script>
-<script src="app.js?v=202610251300"></script>
+<script src="js/page.js?v=202610251850"></script>
+<script src="js/formation.js?v=202610251850"></script>
+<script src="js/marks.js?v=202610251850"></script>
+<script src="js/store.js?v=202610251850"></script>
+<script src="js/link.js?v=202610251850"></script>
+<script src="js/board.js?v=202610251850"></script>
+<script src="js/ink.js?v=202610251850"></script>
+<script src="js/tactics.js?v=202610251850"></script>
+<script src="js/sheets.js?v=202610251850"></script>
+<script src="js/card.js?v=202610251850"></script>
+<script src="js/image.js?v=202610251850"></script>
+<script src="js/events.js?v=202610251850"></script>
+<script src="app.js?v=202610251850"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 <!-- 電波がなくても開けるように（sw.js） -->
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
