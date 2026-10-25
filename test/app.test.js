@@ -136,3 +136,21 @@ test("送るボタンの見た目を、自前の CSS で上書きしない", () 
   const html = fs.readFileSync(path.join(__dirname, "../index.html"), "utf8");
   assert.ok(!/💬/.test(html));
 });
+
+test("試合の日の天気（そらくる）：場所と日にちがあるときだけ。時間は時に、過ぎた日は出さない", () => {
+  const { run } = boot();
+  const now = "new Date(2026, 9, 25, 10, 0)";
+  run('state.where = ""; state.whenDate = "2026-10-31"; state.whenTime = "";');
+  assert.equal(run(`weatherUrl(${now})`), "");
+  run('state.where = "パロマ瑞穂スタジアム"; state.whenDate = "";');
+  assert.equal(run(`weatherUrl(${now})`), "");
+  run('state.whenDate = "2026-10-31"; state.whenTime = "09:30";');
+  const url = new URL(run(`weatherUrl(${now})`));
+  assert.equal(url.origin + url.pathname, "https://katsuan.github.io/soraqru/");
+  assert.deepEqual(Object.fromEntries(url.searchParams), { q: "パロマ瑞穂スタジアム", name: "パロマ瑞穂スタジアム", date: "2026-10-31", from: "saqsen", hour: "9" });
+  assert.doesNotMatch(run(`weatherUrl(${now})`), /\+/);
+  run('state.whenDate = "2026-10-24";');
+  assert.equal(run(`weatherUrl(${now})`), "");
+  run('state.whenDate = "2026-10-25"; state.whenTime = "";');
+  assert.ok(run(`weatherUrl(${now})`).includes("date=2026-10-25"));
+});

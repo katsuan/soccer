@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610251000">
-<link rel="stylesheet" href="style.css?v=202610241455">
+<link rel="stylesheet" href="style.css?v=202610251102">
 </head>
 <body>
 <main class="wrap">
@@ -236,6 +236,8 @@
           <button id="venueAction" class="ls-button is-block small" type="button">保存</button>
         </div>
       </div>
+      <!-- 場所と日にちを入れると出る：その日の天気をそらくるで見る（16日先まで） -->
+      <a id="weatherLink" class="ls-button is-block weather-link" href="#" target="_blank" rel="noopener" hidden>🌤️ 試合の日の天気<small id="weatherWhen"></small></a>
       <!-- 控え・集合時間などは、ひとことに改行して書く（さくせん盤のカードにそのまま入る） -->
       <label>ひとこと（作戦盤）<textarea id="lineupNote" rows="3" maxlength="200" placeholder="例：集合は8:30です&#10;控え：佐藤、鈴木、田中"></textarea></label>
       <div class="ls-chips note-presets" role="group" aria-label="ひとこと（作戦盤）のひな形">
@@ -291,14 +293,14 @@
 <!-- Q キットの動き（確認の窓・トースト） -->
 <script src="https://katsuan.github.io/line-share/shared/ui.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/core.js?v=202610241455"></script>
-<script src="js/board.js?v=202610241455"></script>
-<script src="js/ink.js?v=202610241455"></script>
-<script src="js/tactics.js?v=202610241455"></script>
-<script src="js/sheets.js?v=202610241455"></script>
-<script src="js/share.js?v=202610241455"></script>
-<script src="js/events.js?v=202610241455"></script>
-<script src="app.js?v=202610241455"></script>
+<script src="js/core.js?v=202610251102"></script>
+<script src="js/board.js?v=202610251102"></script>
+<script src="js/ink.js?v=202610251102"></script>
+<script src="js/tactics.js?v=202610251102"></script>
+<script src="js/sheets.js?v=202610251102"></script>
+<script src="js/share.js?v=202610251102"></script>
+<script src="js/events.js?v=202610251102"></script>
+<script src="app.js?v=202610251102"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 <!-- 電波がなくても開けるように（sw.js） -->
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>

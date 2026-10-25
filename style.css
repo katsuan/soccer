@@ -473,3 +473,8 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
   :root[data-ls-dark="auto"] .ls-chip.color { border-color: #1b211d; }
   :root[data-ls-dark="auto"] .venue-row .ls-button.is-remove { color: #ff9b6b; }
 }
+
+/* 会場情報：試合の日の天気（そらくる） */
+.weather-link { display: grid; gap: 0; line-height: 1.3; }
+.weather-link[hidden] { display: none; }
+.weather-link small { overflow: hidden; color: var(--ink-soft); font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }

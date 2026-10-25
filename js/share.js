@@ -534,3 +534,28 @@ function boardImageCardUrl(imageUrl) {
 
 // 画像サーバーは眠っていると最初の保存が遅いので、開いた時点で起こしておく
 fetch(`${IMAGE_API}/health`, { mode: "no-cors", cache: "no-store" }).catch(() => {});
+
+// ---- そらくる（天気）で開く：試合の場所と日にち（と時間）で、その日の天気を見る ----
+const SORAQRU_URL = "https://katsuan.github.io/soraqru/";
+
+// 場所と日にちがあって、今日より前でないときだけ（16日より先は、そらくるが「近くなったら」と案内する）
+function weatherUrl(now = new Date()) {
+  const place = String(state.where || "").trim().slice(0, 40);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(state.whenDate || "") ? state.whenDate : "";
+  if (!place || !date) return "";
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  if (date < today) return "";
+  const q = new URLSearchParams({ q: place, name: place, date, from: "saqsen" });
+  const t = /^(\d{2}):\d{2}$/.exec(state.whenTime || "");
+  if (t) q.set("hour", String(Number(t[1])));
+  return `${SORAQRU_URL}?${String(q).replace(/\+/g, "%20")}`;
+}
+
+function renderWeatherLink() {
+  const url = weatherUrl();
+  const link = $("weatherLink");
+  link.hidden = !url;
+  if (!url) return;
+  link.href = url;
+  $("weatherWhen").textContent = [whenText(), String(state.where || "").trim()].filter(Boolean).join("・");
+}

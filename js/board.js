@@ -9,6 +9,7 @@ const tokens = $("tokens");
 
 function render() {
   save(STORE_KEY, state);
+  renderWeatherLink(); // 会場情報の「🌤️ 試合の日の天気」（そらくる）
   // コートの向き（横に広い画面なら横のコート）
   board.classList.toggle("is-landscape", updateLandscape());
   document.body.classList.toggle("has-landscape-board", landscape);
