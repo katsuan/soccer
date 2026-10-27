@@ -26,7 +26,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610261000">
-<link rel="stylesheet" href="style.css?v=202610251850">
+<link rel="stylesheet" href="style.css?v=202610271258">
 </head>
 <body>
 <main class="wrap">
@@ -251,7 +251,7 @@
     <details class="ls-panel fold">
       <summary>👤 選手名簿 <span id="rosterCount" class="meta"></span></summary>
       <textarea id="roster" rows="6" placeholder="1行に1人、背番号と名前&#10;例：10 山田"></textarea>
-      <p class="hint">選手を長押し →「背番号・名前 ✏️」で選べます。</p>
+      <p class="hint">選手を長押し → 上の名前の ✏️ で選べます。</p>
     </details>
 
     <!-- 共有（主）と画像の保存を横に並べる -->
@@ -280,7 +280,7 @@
       <label class="pick"><input id="pickLineup" type="checkbox" checked><span><b>📋 さくせん盤</b></span><span id="previewLineup" class="pick-preview"></span></label>
       <label class="pick"><input id="pickResult" type="checkbox"><span><b>🏆 試合結果</b></span><span id="previewResult" class="pick-preview"></span></label>
       <a id="sendCards" class="ls-button is-block line is-oqrn" href="#">カードで送る</a>
-      <p class="hint">カードは確実に届き、あとで消えません。ピッチをタップすると、同じ配置で開きます。</p>
+      <p class="hint">カードは確実に届き、あとで消えません。カードのピッチをタップすると、同じ配置で開きます。</p>
     </div>
     <button id="sendBoardImage" class="choice" type="button"><b>🖼️ 作戦を画像で送る</b><small>相手・ボール・線も入ります。画像は時間がたつと消えることがあります。</small></button>
     <p id="imageStatus" class="hint" aria-live="polite"></p>
@@ -293,19 +293,19 @@
 <!-- Q キットの動き（確認の窓・トースト） -->
 <script src="https://katsuan.github.io/line-share/shared/ui.js"></script>
 <!-- さくせん盤の本体。役割ごとに分けたファイルを、この順に読む（同じ範囲の変数を使う。はじめに動かすのは最後の app.js） -->
-<script src="js/page.js?v=202610251850"></script>
-<script src="js/formation.js?v=202610251850"></script>
-<script src="js/marks.js?v=202610251850"></script>
-<script src="js/store.js?v=202610251850"></script>
-<script src="js/link.js?v=202610251850"></script>
-<script src="js/board.js?v=202610251850"></script>
-<script src="js/ink.js?v=202610251850"></script>
-<script src="js/tactics.js?v=202610251850"></script>
-<script src="js/sheets.js?v=202610251850"></script>
-<script src="js/card.js?v=202610251850"></script>
-<script src="js/image.js?v=202610251850"></script>
-<script src="js/events.js?v=202610251850"></script>
-<script src="app.js?v=202610251850"></script>
+<script src="js/page.js?v=202610271258"></script>
+<script src="js/formation.js?v=202610271258"></script>
+<script src="js/marks.js?v=202610271258"></script>
+<script src="js/store.js?v=202610271258"></script>
+<script src="js/link.js?v=202610271258"></script>
+<script src="js/board.js?v=202610271258"></script>
+<script src="js/ink.js?v=202610271258"></script>
+<script src="js/tactics.js?v=202610271258"></script>
+<script src="js/sheets.js?v=202610271258"></script>
+<script src="js/card.js?v=202610271258"></script>
+<script src="js/image.js?v=202610271258"></script>
+<script src="js/events.js?v=202610271258"></script>
+<script src="app.js?v=202610271258"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="saqsen" defer></script>
 <!-- 電波がなくても開けるように（sw.js） -->
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
