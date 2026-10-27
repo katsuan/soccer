@@ -169,3 +169,34 @@ test("保存した作戦が壊れていても、読めるものだけ残す", ()
   assert.equal("goals" in list[1].board, false); // 作戦に入れるのは盤のことだけ
   assert.deepEqual(get("tacticsIn")("x"), []);
 });
+
+test("くみあわせの「さくせん盤で開く」（?match=）：チーム名・色・会場・日時・戻す先を読む。形がちがえば null", () => {
+  const { get } = boot();
+  const read = get("readMatchLink");
+  const ok = read(b64({ t: "FC 青", o: XSS, c: "#1E63D6", oc: "red", w: "市民グラウンド", d: "2026-11-03", tm: "09:30", tid: "q1abc", mid: "K1-2" }));
+  assert.deepEqual(JSON.parse(JSON.stringify(ok)), { team: "FC 青", opponent: XSS.slice(0, 20), ourColor: "#1e63d6", oppColor: "", where: "市民グラウンド", whenDate: "2026-11-03", whenTime: "09:30", tid: "q1abc", mid: "K1-2" });
+  assert.equal(read(b64({ t: "", o: "" })), null);
+  assert.equal(read("%%%"), null);
+  assert.equal(read(b64({ t: "a", tid: "../x", mid: "<b>" })).tid, "");
+});
+
+test("くみあわせへ結果を戻す中身：自チーム・相手の点と、PK（両方入れたときだけ）", () => {
+  const { state, get } = boot();
+  state.qumiawase = { tid: "q1", mid: "L2-1" };
+  state.scoreUs = "3";
+  state.scoreThem = 3;
+  state.pkUs = "";
+  state.pkThem = 4;
+  assert.deepEqual(JSON.parse(JSON.stringify(get("qumiawaseResult()"))), { tid: "q1", mid: "L2-1", s: [3, 3] });
+  state.pkUs = 5;
+  assert.deepEqual(JSON.parse(JSON.stringify(get("qumiawaseResult()"))), { tid: "q1", mid: "L2-1", s: [3, 3], pk: [5, 4] });
+  delete state.qumiawase;
+  assert.equal(get("qumiawaseResult()"), null);
+});
+
+test("端末に残ったくみあわせの戻す先は、形を確かめて読む", () => {
+  const good = boot({ store: { "soccer:state": JSON.stringify({ qumiawase: { tid: "q1", mid: "K1-1" } }) } });
+  assert.deepEqual(JSON.parse(JSON.stringify(good.state.qumiawase)), { tid: "q1", mid: "K1-1" });
+  const bad = boot({ store: { "soccer:state": JSON.stringify({ qumiawase: { tid: "<x>", mid: 5 } }) } });
+  assert.equal(bad.state.qumiawase, undefined);
+});

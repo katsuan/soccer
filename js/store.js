@@ -74,6 +74,11 @@ function cleanSaved(saved, base) {
     .filter((k) => isObj(k) && Array.isArray(k.points))
     .map((k) => ({ color: hexIn(k.color) || "#ffffff", points: k.points.filter((pt) => Array.isArray(pt) && pt.slice(0, 2).every(Number.isFinite)).map(([x, y]) => [x, y]) })) // 盤の外まで引いた線もそのまま
     .filter((k) => k.points.length > 1);
+  // くみあわせから入れた試合（結果を戻す先）。形がちがえば外す
+  const qa = saved.qumiawase;
+  const okId = (v, max) => typeof v === "string" && new RegExp(`^[A-Za-z0-9-]{1,${max}}$`).test(v);
+  if (isObj(qa) && okId(qa.tid, 40) && okId(qa.mid, 16)) out.qumiawase = { tid: qa.tid, mid: qa.mid };
+  else delete out.qumiawase;
   out.ball = isObj(saved.ball) ? { x: posIn(saved.ball.x), y: posIn(saved.ball.y) } : { ...base.ball };
   out.ourColor = hexIn(saved.ourColor) || base.ourColor;
   out.oppColor = hexIn(saved.oppColor) || base.oppColor;

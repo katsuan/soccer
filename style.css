@@ -127,6 +127,9 @@ input:focus, textarea:focus { outline: none; border-color: var(--accent); }
 .ls-button { min-height: 52px; padding: 12px; font-size: 16px; font-weight: 800; }
 .ls-button.small { min-height: 42px; font-size: 14px; }
 .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+/* くみあわせの試合のとき：結果を戻すボタン（試合結果の欄の下） */
+.qumiawase-box { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: var(--ls-accent-soft); }
+.qumiawase-box[hidden] { display: none; }
 
 .score { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; }
 .score span { padding-bottom: 10px; font-size: 22px; font-weight: 800; }

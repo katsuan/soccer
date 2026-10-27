@@ -231,6 +231,33 @@ for (const [key, id] of Object.entries(single)) {
     render();
   });
 }
+// チーム名・会場・日時・試合結果の入力欄に、いまの state を入れなおす（くみあわせから試合を入れたとき・元に戻したとき）
+function syncResultInputs() {
+  for (const [key, selector] of Object.entries(shared)) document.querySelectorAll(selector).forEach((input) => (input.value = state[key] ?? ""));
+  for (const [key, id] of Object.entries(single)) $(id).value = state[key] ?? "";
+}
+// 🏆 くみあわせに結果を戻す：同じ端末のくみあわせに残してから、くみあわせを開く（リンクにも結果をのせる）
+$("backToQumiawase").addEventListener("click", () => {
+  if (!state.qumiawase) return;
+  keepQumiawaseResult();
+  location.href = qumiawaseResultUrl();
+});
+// 🔗 結果のリンク：ちがう端末のくみあわせへ、結果を送る（共有メニュー。使えなければコピー）
+$("shareQumiawase").addEventListener("click", async () => {
+  if (!state.qumiawase) return;
+  const url = qumiawaseResultUrl();
+  try {
+    if (navigator.share) return await navigator.share({ url });
+  } catch (e) {
+    if (e?.name === "AbortError") return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    LineShareUI.toast("結果のリンクをコピーしました。くみあわせを使っている人に送ってね");
+  } catch {
+    LineShareUI.ask({ title: "結果のリンク", text: "長押しでコピーしてね", input: url, readonly: true, ok: "閉じる", cancel: null });
+  }
+});
 $("roster").value = roster;
 $("roster").addEventListener("input", () => {
   roster = $("roster").value;

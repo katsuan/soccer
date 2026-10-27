@@ -34,6 +34,7 @@ const tokens = $("tokens");
 function render() {
   save(STORE_KEY, state);
   renderWeatherLink(); // 会場情報の「🌤️ 試合の日の天気」（そらくる）
+  renderQumiawase(); // 試合結果の欄の「くみあわせに結果を戻す」（くみあわせの試合のときだけ）
   // コートの向き（横に広い画面なら横のコート）
   board.classList.toggle("is-landscape", updateLandscape());
   document.body.classList.toggle("has-landscape-board", landscape);

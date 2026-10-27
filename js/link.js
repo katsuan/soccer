@@ -4,6 +4,11 @@
 
 const EDITOR_URL = "https://katsuan.github.io/soccer/"; // このページ（画像をタップしたときに開く）
 const LINK_MAX = 1000; // LINE のリンクは 1000 文字まで
+const QUMIAWASE_URL = "https://katsuan.github.io/qumiawase/"; // くみあわせ（トーナメント・総当たり）
+const QUMIAWASE_INBOX = "qumiawase:inbox"; // 同じ端末で、くみあわせへ結果を戻すところ（くみあわせの js/store.js と同じキー）
+
+// くみあわせの「さくせん盤で開く」（?match=）で受けとった試合。入れるのは app.js の takeMatch（いまの中身があれば確かめてから）
+let pendingMatch = null;
 
 // おくるんの「さくせん盤で直す」から戻ってきたとき
 let openResultOnLoad = false;
@@ -36,7 +41,100 @@ function applyQuery() {
     // 前のリンクの MVP は、ひとこと（結果）の行として入れる
     state.resultNote = addLine(state.resultNote, mvpLine(mvp));
   }
-  if (q.has("data")) history.replaceState(null, "", location.pathname);
+  if (q.has("match")) pendingMatch = readMatchLink(q.get("match"));
+  if (q.has("data") || q.has("match")) history.replaceState(null, "", location.pathname);
+}
+
+/**
+ * くみあわせの「さくせん盤で開く」の中身（?match=）を読む。{ team, opponent, ourColor, oppColor, where, whenDate, whenTime, tid, mid } を返す。
+ * チーム名が2つともない・形がちがうときは null
+ */
+function readMatchLink(text) {
+  const d = decode(text);
+  if (!d || typeof d !== "object" || Array.isArray(d)) return null;
+  const team = textIn(d.t, LINK_LIMIT.team);
+  const opponent = textIn(d.o, LINK_LIMIT.team);
+  if (!team && !opponent) return null;
+  const id = (v, max) => (typeof v === "string" && new RegExp(`^[A-Za-z0-9-]{1,${max}}$`).test(v) ? v : "");
+  return {
+    team,
+    opponent,
+    ourColor: hexIn(d.c),
+    oppColor: hexIn(d.oc),
+    where: textIn(d.w, 30),
+    whenDate: typeof d.d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d.d) ? d.d : "",
+    whenTime: typeof d.tm === "string" && /^\d{2}:\d{2}$/.test(d.tm) ? d.tm : "",
+    tid: id(d.tid, 40),
+    mid: id(d.mid, 16)
+  };
+}
+
+// くみあわせへ結果を戻す中身（{ tid, mid, s: [自チーム, 相手], pk?: [自チーム, 相手] }）を返す。くみあわせの試合でなければ null
+function qumiawaseResult() {
+  const q = state.qumiawase;
+  if (!q) return null;
+  const n = (v) => Math.min(99, Math.max(0, Math.floor(Number(v)) || 0));
+  const pk = state.pkUs !== "" && state.pkThem !== "" ? { pk: [n(state.pkUs), n(state.pkThem)] } : {};
+  return { tid: q.tid, mid: q.mid, s: [n(state.scoreUs), n(state.scoreThem)], ...pk };
+}
+
+// くみあわせへ結果を戻すリンク（くみあわせの URL ＋ ?result=中身）を返す
+const qumiawaseResultUrl = () => `${QUMIAWASE_URL}?result=${encode(qumiawaseResult())}`;
+
+// 同じ端末のくみあわせへ、結果を残しておく（くみあわせを開いたとき・もどったときに入る）。残せなくても止めない
+function keepQumiawaseResult() {
+  try {
+    const list = JSON.parse(localStorage.getItem(QUMIAWASE_INBOX) || "[]");
+    const next = (Array.isArray(list) ? list : []).filter((x) => !(x && x.tid === state.qumiawase.tid && x.mid === state.qumiawase.mid));
+    next.push(qumiawaseResult());
+    localStorage.setItem(QUMIAWASE_INBOX, JSON.stringify(next.slice(-20)));
+  } catch {
+    // 残せなくても、リンクで戻せる
+  }
+}
+
+// 試合結果の欄の「くみあわせに結果を戻す」を、くみあわせの試合のときだけ出す
+function renderQumiawase() {
+  const box = $("qumiawaseBox");
+  if (box) box.hidden = !state.qumiawase;
+}
+
+/**
+ * くみあわせから受けとった試合を入れる：チーム名・色・会場・日時と、結果を戻す先。ちがう試合なら試合結果は空にする。
+ * いまのチーム名・試合結果があれば確かめてから。入れたら「元に戻す」つきで知らせる
+ */
+async function takeMatch(m) {
+  const same = state.team === m.team && state.opponent === m.opponent;
+  const filled = state.team || state.opponent || Number(state.scoreUs) || Number(state.scoreThem) || state.goals.length;
+  if (filled && !same) {
+    const ok = await LineShareUI.ask({ title: "くみあわせの試合を入れますか？", text: `${m.team || "自チーム"} 対 ${m.opponent || "相手"}。いまのチーム名・色・試合結果は置きかわります（作戦盤の並び・選手はそのまま）。`, ok: "入れる" });
+    if (!ok) return;
+  }
+  const KEYS = ["team", "opponent", "ourColor", "oppColor", "where", "whenDate", "whenTime", "scoreUs", "scoreThem", "halfUs", "halfThem", "secondUs", "secondThem", "extraUs", "extraThem", "pkUs", "pkThem", "resultNote", "goals", "qumiawase"];
+  const before = JSON.parse(JSON.stringify(Object.fromEntries(KEYS.map((k) => [k, state[k]]))));
+  if (!same) {
+    ["halfUs", "halfThem", "secondUs", "secondThem", "extraUs", "extraThem", "pkUs", "pkThem", "resultNote"].forEach((k) => (state[k] = ""));
+    Object.assign(state, { scoreUs: 0, scoreThem: 0, goals: [] });
+  }
+  Object.assign(state, { team: m.team, opponent: m.opponent });
+  if (m.ourColor) state.ourColor = m.ourColor;
+  if (m.oppColor) state.oppColor = m.oppColor;
+  for (const k of ["where", "whenDate", "whenTime"]) if (m[k]) state[k] = m[k];
+  state.qumiawase = m.tid && m.mid ? { tid: m.tid, mid: m.mid } : undefined;
+  if (!state.qumiawase) delete state.qumiawase;
+  render();
+  syncResultInputs();
+  $("teamFold").open = true;
+  $("teamFold").scrollIntoView({ block: "start" });
+  LineShareUI.toast("くみあわせの試合を入れました", {
+    actionLabel: "元に戻す",
+    onAction: () => {
+      Object.assign(state, JSON.parse(JSON.stringify(before)));
+      if (!before.qumiawase) delete state.qumiawase;
+      render();
+      syncResultInputs();
+    }
+  });
 }
 
 // ?data= の文字から、作戦盤（lineup）か試合結果（result）の中身を作る。読めない・形がちがうときは null

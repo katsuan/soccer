@@ -20,3 +20,5 @@ if (openResultOnLoad) {
   $("teamFold").open = true;
   $("teamFold").scrollIntoView({ block: "start" });
 }
+// くみあわせの「さくせん盤で開く」から来たときは、その試合を入れる（いまの中身があれば確かめてから）
+if (pendingMatch) takeMatch(pendingMatch);
