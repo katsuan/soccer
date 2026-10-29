@@ -3,6 +3,11 @@
 "use strict";
 
 // ---- 作戦盤の画像（線・相手・ボールも入る）。保存にも、カードの写真にも使う ----
+
+// 画像の字の形（太さと大きさ）を返す
+const imageFont = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
+
+// 作戦盤の画像（canvas）を作って返す：見出し・コート・線・こま・交代と印の札・ボール
 async function boardCanvas() {
   if (document.fonts?.ready) await document.fonts.ready;
   const W = 1080;
@@ -12,25 +17,43 @@ async function boardCanvas() {
   const head = title ? 120 : whenText() ? 76 : 0;
   const canvas = Object.assign(document.createElement("canvas"), { width: W, height: H + head });
   const ctx = canvas.getContext("2d");
-  // 画像の字の形（太さと大きさ）を返す
-  const font = (size, weight = 800) => `${weight} ${size}px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif`;
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, W, H + head);
   ctx.textAlign = "center";
-  if (head) {
-    if (title) {
-      ctx.fillStyle = "#23302a";
-      ctx.font = font(44);
-      ctx.fillText(title, W / 2, 60);
-    }
-    ctx.font = font(28, 700);
-    ctx.fillStyle = "#5c6b62";
-    const vs = state.showOpp && oppTotal() !== state.players.length ? ` 対 ${oppTotal()}人` : "";
-    const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${vs}${state.formation ? `・${state.formation}` : ""}`;
-    ctx.fillText(`${count}${whenText() ? `・${whenText()}` : ""}`, W / 2, title ? 100 : 48);
-  }
+  if (head) drawImageHead(ctx, W, title);
   ctx.save();
   ctx.translate(0, head);
+  drawImageCourt(ctx, W, H);
+  for (const stroke of state.strokes) drawStroke(ctx, stroke, W, H, 8);
+  // 相手も、得点者の欄で名前を入れていれば名前を出す（盤と同じ）
+  if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawImageToken(ctx, W, H, p, state.oppColor, state.showNames === false ? "" : p.name, inkOn(state.oppColor), i === 0));
+  state.players.forEach((p, i) => drawImageToken(ctx, W, H, p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
+  drawImageSubs(ctx, W, H);
+  if (state.showMarks !== false) drawImageMarks(ctx, W, H);
+  if (state.showBall) {
+    ctx.font = imageFont(56, 400);
+    ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
+  }
+  ctx.restore();
+  return canvas;
+}
+
+// 画像の上の見出し：チーム名 vs 相手（入れていれば）と、サッカー・人数・フォーメーション・日時
+function drawImageHead(ctx, W, title) {
+  if (title) {
+    ctx.fillStyle = "#23302a";
+    ctx.font = imageFont(44);
+    ctx.fillText(title, W / 2, 60);
+  }
+  ctx.font = imageFont(28, 700);
+  ctx.fillStyle = "#5c6b62";
+  const vs = state.showOpp && oppTotal() !== state.players.length ? ` 対 ${oppTotal()}人` : "";
+  const count = `${state.mode === "futsal" ? "フットサル" : "サッカー"} ${state.players.length}人${vs}${state.formation ? `・${state.formation}` : ""}`;
+  ctx.fillText(`${count}${whenText() ? `・${whenText()}` : ""}`, W / 2, title ? 100 : 48);
+}
+
+// コート（緑の地・外の線・ゴール前のエリア・センターラインと円）を描く
+function drawImageCourt(ctx, W, H) {
   ctx.fillStyle = "#2e8b4a";
   ctx.fillRect(0, 0, W, H);
   ctx.strokeStyle = "rgba(255,255,255,0.67)";
@@ -65,47 +88,47 @@ async function boardCanvas() {
   ctx.beginPath();
   ctx.arc(W / 2, H / 2, W * (state.mode === "futsal" ? 0.09 : 0.11), 0, Math.PI * 2);
   ctx.stroke();
-  for (const stroke of state.strokes) drawStroke(ctx, stroke, W, H, 8);
-  // こま1つ（丸・背番号・GK の 🧤・名前）を画像に描く
-  const drawToken = (p, fill, text, numberColor = "#ffffff", keeper = false) => {
-    const x = (p.x / 100) * W;
-    const y = (p.y / 100) * H;
+}
+
+// こま1つ（丸・背番号・GK の 🧤・名前）を画像に描く
+function drawImageToken(ctx, W, H, p, fill, text, numberColor = "#ffffff", keeper = false) {
+  const x = (p.x / 100) * W;
+  const y = (p.y / 100) * H;
+  ctx.beginPath();
+  ctx.arc(x, y, 34, 0, Math.PI * 2);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = numberColor === "#ffffff" ? "#ffffff" : "#23302a";
+  ctx.stroke();
+  ctx.fillStyle = numberColor;
+  ctx.font = imageFont(30);
+  ctx.textAlign = "center";
+  ctx.fillText(p.number || "", x, y + 11);
+  if (keeper) {
+    // 緑のピッチでも見えるよう、白い丸の上に 🧤
     ctx.beginPath();
-    ctx.arc(x, y, 34, 0, Math.PI * 2);
-    ctx.fillStyle = fill;
+    ctx.arc(x - 30, y + 28, 20, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
     ctx.fill();
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = numberColor === "#ffffff" ? "#ffffff" : "#23302a";
-    ctx.stroke();
-    ctx.fillStyle = numberColor;
-    ctx.font = font(30);
-    ctx.textAlign = "center";
-    ctx.fillText(p.number || "", x, y + 11);
-    if (keeper) {
-      // 緑のピッチでも見えるよう、白い丸の上に 🧤
-      ctx.beginPath();
-      ctx.arc(x - 30, y + 28, 20, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-      ctx.font = font(24, 400);
-      ctx.fillText("🧤", x - 30, y + 36);
-    }
-    if (text) {
-      // 名前：白線と重なっても読めるよう、盤と同じ半透明の濃い札に入れる
-      ctx.font = font(26);
-      const w = ctx.measureText(text).width + 20;
-      ctx.fillStyle = "rgba(16, 36, 24, 0.72)";
-      ctx.beginPath();
-      ctx.roundRect(x - w / 2, y + 48, w, 36, 18);
-      ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(text, x, y + 74);
-    }
-  };
-  // 相手も、得点者の欄で名前を入れていれば名前を出す（盤と同じ）
-  if (state.showOpp) (state.opp || opponents()).forEach((p, i) => drawToken(p, state.oppColor, state.showNames === false ? "" : p.name, inkOn(state.oppColor), i === 0));
-  state.players.forEach((p, i) => drawToken(p, state.ourColor, state.showNames === false ? "" : p.name, inkOn(state.ourColor), i === 0));
-  // 交代して入った選手：丸の右上に小さく 🔄（盤と同じ）
+    ctx.font = imageFont(24, 400);
+    ctx.fillText("🧤", x - 30, y + 36);
+  }
+  if (text) {
+    // 名前：白線と重なっても読めるよう、盤と同じ半透明の濃い札に入れる
+    ctx.font = imageFont(26);
+    const w = ctx.measureText(text).width + 20;
+    ctx.fillStyle = "rgba(16, 36, 24, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(x - w / 2, y + 48, w, 36, 18);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(text, x, y + 74);
+  }
+}
+
+// 交代して入った選手：丸の右上に小さく 🔄（盤と同じ）。交代前の選手の得点・OG も
+function drawImageSubs(ctx, W, H) {
   [...state.players.map((p) => [p, "u"]), ...(state.showOpp ? (state.opp || []).map((p) => [p, "t"]) : [])].forEach(([p, team]) => {
     if (!p.subs?.length) return;
     const x = (p.x / 100) * W + 30;
@@ -114,13 +137,13 @@ async function boardCanvas() {
     ctx.arc(x, y, 18, 0, Math.PI * 2);
     ctx.fillStyle = "#ffffff";
     ctx.fill();
-    ctx.font = font(20, 400);
+    ctx.font = imageFont(20, 400);
     ctx.textAlign = "center";
     ctx.fillText("🔄", x, y + 7);
     // 交代前の選手の得点・OG：🔄 の右下に小さく（⚽・赤いボール）
     const parts = markParts(subGoalsOf(p, team));
     if (!parts.length) return;
-    ctx.font = font(18, 400);
+    ctx.font = imageFont(18, 400);
     const pieces = parts.flatMap((part) => [
       ...Array.from({ length: part.count }, () => ({ text: part.icon, red: part.red })),
       ...(part.label ? [{ text: part.label }] : [])
@@ -143,18 +166,21 @@ async function boardCanvas() {
     });
     ctx.textAlign = "center";
   });
-  // 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く。
-  // 相手は、試合結果の得点者から数えた ⚽・OG（盤と同じ）
+}
+
+// 印（イエロー・ゴールなど）：丸の右下（GK の 🧤 は左下）に、白い角丸の札に入れて。オウンゴールのボールは赤く。
+// 相手は、試合結果の得点者から数えた ⚽・OG（盤と同じ）
+function drawImageMarks(ctx, W, H) {
   const marked = [
     ...state.players.map((p) => [p, playerMarksOf(p)]),
     ...(state.showOpp ? (state.opp || []).map((p) => [p, oppMarksOf(p)]) : [])
   ];
-  if (state.showMarks !== false) marked.forEach(([p, marks]) => {
+  marked.forEach(([p, marks]) => {
     const parts = markParts(marks);
     if (!parts.length) return;
     const x = (p.x / 100) * W;
     const y = (p.y / 100) * H;
-    ctx.font = font(26, 400);
+    ctx.font = imageFont(26, 400);
     const pieces = parts.flatMap((part) => [
       ...Array.from({ length: part.count }, () => ({ text: part.icon, red: part.red, icon: true })),
       ...(part.label ? [{ text: part.label }] : [])
@@ -181,12 +207,6 @@ async function boardCanvas() {
     });
     ctx.textAlign = "center";
   });
-  if (state.showBall) {
-    ctx.font = font(56, 400);
-    ctx.fillText("⚽", (state.ball.x / 100) * W, (state.ball.y / 100) * H + 20);
-  }
-  ctx.restore();
-  return canvas;
 }
 
 // オウンゴールの赤いボール：⚽ を小さなキャンバスに描き、ボールの形の上だけに赤を重ねる（白い所は薄い赤、黒い所は濃い赤）
@@ -195,7 +215,7 @@ function redBall(icon, width) {
   c.width = Math.ceil(width);
   c.height = 36;
   const g = c.getContext("2d");
-  g.font = '400 26px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif'; // boardCanvas の font(26, 400) と同じ
+  g.font = '400 26px "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", sans-serif'; // imageFont(26, 400) と同じ
   g.textAlign = "left";
   g.fillText(icon, 0, 27);
   g.globalCompositeOperation = "source-atop";

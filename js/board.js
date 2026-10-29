@@ -46,6 +46,18 @@ function render() {
   $("playerCount").textContent = `${state.players.length}人`;
   $("removePlayer").disabled = state.players.length <= MIN_PLAYERS;
   $("addPlayer").disabled = state.players.length >= MAX_PLAYERS;
+  renderFormationPanel(court);
+  // チームの色：チーム名の左の丸。押すと、チームの欄の下に横いっぱいの1行で選べる色（ろくがのアプリ版の TeamField と同じ形）
+  renderTeamColors();
+  board.classList.toggle("is-futsal", state.mode === "futsal");
+  renderTokens();
+  drawInk();
+  renderBoardTools();
+  renderTeamPanel();
+}
+
+// 📐 並びの欄（相手の並びの直し・フォーメーションのプルダウン・カスタム・列ごとの形）を描きなおす
+function renderFormationPanel(court) {
   // 相手のフォーメーション（人数を変えたあとは ""＝今の相手をそのまま使う）。
   // 今のコートより人数が多い並び（フットサルなのにサッカーの 4-4-2 など）は、自チームの並びにそろえる。
   // カスタム（4-4-1 など一覧にない並び）でも、コートの人数に収まれば残す（11人制のコートは、12人以上の練習試合もあるので上限まで）
@@ -138,12 +150,10 @@ function render() {
   if ($("customRow").hidden) $("shapeNote").classList.remove("is-error");
   if ($("customRow").hidden) $("shapeNote").textContent = opp && !state.showOpp ? "相手はいま出していません。「👁️ 表示」で出すか、ここでフォーメーションを選ぶと出ます。" : "";
   renderLineShapes(opp ? "opp" : "ours");
-  // チームの色：チーム名の左の丸。押すと、チームの欄の下に横いっぱいの1行で選べる色（ろくがのアプリ版の TeamField と同じ形）
-  renderTeamColors();
-  board.classList.toggle("is-futsal", state.mode === "futsal");
-  renderTokens();
-  drawInk();
-  // 作戦盤の道具
+}
+
+// 作戦盤の道具（👁️ 表示・ペン・📐 並び・↩️ 戻す・案内の文・ペンの色）を描きなおす
+function renderBoardTools() {
   $("toggleView").setAttribute("aria-pressed", String(viewMode));
   $("viewTools").hidden = !viewMode;
   $("ballOn").setAttribute("aria-checked", String(!!state.showBall));
@@ -169,16 +179,6 @@ function render() {
     : shapeMode
       ? "フォーメーションを選ぶと、その形に並べ直します。"
       : "ドラッグで移動、長押しで背番号・得点など。なぞって囲むと、まとめて動かせます。";
-  // チームの欄：人数（相手を出しているときは差も）
-  const ours = state.players.length;
-  const theirs = oppTotal();
-  const vs = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
-  $("oppCount").textContent = `${theirs}人`;
-  $("countVs").textContent = state.showOpp ? vs : "";
-  $("removeOpp").disabled = theirs <= MIN_PLAYERS;
-  $("addOpp").disabled = theirs >= MAX_PLAYERS;
-  $("infoMeta").textContent = [whenText(), state.where].filter(Boolean).join("・") || "なし";
-  renderVenues(); // 保存した場所のプルダウン（今の場所を選んでおく・保存ボタンの押せる／押せない）
   $("penColors").replaceChildren(
     ...PEN_COLORS.map((color) => {
       const b = chip("", state.penColor === color, () => {
@@ -191,6 +191,20 @@ function render() {
       return b;
     })
   );
+}
+
+// 👕 チーム・試合結果の欄（人数・会場の見出し・名簿・得点者・スコアの見出し・印から入るもの・内訳）を描きなおす
+function renderTeamPanel() {
+  // チームの欄：人数（相手を出しているときは差も）
+  const ours = state.players.length;
+  const theirs = oppTotal();
+  const vs = `${ours} 対 ${theirs}${ours > theirs ? "（数的有利）" : ours < theirs ? "（数的不利）" : ""}`;
+  $("oppCount").textContent = `${theirs}人`;
+  $("countVs").textContent = state.showOpp ? vs : "";
+  $("removeOpp").disabled = theirs <= MIN_PLAYERS;
+  $("addOpp").disabled = theirs >= MAX_PLAYERS;
+  $("infoMeta").textContent = [whenText(), state.where].filter(Boolean).join("・") || "なし";
+  renderVenues(); // 保存した場所のプルダウン（今の場所を選んでおく・保存ボタンの押せる／押せない）
   // 名簿
   const people = parseRoster();
   $("rosterCount").textContent = people.length ? `${people.length}人` : "なし";
@@ -218,8 +232,8 @@ function render() {
     .filter(([, a, b]) => state[a] !== "" && state[b] !== "")
     .map(([label]) => label);
   $("periodMeta").textContent = periods.join("・") || "なし";
-  // おくるんへのリンク（押したときに最新を作る）
 }
+
 
 // 列ごとの形（自チームの今のフォーメーション）。2〜5人の列だけ、形のボタンを並べる。選ぶとその形で並べ直す
 function renderLineShapes(side = "ours") {

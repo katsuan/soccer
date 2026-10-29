@@ -308,10 +308,6 @@ input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-dat
 .period-row span:not(.ls-label) { font-size: 18px; font-weight: 800; }
 .period-row input { padding: 8px; font-size: 16px; font-weight: 800; text-align: center; }
 
-#formationRows { margin-top: 8px; }
-
-/* ツールの名前（さくせん盤）の下の小さな英字 */
-
 /* 見出し：アイコン＋名前と横長のロゴを1行に（縦を詰める） */
 .top { gap: 8px; }
 

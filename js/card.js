@@ -59,16 +59,6 @@ function boardLinkUrl() {
   return EDITOR_URL;
 }
 
-// スタメンのカードを開くおくるんの URL を返す
-function lineupCardUrl() {
-  return OQRN.cardUrl(lineupCardQuery());
-}
-
-// 試合結果のカードを開くおくるんの URL を返す
-function resultCardUrl() {
-  return OQRN.cardUrl(resultCardQuery());
-}
-
 // 何枚かまとめて送る（スタメン → 試合結果 の順。1枚の LINE メッセージに横に並ぶ）。
 // 2枚目からは、おくるんの card パラメータに、そのカードのパラメータをまるごと入れて渡す
 function cardsUrl({ lineup = true, result = false } = {}) {

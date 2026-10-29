@@ -74,8 +74,10 @@ function qumiawaseResult() {
   const q = state.qumiawase;
   if (!q) return null;
   const n = (v) => Math.min(99, Math.max(0, Math.floor(Number(v)) || 0));
-  const pk = state.pkUs !== "" && state.pkThem !== "" ? { pk: [n(state.pkUs), n(state.pkThem)] } : {};
-  return { tid: q.tid, mid: q.mid, s: [n(state.scoreUs), n(state.scoreThem)], ...pk };
+  const s = [n(state.scoreUs), n(state.scoreThem)];
+  // PK は同点のときだけ（点を入れなおして同点でなくなったら、残っている PK は送らない）
+  const pk = s[0] === s[1] && state.pkUs !== "" && state.pkThem !== "" ? { pk: [n(state.pkUs), n(state.pkThem)] } : {};
+  return { tid: q.tid, mid: q.mid, s, ...pk };
 }
 
 // くみあわせへ結果を戻すリンク（くみあわせの URL ＋ ?result=中身）を返す

@@ -180,7 +180,7 @@ test("くみあわせの「さくせん盤で開く」（?match=）：チーム�
   assert.equal(read(b64({ t: "a", tid: "../x", mid: "<b>" })).tid, "");
 });
 
-test("くみあわせへ結果を戻す中身：自チーム・相手の点と、PK（両方入れたときだけ）", () => {
+test("くみあわせへ結果を戻す中身：自チーム・相手の点と、PK（両方入れて同点のときだけ）", () => {
   const { state, get } = boot();
   state.qumiawase = { tid: "q1", mid: "L2-1" };
   state.scoreUs = "3";
@@ -190,6 +190,9 @@ test("くみあわせへ結果を戻す中身：自チーム・相手の点と�
   assert.deepEqual(JSON.parse(JSON.stringify(get("qumiawaseResult()"))), { tid: "q1", mid: "L2-1", s: [3, 3] });
   state.pkUs = 5;
   assert.deepEqual(JSON.parse(JSON.stringify(get("qumiawaseResult()"))), { tid: "q1", mid: "L2-1", s: [3, 3], pk: [5, 4] });
+  // 点を入れなおして同点でなくなったら、残っている PK は送らない
+  state.scoreUs = 4;
+  assert.deepEqual(JSON.parse(JSON.stringify(get("qumiawaseResult()"))), { tid: "q1", mid: "L2-1", s: [4, 3] });
   delete state.qumiawase;
   assert.equal(get("qumiawaseResult()"), null);
 });
