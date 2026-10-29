@@ -251,12 +251,7 @@ $("shareQumiawase").addEventListener("click", async () => {
   } catch (e) {
     if (e?.name === "AbortError") return;
   }
-  try {
-    await navigator.clipboard.writeText(url);
-    LineShareUI.toast("結果のリンクをコピーしました。くみあわせを使っている人に送ってね");
-  } catch {
-    LineShareUI.ask({ title: "結果のリンク", text: "長押しでコピーしてね", input: url, readonly: true, ok: "閉じる", cancel: null });
-  }
+  LineShareUI.copy(url, { done: "結果のリンクをコピーしました。くみあわせを使っている人に送ってね", title: "結果のリンク", hint: "長押しでコピーしてね" });
 });
 $("roster").value = roster;
 $("roster").addEventListener("input", () => {
